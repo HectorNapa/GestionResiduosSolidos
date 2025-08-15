@@ -1,0 +1,525 @@
+window.routesModule = {
+    routes: [
+        {
+            id: 1,
+            name: 'Ruta Norte A',
+            code: 'R-001',
+            vehicle: 'Camión C-001',
+            driver: 'Carlos Rodríguez',
+            helper: 'Ana García',
+            date: '2024-01-16',
+            startTime: '08:00',
+            estimatedDuration: '4 horas',
+            status: 'Programada',
+            collectionPoints: [
+                { address: 'Av. Principal 123', client: 'Empresa ABC', wasteType: 'Orgánico', estimated: '2.5 m³' },
+                { address: 'Calle Norte 456', client: 'Oficinas XYZ', wasteType: 'Reciclable', estimated: '1.8 m³' },
+                { address: 'Av. Central 789', client: 'Hotel Plaza', wasteType: 'Orgánico', estimated: '3.2 m³' }
+            ]
+        },
+        {
+            id: 2,
+            name: 'Ruta Centro B',
+            code: 'R-002',
+            vehicle: 'Camión C-002',
+            driver: 'Luis Martínez',
+            helper: 'Pedro Silva',
+            date: '2024-01-16',
+            startTime: '13:00',
+            estimatedDuration: '3.5 horas',
+            status: 'En Progreso',
+            collectionPoints: [
+                { address: 'Plaza Mayor 100', client: 'Restaurante Central', wasteType: 'Orgánico', estimated: '4.1 m³' },
+                { address: 'Calle Comercio 250', client: 'Tienda Moderna', wasteType: 'Reciclable', estimated: '0.8 m³' }
+            ]
+        }
+    ],
+
+    vehicles: [
+        { id: 1, code: 'C-001', brand: 'Mercedes', model: 'Actros', capacity: '15 m³', status: 'Disponible' },
+        { id: 2, code: 'C-002', brand: 'Volvo', model: 'FH', capacity: '18 m³', status: 'En Ruta' },
+        { id: 3, code: 'C-003', brand: 'Scania', model: 'R450', capacity: '20 m³', status: 'Mantenimiento' }
+    ],
+
+    drivers: [
+        { id: 1, name: 'Carlos Rodríguez', license: 'A-12345', status: 'Disponible' },
+        { id: 2, name: 'Luis Martínez', license: 'A-67890', status: 'En Ruta' },
+        { id: 3, name: 'Miguel Torres', license: 'A-11223', status: 'Disponible' }
+    ],
+
+    load() {
+        const contentArea = document.getElementById('content-area');
+        contentArea.innerHTML = `
+            <div class="mb-6">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold text-gray-800">Planificación de Rutas</h1>
+                    <button onclick="routesModule.showNewRouteModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i class="fas fa-plus mr-2"></i>Nueva Ruta
+                    </button>
+                </div>
+                <p class="text-gray-600">Organiza y gestiona las rutas de recolección</p>
+            </div>
+
+            <!-- Route Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100">Rutas Hoy</p>
+                            <p class="text-3xl font-bold">${this.getTodayRoutesCount()}</p>
+                        </div>
+                        <i class="fas fa-route text-4xl text-blue-200"></i>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100">Completadas</p>
+                            <p class="text-3xl font-bold">${this.getCompletedRoutesCount()}</p>
+                        </div>
+                        <i class="fas fa-check-circle text-4xl text-green-200"></i>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-100">En Progreso</p>
+                            <p class="text-3xl font-bold">${this.getInProgressRoutesCount()}</p>
+                        </div>
+                        <i class="fas fa-truck text-4xl text-yellow-200"></i>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100">Vehículos Activos</p>
+                            <p class="text-3xl font-bold">${this.getActiveVehiclesCount()}</p>
+                        </div>
+                        <i class="fas fa-truck-moving text-4xl text-purple-200"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="mb-6">
+                <nav class="flex space-x-8">
+                    <a href="#" onclick="routesModule.showTab('routes')" id="routes-tab" 
+                       class="tab-link active border-b-2 border-blue-500 text-blue-600 py-2 px-1 font-medium">
+                        Rutas del Día
+                    </a>
+                    <a href="#" onclick="routesModule.showTab('vehicles')" id="vehicles-tab"
+                       class="tab-link text-gray-500 hover:text-gray-700 py-2 px-1 font-medium">
+                        Vehículos
+                    </a>
+                    <a href="#" onclick="routesModule.showTab('optimization')" id="optimization-tab"
+                       class="tab-link text-gray-500 hover:text-gray-700 py-2 px-1 font-medium">
+                        Optimización
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tab-content">
+                <!-- Content will be loaded here -->
+            </div>
+        `;
+
+        this.showTab('routes');
+    },
+
+    showTab(tabName) {
+        // Update tab navigation
+        document.querySelectorAll('.tab-link').forEach(tab => {
+            tab.classList.remove('active', 'border-b-2', 'border-blue-500', 'text-blue-600');
+            tab.classList.add('text-gray-500', 'hover:text-gray-700');
+        });
+
+        const activeTab = document.getElementById(`${tabName}-tab`);
+        activeTab.classList.add('active', 'border-b-2', 'border-blue-500', 'text-blue-600');
+        activeTab.classList.remove('text-gray-500', 'hover:text-gray-700');
+
+        // Load tab content
+        const tabContent = document.getElementById('tab-content');
+        
+        switch(tabName) {
+            case 'routes':
+                this.loadRoutesTab(tabContent);
+                break;
+            case 'vehicles':
+                this.loadVehiclesTab(tabContent);
+                break;
+            case 'optimization':
+                this.loadOptimizationTab(tabContent);
+                break;
+        }
+    },
+
+    loadRoutesTab(container) {
+        container.innerHTML = `
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Rutas del Día - ${this.formatDate(new Date())}</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="routesModule.optimizeRoutes()" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                                <i class="fas fa-magic mr-1"></i>Optimizar
+                            </button>
+                            <button onclick="routesModule.exportRoutes()" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">
+                                <i class="fas fa-download mr-1"></i>Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    ${this.routes.map(route => `
+                        <div class="border rounded-lg p-4 ${this.getRouteStatusBorderClass(route.status)}">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <h4 class="text-lg font-semibold">${route.name}</h4>
+                                        <span class="text-sm text-gray-500">${route.code}</span>
+                                        <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(route.status)}">
+                                            ${route.status}
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-truck mr-2"></i>
+                                            <span>${route.vehicle}</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-user mr-2"></i>
+                                            <span>${route.driver}</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-clock mr-2"></i>
+                                            <span>${route.startTime} - ${route.estimatedDuration}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="routesModule.viewRoute(${route.id})" 
+                                            class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="routesModule.editRoute(${route.id})" 
+                                            class="text-green-600 hover:text-green-900" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="routesModule.trackRoute(${route.id})" 
+                                            class="text-yellow-600 hover:text-yellow-900" title="Rastrear">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <h5 class="font-medium mb-2">Puntos de Recolección (${route.collectionPoints.length})</h5>
+                                <div class="space-y-2">
+                                    ${route.collectionPoints.map((point, index) => `
+                                        <div class="flex items-center justify-between text-sm">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                    ${index + 1}
+                                                </span>
+                                                <div>
+                                                    <div class="font-medium">${point.client}</div>
+                                                    <div class="text-gray-600">${point.address}</div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-gray-900">${point.estimated}</div>
+                                                <div class="text-gray-500">${point.wasteType}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    loadVehiclesTab(container) {
+        container.innerHTML = `
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold">Gestión de Vehículos</h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehículo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacidad</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asignado a</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${this.vehicles.map(vehicle => {
+                                const assignedRoute = this.routes.find(r => r.vehicle === vehicle.code);
+                                return `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium">${vehicle.code}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div class="font-medium">${vehicle.brand} ${vehicle.model}</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">${vehicle.capacity}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full ${this.getVehicleStatusClass(vehicle.status)}">
+                                                ${vehicle.status}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            ${assignedRoute ? `${assignedRoute.name} (${assignedRoute.driver})` : 'No asignado'}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button class="text-blue-600 hover:text-blue-900 mr-2">Ver</button>
+                                            <button class="text-green-600 hover:text-green-900">Editar</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-6 bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold">Conductores Disponibles</h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Licencia</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruta Asignada</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${this.drivers.map(driver => {
+                                const assignedRoute = this.routes.find(r => r.driver === driver.name);
+                                return `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium">${driver.name}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">${driver.license}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full ${this.getDriverStatusClass(driver.status)}">
+                                                ${driver.status}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            ${assignedRoute ? assignedRoute.name : 'No asignado'}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button class="text-blue-600 hover:text-blue-900 mr-2">Ver</button>
+                                            <button class="text-green-600 hover:text-green-900">Editar</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    },
+
+    loadOptimizationTab(container) {
+        container.innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4">Optimización de Rutas</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Criterio de Optimización</label>
+                            <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                <option>Distancia Mínima</option>
+                                <option>Tiempo Mínimo</option>
+                                <option>Combustible Mínimo</option>
+                                <option>Capacidad Máxima</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Restricciones</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="mr-2" checked>
+                                    <span class="text-sm">Respetar horarios de clientes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="mr-2" checked>
+                                    <span class="text-sm">Considerar capacidad de vehículos</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="mr-2">
+                                    <span class="text-sm">Evitar tráfico pesado</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button onclick="routesModule.runOptimization()" 
+                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-magic mr-2"></i>Ejecutar Optimización
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4">Métricas de Rendimiento</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Distancia Total Planificada:</span>
+                            <span class="font-medium">245 km</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Tiempo Estimado Total:</span>
+                            <span class="font-medium">12.5 horas</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Combustible Estimado:</span>
+                            <span class="font-medium">98 litros</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Eficiencia de Carga:</span>
+                            <span class="font-medium text-green-600">87%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Costo Operacional:</span>
+                            <span class="font-medium">$450</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4">Mapa de Rutas</h3>
+                    <div class="bg-gray-200 h-96 rounded-lg flex items-center justify-center">
+                        <div class="text-center text-gray-500">
+                            <i class="fas fa-map text-4xl mb-2"></i>
+                            <p>Mapa interactivo de rutas optimizadas</p>
+                            <p class="text-sm">Integración con Google Maps o similar</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    // Helper methods
+    getTodayRoutesCount() {
+        return this.routes.length;
+    },
+
+    getCompletedRoutesCount() {
+        return this.routes.filter(r => r.status === 'Completada').length;
+    },
+
+    getInProgressRoutesCount() {
+        return this.routes.filter(r => r.status === 'En Progreso').length;
+    },
+
+    getActiveVehiclesCount() {
+        return this.vehicles.filter(v => v.status === 'En Ruta').length;
+    },
+
+    getRouteStatusBorderClass(status) {
+        const classes = {
+            'Programada': 'border-blue-200',
+            'En Progreso': 'border-yellow-200',
+            'Completada': 'border-green-200',
+            'Cancelada': 'border-red-200'
+        };
+        return classes[status] || 'border-gray-200';
+    },
+
+    getStatusClass(status) {
+        const classes = {
+            'Programada': 'bg-blue-100 text-blue-800',
+            'En Progreso': 'bg-yellow-100 text-yellow-800',
+            'Completada': 'bg-green-100 text-green-800',
+            'Cancelada': 'bg-red-100 text-red-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    getVehicleStatusClass(status) {
+        const classes = {
+            'Disponible': 'bg-green-100 text-green-800',
+            'En Ruta': 'bg-blue-100 text-blue-800',
+            'Mantenimiento': 'bg-red-100 text-red-800',
+            'Fuera de Servicio': 'bg-gray-100 text-gray-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    getDriverStatusClass(status) {
+        const classes = {
+            'Disponible': 'bg-green-100 text-green-800',
+            'En Ruta': 'bg-blue-100 text-blue-800',
+            'Descanso': 'bg-yellow-100 text-yellow-800',
+            'No Disponible': 'bg-red-100 text-red-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    formatDate(date) {
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        return date.toLocaleDateString('es-ES', options);
+    },
+
+    // Action methods
+    viewRoute(id) {
+        authSystem.showNotification('Función de visualización en desarrollo', 'info');
+    },
+
+    editRoute(id) {
+        authSystem.showNotification('Función de edición en desarrollo', 'info');
+    },
+
+    trackRoute(id) {
+        authSystem.showNotification('Función de rastreo en desarrollo', 'info');
+    },
+
+    optimizeRoutes() {
+        authSystem.showNotification('Optimizando rutas...', 'info');
+        setTimeout(() => {
+            authSystem.showNotification('Rutas optimizadas exitosamente', 'success');
+        }, 2000);
+    },
+
+    exportRoutes() {
+        authSystem.showNotification('Exportando rutas...', 'info');
+    },
+
+    runOptimization() {
+        authSystem.showNotification('Ejecutando optimización...', 'info');
+        setTimeout(() => {
+            authSystem.showNotification('Optimización completada', 'success');
+        }, 3000);
+    },
+
+    showNewRouteModal() {
+        authSystem.showNotification('Modal de nueva ruta en desarrollo', 'info');
+    }
+};
