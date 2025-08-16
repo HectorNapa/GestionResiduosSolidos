@@ -1,64 +1,67 @@
 window.servicesModule = {
-    services: [],
+  services: [],
 
-    // Inicializar el módulo y cargar datos guardados
-    init() {
-        this.loadSavedServices();
-    },
+  // Inicializar el módulo y cargar datos guardados
+  init() {
+    this.loadSavedServices();
+  },
 
-    // Cargar servicios guardados en localStorage
-    loadSavedServices() {
-        try {
-            const savedServices = localStorage.getItem('ecogestion_services');
-            if (savedServices) {
-                this.services = JSON.parse(savedServices);
-            } else {
-                // Si no hay datos guardados, usar datos por defecto
-                this.services = [
-        {
+  // Cargar servicios guardados en localStorage
+  loadSavedServices() {
+    try {
+      const savedServices = localStorage.getItem("ecogestion_services");
+      if (savedServices) {
+        this.services = JSON.parse(savedServices);
+      } else {
+        // Si no hay datos guardados, usar datos por defecto
+        this.services = [
+          {
             id: 1,
-            clientName: 'Empresa ABC S.A.',
-            address: 'Av. Principal 123, Zona Norte',
-            wasteType: 'Orgánico',
-            estimatedVolume: '2.5',
-            requestedDate: '2024-01-16',
-            status: 'Pendiente',
-            priority: 'Media',
-            createdDate: '2024-01-15'
-        },
-        {
+            clientName: "Empresa ABC S.A.",
+            address: "Av. Principal 123, Zona Norte",
+            wasteType: "Orgánico",
+            estimatedVolume: "2.5",
+            requestedDate: "2024-01-16",
+            status: "Pendiente",
+            priority: "Media",
+            createdDate: "2024-01-15",
+          },
+          {
             id: 2,
-            clientName: 'Industrias XYZ',
-            address: 'Calle Secundaria 456, Centro',
-            wasteType: 'Reciclable',
-            estimatedVolume: '5.0',
-            requestedDate: '2024-01-17',
-            status: 'Programado',
-            priority: 'Alta',
-            createdDate: '2024-01-14'
-        }
-                ];
-                this.saveServices();
-            }
-        } catch (error) {
-            console.error('Error al cargar servicios guardados:', error);
-            // En caso de error, usar datos por defecto
-            this.services = [];
-        }
-    },
+            clientName: "Industrias XYZ",
+            address: "Calle Secundaria 456, Centro",
+            wasteType: "Reciclable",
+            estimatedVolume: "5.0",
+            requestedDate: "2024-01-17",
+            status: "Programado",
+            priority: "Alta",
+            createdDate: "2024-01-14",
+          },
+        ];
+        this.saveServices();
+      }
+    } catch (error) {
+      console.error("Error al cargar servicios guardados:", error);
+      // En caso de error, usar datos por defecto
+      this.services = [];
+    }
+  },
 
-    // Guardar servicios en localStorage
-    saveServices() {
-        try {
-            localStorage.setItem('ecogestion_services', JSON.stringify(this.services));
-        } catch (error) {
-            console.error('Error al guardar servicios:', error);
-        }
-    },
+  // Guardar servicios en localStorage
+  saveServices() {
+    try {
+      localStorage.setItem(
+        "ecogestion_services",
+        JSON.stringify(this.services)
+      );
+    } catch (error) {
+      console.error("Error al guardar servicios:", error);
+    }
+  },
 
-    load() {
-        const contentArea = document.getElementById('content-area');
-        contentArea.innerHTML = `
+  load() {
+    const contentArea = document.getElementById("content-area");
+    contentArea.innerHTML = `
             <div class="mb-6">
                 <div class="flex justify-between items-center">
                     <h1 class="text-3xl font-bold text-gray-800">Gestión de Solicitudes</h1>
@@ -137,15 +140,15 @@ window.servicesModule = {
             </div>
         `;
 
-        this.loadServicesTable();
-    },
+    this.loadServicesTable();
+  },
 
-    loadNewService() {
-        const contentArea = document.getElementById('content-area');
-        const currentUser = app.currentUser;
-        const isClient = currentUser && currentUser.type === 'client';
-        
-        contentArea.innerHTML = `
+  loadNewService() {
+    const contentArea = document.getElementById("content-area");
+    const currentUser = app.currentUser;
+    const isClient = currentUser && currentUser.type === "client";
+
+    contentArea.innerHTML = `
             <div class="mb-6">
                 <h1 class="text-3xl font-bold text-gray-800">Nueva Solicitud de Servicio</h1>
                 <p class="text-gray-600">Ingresa los detalles para la nueva solicitud de recolección</p>
@@ -153,7 +156,9 @@ window.servicesModule = {
 
             <div class="bg-white rounded-lg shadow p-6">
                 <form id="new-service-form" class="space-y-6">
-                    ${!isClient ? `
+                    ${
+                      !isClient
+                        ? `
                         <!-- Información del Cliente -->
                         <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
                             <div class="flex">
@@ -176,7 +181,13 @@ window.servicesModule = {
                                 </label>
                                 <input type="email" id="client-email" required 
                                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                       placeholder="cliente@empresa.com">
+                                       inputmode="email"
+                                       autocomplete="email"
+                                       pattern="^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$"
+                                       placeholder="cliente@empresa.com"/>
+                                <p id="client-email-error" class="mt-1 text-sm text-red-600 hidden">
+                                    Ingresa un email válido (ej. usuario@dominio.com).
+                                </p>
                             </div>
 
                             <div>
@@ -215,7 +226,8 @@ window.servicesModule = {
                                       placeholder="Dirección completa con referencias"></textarea>
                             </div>
                         </div>
-                    ` : `
+                    `
+                        : `
                         <!-- Información del Cliente (Pre-llenada para clientes) -->
                         <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
                             <div class="flex">
@@ -224,7 +236,9 @@ window.servicesModule = {
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-sm text-green-700">
-                                        <strong>Cliente:</strong> ${currentUser.name} (${currentUser.email})
+                                        <strong>Cliente:</strong> ${
+                                          currentUser.name
+                                        } (${currentUser.email})
                                     </p>
                                 </div>
                             </div>
@@ -246,7 +260,7 @@ window.servicesModule = {
                                 </label>
                                 <input type="tel" id="client-phone" readonly 
                                        class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600"
-                                       value="${currentUser.phone || ''}">
+                                       value="${currentUser.phone || ""}">
                             </div>
 
                             <div class="md:col-span-2">
@@ -254,10 +268,13 @@ window.servicesModule = {
                                     Dirección Completa
                                 </label>
                                 <textarea id="client-address" readonly rows="3"
-                                          class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600">${currentUser.address || ''}</textarea>
+                                          class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600">${
+                                            currentUser.address || ""
+                                          }</textarea>
                             </div>
                         </div>
-                    `}
+                    `
+                    }
 
                     <!-- Información del Servicio -->
                     <div class="md:col-span-2">
@@ -364,282 +381,302 @@ window.servicesModule = {
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6 border-t">
-                        <button type="button" onclick="${isClient ? 'servicesModule.loadClientView()' : 'app.loadModule(\'dashboard\')'}" 
+                        <button type="button" onclick="app.loadModule('services')" 
                                 class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                             Cancelar
                         </button>
                         <button type="submit" 
                                 class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            <i class="fas fa-save mr-2"></i>${isClient ? 'Crear Solicitud' : 'Crear Solicitud y Usuario'}
+                            <i class="fas fa-save mr-2"></i>${
+                              isClient
+                                ? "Crear Solicitud"
+                                : "Crear Solicitud y Usuario"
+                            }
                         </button>
                     </div>
                 </form>
             </div>
         `;
 
-        this.initNewServiceForm();
-    },
+    this.initNewServiceForm();
+  },
 
-    initNewServiceForm() {
-        const form = document.getElementById('new-service-form');
-        const preferredTimeSelect = document.getElementById('preferred-time');
-        const specificTimeContainer = document.getElementById('specific-time-container');
+  initNewServiceForm() {
+    const form = document.getElementById("new-service-form");
+    const preferredTimeSelect = document.getElementById("preferred-time");
+    const specificTimeContainer = document.getElementById(
+      "specific-time-container"
+    );
 
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('requested-date').min = today;
+    // Set minimum date to today
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("requested-date").min = today;
 
-        // Handle specific time selection
-        preferredTimeSelect.addEventListener('change', function() {
-            if (this.value === 'specific') {
-                specificTimeContainer.classList.remove('hidden');
-            } else {
-                specificTimeContainer.classList.add('hidden');
-            }
-        });
+    // Handle specific time selection
+    preferredTimeSelect.addEventListener("change", function () {
+      if (this.value === "specific") {
+        specificTimeContainer.classList.remove("hidden");
+      } else {
+        specificTimeContainer.classList.add("hidden");
+      }
+    });
 
-        // Handle form submission
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveNewService();
-        });
-    },
+    // Handle form submission
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.saveNewService();
+    });
+  },
 
-    saveNewService() {
-        const currentUser = app.currentUser;
-        const isClient = currentUser && currentUser.type === 'client';
-        
-        let formData;
-        
-        if (isClient) {
-            // Cliente creando solicitud - usar datos pre-llenados
-            formData = {
-                clientEmail: currentUser.email,
-                clientCedula: currentUser.cedula || '',
-                clientName: currentUser.name,
-                clientPhone: currentUser.phone || '',
-                address: currentUser.address || '',
-                wasteType: document.getElementById('waste-type').value,
-                estimatedVolume: document.getElementById('estimated-volume').value,
-                volumeUnit: document.getElementById('volume-unit').value,
-                requestedDate: document.getElementById('requested-date').value,
-                preferredTime: document.getElementById('preferred-time').value,
-                specificTime: document.getElementById('specific-time').value,
-                priority: document.getElementById('priority').value,
-                additionalNotes: document.getElementById('additional-notes').value,
-                status: 'Pendiente de Aprobación',
-                createdDate: new Date().toISOString().split('T')[0],
-                createdBy: currentUser.id
-            };
-        } else {
-            // Admin creando solicitud - usar datos del formulario
-            formData = {
-                clientEmail: document.getElementById('client-email').value,
-                clientCedula: document.getElementById('client-cedula').value,
-            clientName: document.getElementById('client-name').value,
-            clientPhone: document.getElementById('client-phone').value,
-            address: document.getElementById('client-address').value,
-            wasteType: document.getElementById('waste-type').value,
-            estimatedVolume: document.getElementById('estimated-volume').value,
-            volumeUnit: document.getElementById('volume-unit').value,
-            requestedDate: document.getElementById('requested-date').value,
-            preferredTime: document.getElementById('preferred-time').value,
-            specificTime: document.getElementById('specific-time').value,
-            priority: document.getElementById('priority').value,
-            additionalNotes: document.getElementById('additional-notes').value,
-                status: 'Pendiente de Aprobación',
-                createdDate: new Date().toISOString().split('T')[0],
-                createdBy: currentUser ? currentUser.id : 'admin'
-            };
-        }
+  saveNewService() {
+    const currentUser = app.currentUser;
+    const isClient = currentUser && currentUser.type === "client";
 
-        // Validar si el cliente ya existe (solo para admin)
-        if (!isClient) {
-            const existingClient = this.checkExistingClient(formData.clientEmail, formData.clientCedula);
-            
-            if (existingClient) {
-                // Cliente existe, solo crear la solicitud
-                this.createServiceOnly(formData, existingClient);
-            } else {
-                // Cliente nuevo, crear usuario y solicitud
-                this.createNewClientAndService(formData);
-            }
-        } else {
-            // Cliente creando solicitud - crear directamente
-            this.createClientService(formData);
-        }
-    },
+    let formData;
 
-    // Crear solicitud para cliente existente
-    createClientService(formData) {
-        const newService = {
-            id: this.generateServiceId(),
-            clientId: app.currentUser.id,
-            clientName: formData.clientName,
-            clientEmail: formData.clientEmail,
-            clientPhone: formData.clientPhone,
-            address: formData.address,
-            wasteType: formData.wasteType,
-            estimatedVolume: formData.estimatedVolume,
-            volumeUnit: formData.volumeUnit,
-            requestedDate: formData.requestedDate,
-            preferredTime: formData.preferredTime,
-            specificTime: formData.specificTime,
-            priority: formData.priority,
-            additionalNotes: formData.additionalNotes,
-            status: formData.status,
-            createdDate: formData.createdDate,
-            createdBy: formData.createdBy
-        };
+    if (isClient) {
+      // Cliente creando solicitud - usar datos pre-llenados
+      formData = {
+        clientEmail: currentUser.email,
+        clientCedula: currentUser.cedula || "",
+        clientName: currentUser.name,
+        clientPhone: currentUser.phone || "",
+        address: currentUser.address || "",
+        wasteType: document.getElementById("waste-type").value,
+        estimatedVolume: document.getElementById("estimated-volume").value,
+        volumeUnit: document.getElementById("volume-unit").value,
+        requestedDate: document.getElementById("requested-date").value,
+        preferredTime: document.getElementById("preferred-time").value,
+        specificTime: document.getElementById("specific-time").value,
+        priority: document.getElementById("priority").value,
+        additionalNotes: document.getElementById("additional-notes").value,
+        status: "Pendiente de Aprobación",
+        createdDate: new Date().toISOString().split("T")[0],
+        createdBy: currentUser.id,
+      };
+    } else {
+      // Admin creando solicitud - usar datos del formulario
+      formData = {
+        clientEmail: document.getElementById("client-email").value,
+        clientCedula: document.getElementById("client-cedula").value,
+        clientName: document.getElementById("client-name").value,
+        clientPhone: document.getElementById("client-phone").value,
+        address: document.getElementById("client-address").value,
+        wasteType: document.getElementById("waste-type").value,
+        estimatedVolume: document.getElementById("estimated-volume").value,
+        volumeUnit: document.getElementById("volume-unit").value,
+        requestedDate: document.getElementById("requested-date").value,
+        preferredTime: document.getElementById("preferred-time").value,
+        specificTime: document.getElementById("specific-time").value,
+        priority: document.getElementById("priority").value,
+        additionalNotes: document.getElementById("additional-notes").value,
+        status: "Pendiente de Aprobación",
+        createdDate: new Date().toISOString().split("T")[0],
+        createdBy: currentUser ? currentUser.id : "admin",
+      };
+    }
 
-        this.services.push(newService);
-        this.saveServices();
+    // Validar si el cliente ya existe (solo para admin)
+    if (!isClient) {
+      const existingClient = this.checkExistingClient(
+        formData.clientEmail,
+        formData.clientCedula
+      );
 
-        // Notificar al admin
-        this.notifyAdminNewService(newService, false);
+      if (existingClient) {
+        // Cliente existe, solo crear la solicitud
+        this.createServiceOnly(formData, existingClient);
+      } else {
+        // Cliente nuevo, crear usuario y solicitud
+        this.createNewClientAndService(formData);
+      }
+    } else {
+      // Cliente creando solicitud - crear directamente
+      this.createClientService(formData);
+    }
+  },
 
-        // Mostrar mensaje de éxito
-        authSystem.showNotification('Solicitud creada exitosamente', 'success');
+  // Crear solicitud para cliente existente
+  createClientService(formData) {
+    const newService = {
+      id: this.generateServiceId(),
+      clientId: app.currentUser.id,
+      clientName: formData.clientName,
+      clientEmail: formData.clientEmail,
+      clientPhone: formData.clientPhone,
+      address: formData.address,
+      wasteType: formData.wasteType,
+      estimatedVolume: formData.estimatedVolume,
+      volumeUnit: formData.volumeUnit,
+      requestedDate: formData.requestedDate,
+      preferredTime: formData.preferredTime,
+      specificTime: formData.specificTime,
+      priority: formData.priority,
+      additionalNotes: formData.additionalNotes,
+      status: formData.status,
+      createdDate: formData.createdDate,
+      createdBy: formData.createdBy,
+    };
 
-        // Redirigir a la vista de cliente
-        this.loadClientView();
-    },
+    this.services.push(newService);
+    this.saveServices();
 
-    // Verificar si el cliente ya existe
-    checkExistingClient(email, cedula) {
-        // Buscar en el sistema de usuarios
-        if (window.authSystem && window.authSystem.users) {
-            return window.authSystem.users.find(user => 
-                user.email === email || user.cedula === cedula
-            );
-        }
-        return null;
-    },
+    // Notificar al admin
+    this.notifyAdminNewService(newService, false);
 
-    // Crear solo la solicitud (cliente existente)
-    createServiceOnly(formData, existingClient) {
-        const newService = {
-            id: this.generateServiceId(),
-            clientId: existingClient.id,
-            clientName: existingClient.name,
-            clientEmail: existingClient.email,
-            clientPhone: existingClient.phone || formData.clientPhone,
-            address: formData.address,
-            wasteType: formData.wasteType,
-            estimatedVolume: formData.estimatedVolume,
-            volumeUnit: formData.volumeUnit,
-            requestedDate: formData.requestedDate,
-            preferredTime: formData.preferredTime,
-            specificTime: formData.specificTime,
-            priority: formData.priority,
-            additionalNotes: formData.additionalNotes,
-            status: formData.status,
-            createdDate: formData.createdDate,
-            createdBy: formData.createdBy
-        };
+    // Mostrar mensaje de éxito
+    authSystem.showNotification("Solicitud creada exitosamente", "success");
 
-        this.services.push(newService);
-        this.saveServices();
+    // Redirigir a la vista de cliente
+    this.loadClientView();
+  },
 
-        // Notificar al admin
-        this.notifyAdminNewService(newService, false);
+  // Verificar si el cliente ya existe
+  checkExistingClient(email, cedula) {
+    // Buscar en el sistema de usuarios
+    if (window.authSystem && window.authSystem.users) {
+      return window.authSystem.users.find(
+        (user) => user.email === email || user.cedula === cedula
+      );
+    }
+    return null;
+  },
 
-        // Mostrar mensaje de éxito
-        authSystem.showNotification('Solicitud creada exitosamente para cliente existente', 'success');
+  // Crear solo la solicitud (cliente existente)
+  createServiceOnly(formData, existingClient) {
+    const newService = {
+      id: this.generateServiceId(),
+      clientId: existingClient.id,
+      clientName: existingClient.name,
+      clientEmail: existingClient.email,
+      clientPhone: existingClient.phone || formData.clientPhone,
+      address: formData.address,
+      wasteType: formData.wasteType,
+      estimatedVolume: formData.estimatedVolume,
+      volumeUnit: formData.volumeUnit,
+      requestedDate: formData.requestedDate,
+      preferredTime: formData.preferredTime,
+      specificTime: formData.specificTime,
+      priority: formData.priority,
+      additionalNotes: formData.additionalNotes,
+      status: formData.status,
+      createdDate: formData.createdDate,
+      createdBy: formData.createdBy,
+    };
 
-        // Redirigir a la lista de servicios
-        app.loadModule('services');
-    },
+    this.services.push(newService);
+    this.saveServices();
 
-    // Crear nuevo cliente y solicitud
-    createNewClientAndService(formData) {
-        // Generar contraseña temporal
-        const tempPassword = this.generateTemporaryPassword();
-        
-        // Crear nuevo usuario cliente
-        const newClient = {
-            id: this.generateUserId(),
-            username: formData.clientEmail,
-            password: tempPassword,
-            type: 'client',
-            name: formData.clientName,
-            email: formData.clientEmail,
-            cedula: formData.clientCedula,
-            phone: formData.clientPhone,
-            address: formData.address,
-            permissions: ['services', 'tracking', 'invoices'],
-            createdDate: new Date().toISOString().split('T')[0],
-            isTemporaryPassword: true
-        };
+    // Notificar al admin
+    this.notifyAdminNewService(newService, false);
 
-        // Agregar usuario al sistema de autenticación
-        if (window.authSystem && window.authSystem.users) {
-            window.authSystem.users.push(newClient);
-        }
+    // Mostrar mensaje de éxito
+    authSystem.showNotification(
+      "Solicitud creada exitosamente para cliente existente",
+      "success"
+    );
 
-        // Crear la solicitud
-        const newService = {
-            id: this.generateServiceId(),
-            clientId: newClient.id,
-            clientName: newClient.name,
-            clientEmail: newClient.email,
-            clientPhone: newClient.phone,
-            address: formData.address,
-            wasteType: formData.wasteType,
-            estimatedVolume: formData.estimatedVolume,
-            volumeUnit: formData.volumeUnit,
-            requestedDate: formData.requestedDate,
-            preferredTime: formData.preferredTime,
-            specificTime: formData.specificTime,
-            priority: formData.priority,
-            additionalNotes: formData.additionalNotes,
-            status: formData.status,
-            createdDate: formData.createdDate,
-            createdBy: formData.createdBy
-        };
+    // Redirigir a la lista de servicios
+    app.loadModule("services");
+  },
 
-        this.services.push(newService);
-        this.saveServices();
-
-        // Enviar notificación WhatsApp
-        this.sendWhatsAppNotification(newClient, tempPassword);
-
-        // Notificar al admin
-        this.notifyAdminNewService(newService, true);
-
-        // Mostrar mensaje de éxito
-        authSystem.showNotification('Cliente y solicitud creados exitosamente', 'success');
-
-        // Redirigir a la lista de servicios
-        app.loadModule('services');
-    },
-
-    // Generar ID único para servicio
-    generateServiceId() {
-        return this.services.length > 0 ? Math.max(...this.services.map(s => s.id)) + 1 : 1;
-    },
-
-    // Generar ID único para usuario
-    generateUserId() {
-        if (window.authSystem && window.authSystem.users) {
-            return window.authSystem.users.length > 0 ? Math.max(...window.authSystem.users.map(u => u.id)) + 1 : 1;
-        }
-        return 1;
-    },
-
+  // Crear nuevo cliente y solicitud
+  createNewClientAndService(formData) {
     // Generar contraseña temporal
-    generateTemporaryPassword() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let password = '';
-        for (let i = 0; i < 8; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return password;
-    },
+    const tempPassword = this.generateTemporaryPassword();
+
+    // Crear nuevo usuario cliente
+    const newClient = {
+      id: this.generateUserId(),
+      username: formData.clientEmail,
+      password: tempPassword,
+      type: "client",
+      name: formData.clientName,
+      email: formData.clientEmail,
+      cedula: formData.clientCedula,
+      phone: formData.clientPhone,
+      address: formData.address,
+      permissions: ["services", "tracking", "invoices"],
+      createdDate: new Date().toISOString().split("T")[0],
+      isTemporaryPassword: true,
+    };
+
+    // Agregar usuario al sistema de autenticación
+    if (window.authSystem && window.authSystem.users) {
+      window.authSystem.users.push(newClient);
+    }
+
+    // Crear la solicitud
+    const newService = {
+      id: this.generateServiceId(),
+      clientId: newClient.id,
+      clientName: newClient.name,
+      clientEmail: newClient.email,
+      clientPhone: newClient.phone,
+      address: formData.address,
+      wasteType: formData.wasteType,
+      estimatedVolume: formData.estimatedVolume,
+      volumeUnit: formData.volumeUnit,
+      requestedDate: formData.requestedDate,
+      preferredTime: formData.preferredTime,
+      specificTime: formData.specificTime,
+      priority: formData.priority,
+      additionalNotes: formData.additionalNotes,
+      status: formData.status,
+      createdDate: formData.createdDate,
+      createdBy: formData.createdBy,
+    };
+
+    this.services.push(newService);
+    this.saveServices();
 
     // Enviar notificación WhatsApp
-    sendWhatsAppNotification(client, tempPassword) {
-        const message = `¡Bienvenido a EcoGestión! 🎉
+    this.sendWhatsAppNotification(newClient, tempPassword);
+
+    // Notificar al admin
+    this.notifyAdminNewService(newService, true);
+
+    // Mostrar mensaje de éxito
+    authSystem.showNotification(
+      "Cliente y solicitud creados exitosamente",
+      "success"
+    );
+
+    // Redirigir a la lista de servicios
+    app.loadModule("services");
+  },
+
+  // Generar ID único para servicio
+  generateServiceId() {
+    return this.services.length > 0
+      ? Math.max(...this.services.map((s) => s.id)) + 1
+      : 1;
+  },
+
+  // Generar ID único para usuario
+  generateUserId() {
+    if (window.authSystem && window.authSystem.users) {
+      return window.authSystem.users.length > 0
+        ? Math.max(...window.authSystem.users.map((u) => u.id)) + 1
+        : 1;
+    }
+    return 1;
+  },
+
+  // Generar contraseña temporal
+  generateTemporaryPassword() {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let password = "";
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  },
+
+  // Enviar notificación WhatsApp
+  sendWhatsAppNotification(client, tempPassword) {
+    const message = `¡Bienvenido a EcoGestión! 🎉
 
 Tu cuenta ha sido creada exitosamente:
 
@@ -653,84 +690,84 @@ file:///C:/Users/CLEAR%20MINDS/Desktop/ProyectoEcoGestion/Proyecto%20residuos/Ge
 
 ¡Gracias por confiar en nosotros! 🌱`;
 
-        // Crear enlace de WhatsApp
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        
-        // Abrir WhatsApp en nueva ventana
-        window.open(whatsappUrl, '_blank');
-    },
+    // Crear enlace de WhatsApp
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
 
-    // Notificar al admin sobre nueva solicitud
-    notifyAdminNewService(service, isNewClient) {
-        const notificationMessage = isNewClient 
-            ? `Nueva solicitud de cliente NUEVO: ${service.clientName} (${service.wasteType})`
-            : `Nueva solicitud de cliente existente: ${service.clientName} (${service.wasteType})`;
+    // Abrir WhatsApp en nueva ventana
+    window.open(whatsappUrl, "_blank");
+  },
 
-        // Mostrar notificación al admin
-        if (app.currentUser && app.currentUser.type === 'admin') {
-            authSystem.showNotification(notificationMessage, 'info');
-        }
+  // Notificar al admin sobre nueva solicitud
+  notifyAdminNewService(service, isNewClient) {
+    const notificationMessage = isNewClient
+      ? `Nueva solicitud de cliente NUEVO: ${service.clientName} (${service.wasteType})`
+      : `Nueva solicitud de cliente existente: ${service.clientName} (${service.wasteType})`;
 
-        // También mostrar en la consola para debugging
-        console.log('Nueva solicitud creada:', service);
-        console.log('Es cliente nuevo:', isNewClient);
-    },
+    // Mostrar notificación al admin
+    if (app.currentUser && app.currentUser.type === "admin") {
+      authSystem.showNotification(notificationMessage, "info");
+    }
 
-    // Aprobar solicitud
-    approveService(serviceId) {
-        const service = this.services.find(s => s.id === serviceId);
-        if (!service) {
-            authSystem.showNotification('Servicio no encontrado', 'error');
-            return;
-        }
+    // También mostrar en la consola para debugging
+    console.log("Nueva solicitud creada:", service);
+    console.log("Es cliente nuevo:", isNewClient);
+  },
 
-        service.status = 'Aprobado';
-        service.approvedDate = new Date().toISOString().split('T')[0];
-        service.approvedBy = app.currentUser ? app.currentUser.id : 'admin';
-        
-        this.saveServices();
-        
-        // Notificar al cliente
-        this.notifyClientServiceApproved(service);
-        
-        // Mostrar mensaje de éxito
-        authSystem.showNotification('Solicitud aprobada exitosamente', 'success');
-        
-        // Recargar la tabla
-        this.loadServicesTable();
-    },
+  // Aprobar solicitud
+  approveService(serviceId) {
+    const service = this.services.find((s) => s.id === serviceId);
+    if (!service) {
+      authSystem.showNotification("Servicio no encontrado", "error");
+      return;
+    }
 
-    // Rechazar solicitud
-    rejectService(serviceId, rejectionMessage = '') {
-        const service = this.services.find(s => s.id === serviceId);
-        if (!service) {
-            authSystem.showNotification('Servicio no encontrado', 'error');
-            return;
-        }
+    service.status = "Aprobado";
+    service.approvedDate = new Date().toISOString().split("T")[0];
+    service.approvedBy = app.currentUser ? app.currentUser.id : "admin";
 
-        service.status = 'Rechazado';
-        service.rejectedDate = new Date().toISOString().split('T')[0];
-        service.rejectedBy = app.currentUser ? app.currentUser.id : 'admin';
-        service.rejectionMessage = rejectionMessage;
-        
-        this.saveServices();
-        
-        // Notificar al cliente
-        this.notifyClientServiceRejected(service, rejectionMessage);
-        
-        // Mostrar mensaje de éxito
-        authSystem.showNotification('Solicitud rechazada', 'warning');
-        
-        // Recargar la tabla
-        this.loadServicesTable();
-    },
+    this.saveServices();
 
-    // Mostrar modal de rechazo
-    showRejectionModal(serviceId) {
-        const service = this.services.find(s => s.id === serviceId);
-        if (!service) return;
+    // Notificar al cliente
+    this.notifyClientServiceApproved(service);
 
-        const modalHTML = `
+    // Mostrar mensaje de éxito
+    authSystem.showNotification("Solicitud aprobada exitosamente", "success");
+
+    // Recargar la tabla
+    this.loadServicesTable();
+  },
+
+  // Rechazar solicitud
+  rejectService(serviceId, rejectionMessage = "") {
+    const service = this.services.find((s) => s.id === serviceId);
+    if (!service) {
+      authSystem.showNotification("Servicio no encontrado", "error");
+      return;
+    }
+
+    service.status = "Rechazado";
+    service.rejectedDate = new Date().toISOString().split("T")[0];
+    service.rejectedBy = app.currentUser ? app.currentUser.id : "admin";
+    service.rejectionMessage = rejectionMessage;
+
+    this.saveServices();
+
+    // Notificar al cliente
+    this.notifyClientServiceRejected(service, rejectionMessage);
+
+    // Mostrar mensaje de éxito
+    authSystem.showNotification("Solicitud rechazada", "warning");
+
+    // Recargar la tabla
+    this.loadServicesTable();
+  },
+
+  // Mostrar modal de rechazo
+  showRejectionModal(serviceId) {
+    const service = this.services.find((s) => s.id === serviceId);
+    if (!service) return;
+
+    const modalHTML = `
             <div id="rejection-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 w-96 max-w-md">
                     <div class="flex items-center mb-4">
@@ -771,46 +808,46 @@ file:///C:/Users/CLEAR%20MINDS/Desktop/ProyectoEcoGestion/Proyecto%20residuos/Ge
             </div>
         `;
 
-        // Insertar modal en el DOM
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Insertar modal en el DOM
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-        // Event listeners
-        const modal = document.getElementById('rejection-modal');
-        const cancelBtn = document.getElementById('cancel-rejection');
-        const confirmBtn = document.getElementById('confirm-rejection');
-        const messageInput = document.getElementById('rejection-message');
+    // Event listeners
+    const modal = document.getElementById("rejection-modal");
+    const cancelBtn = document.getElementById("cancel-rejection");
+    const confirmBtn = document.getElementById("confirm-rejection");
+    const messageInput = document.getElementById("rejection-message");
 
-        // Cancelar
-        cancelBtn.addEventListener('click', () => {
-            modal.remove();
-        });
+    // Cancelar
+    cancelBtn.addEventListener("click", () => {
+      modal.remove();
+    });
 
-        // Confirmar rechazo
-        confirmBtn.addEventListener('click', () => {
-            const message = messageInput.value.trim();
-            this.rejectService(serviceId, message);
-            modal.remove();
-        });
+    // Confirmar rechazo
+    confirmBtn.addEventListener("click", () => {
+      const message = messageInput.value.trim();
+      this.rejectService(serviceId, message);
+      modal.remove();
+    });
 
-        // Cerrar al hacer clic fuera
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
+    // Cerrar al hacer clic fuera
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
 
-        // Cerrar con Escape
-        document.addEventListener('keydown', function closeOnEscape(e) {
-            if (e.key === 'Escape') {
-                modal.remove();
-                document.removeEventListener('keydown', closeOnEscape);
-            }
-        });
-    },
+    // Cerrar con Escape
+    document.addEventListener("keydown", function closeOnEscape(e) {
+      if (e.key === "Escape") {
+        modal.remove();
+        document.removeEventListener("keydown", closeOnEscape);
+      }
+    });
+  },
 
-    // Notificar al cliente que su solicitud fue aprobada
-    notifyClientServiceApproved(service) {
-        const message = `¡Excelente! Tu solicitud de servicio ha sido APROBADA.
+  // Notificar al cliente que su solicitud fue aprobada
+  notifyClientServiceApproved(service) {
+    const message = `¡Excelente! Tu solicitud de servicio ha sido APROBADA.
 
 📋 Detalles del servicio:
 • Tipo: ${service.wasteType}
@@ -821,80 +858,96 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
 
 ¡Gracias por confiar en EcoGestión! 🌱`;
 
-        // Para pruebas, mostrar en consola
-        console.log('Notificación para cliente (APROBADO):', message);
-        
-        // Aquí se podría implementar envío de email o WhatsApp real
-        // Por ahora solo se muestra en consola
-    },
+    // Para pruebas, mostrar en consola
+    console.log("Notificación para cliente (APROBADO):", message);
 
-    // Notificar al cliente que su solicitud fue rechazada
-    notifyClientServiceRejected(service, rejectionMessage) {
-        let message = `Tu solicitud de servicio ha sido RECHAZADA.
+    // Aquí se podría implementar envío de email o WhatsApp real
+    // Por ahora solo se muestra en consola
+  },
+
+  // Notificar al cliente que su solicitud fue rechazada
+  notifyClientServiceRejected(service, rejectionMessage) {
+    let message = `Tu solicitud de servicio ha sido RECHAZADA.
 
 📋 Detalles del servicio:
 • Tipo: ${service.wasteType}
 • Fecha solicitada: ${service.requestedDate}
 • Estado: Rechazado`;
 
-        if (rejectionMessage) {
-            message += `\n\n📝 Motivo del rechazo:\n${rejectionMessage}`;
-        }
+    if (rejectionMessage) {
+      message += `\n\n📝 Motivo del rechazo:\n${rejectionMessage}`;
+    }
 
-        message += `\n\n💡 Puedes editar tu solicitud y volver a enviarla desde tu cuenta.
+    message += `\n\n💡 Puedes editar tu solicitud y volver a enviarla desde tu cuenta.
 
 ¡Gracias por tu comprensión! 🌱`;
 
-        // Para pruebas, mostrar en consola
-        console.log('Notificación para cliente (RECHAZADO):', message);
-        
-        // Aquí se podría implementar envío de email o WhatsApp real
-        // Por ahora solo se muestra en consola
-    },
+    // Para pruebas, mostrar en consola
+    console.log("Notificación para cliente (RECHAZADO):", message);
 
-    loadServicesTable() {
-        const tbody = document.getElementById('services-table-body');
-        
-        tbody.innerHTML = this.services.map(service => `
+    // Aquí se podría implementar envío de email o WhatsApp real
+    // Por ahora solo se muestra en consola
+  },
+
+  loadServicesTable() {
+    const tbody = document.getElementById("services-table-body");
+
+    tbody.innerHTML = this.services
+      .map(
+        (service) => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #${service.id.toString().padStart(3, '0')}
+                    #${service.id.toString().padStart(3, "0")}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div>
-                        <div class="text-sm font-medium text-gray-900">${service.clientName}</div>
-                        <div class="text-sm text-gray-500">${service.address}</div>
+                        <div class="text-sm font-medium text-gray-900">${
+                          service.clientName
+                        }</div>
+                        <div class="text-sm text-gray-500">${
+                          service.address
+                        }</div>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(service.wasteType)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(
+                      service.wasteType
+                    )}">
                         ${service.wasteType}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${service.estimatedVolume} ${service.volumeUnit || 'm³'}
+                    ${service.estimatedVolume} ${service.volumeUnit || "m³"}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${this.formatDate(service.requestedDate)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(service.status)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(
+                      service.status
+                    )}">
                         ${service.status}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(service.priority)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(
+                      service.priority
+                    )}">
                         ${service.priority}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex space-x-2">
-                        <button onclick="servicesModule.viewService(${service.id})" 
+                        <button onclick="servicesModule.viewService(${
+                          service.id
+                        })" 
                                 class="text-blue-600 hover:text-blue-900" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
                         
-                        ${service.status === 'Pendiente de Aprobación' ? `
+                        ${
+                          service.status === "Pendiente de Aprobación"
+                            ? `
                             <button onclick="servicesModule.approveService(${service.id})" 
                                     class="text-green-600 hover:text-green-900" title="Aprobar">
                                 <i class="fas fa-check"></i>
@@ -903,7 +956,8 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                     class="text-red-600 hover:text-red-900" title="Rechazar">
                                 <i class="fas fa-times"></i>
                             </button>
-                        ` : `
+                        `
+                            : `
                         <button onclick="servicesModule.editService(${service.id})" 
                                 class="text-green-600 hover:text-green-900" title="Editar">
                             <i class="fas fa-edit"></i>
@@ -912,71 +966,82 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                 class="text-yellow-600 hover:text-yellow-900" title="Programar">
                             <i class="fas fa-calendar-plus"></i>
                         </button>
-                        `}
+                        `
+                        }
                         
-                        <button onclick="servicesModule.deleteService(${service.id})" 
+                        <button onclick="servicesModule.deleteService(${
+                          service.id
+                        })" 
                                 class="text-red-600 hover:text-red-900" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </td>
             </tr>
-        `).join('');
-    },
+        `
+      )
+      .join("");
+  },
 
-    getWasteTypeClass(type) {
-        const classes = {
-            'Orgánico': 'bg-green-100 text-green-800',
-            'Reciclable': 'bg-blue-100 text-blue-800',
-            'No Reciclable': 'bg-gray-100 text-gray-800',
-            'Peligroso': 'bg-red-100 text-red-800',
-            'Electrónicos': 'bg-purple-100 text-purple-800',
-            'Construcción': 'bg-yellow-100 text-yellow-800'
-        };
-        return classes[type] || 'bg-gray-100 text-gray-800';
-    },
+  getWasteTypeClass(type) {
+    const classes = {
+      Orgánico: "bg-green-100 text-green-800",
+      Reciclable: "bg-blue-100 text-blue-800",
+      "No Reciclable": "bg-gray-100 text-gray-800",
+      Peligroso: "bg-red-100 text-red-800",
+      Electrónicos: "bg-purple-100 text-purple-800",
+      Construcción: "bg-yellow-100 text-yellow-800",
+    };
+    return classes[type] || "bg-gray-100 text-gray-800";
+  },
 
-    getStatusClass(status) {
-        const classes = {
-            'Pendiente': 'bg-yellow-100 text-yellow-800',
-            'Programado': 'bg-blue-100 text-blue-800',
-            'En Proceso': 'bg-orange-100 text-orange-800',
-            'Completado': 'bg-green-100 text-green-800',
-            'Cancelado': 'bg-red-100 text-red-800',
-            'Pendiente de Aprobación': 'bg-yellow-100 text-yellow-800'
-        };
-        return classes[status] || 'bg-gray-100 text-gray-800';
-    },
+  getStatusClass(status) {
+    const classes = {
+      Pendiente: "bg-yellow-100 text-yellow-800",
+      Programado: "bg-blue-100 text-blue-800",
+      "En Proceso": "bg-orange-100 text-orange-800",
+      Completado: "bg-green-100 text-green-800",
+      Cancelado: "bg-red-100 text-red-800",
+      "Pendiente de Aprobación": "bg-yellow-100 text-yellow-800",
+    };
+    return classes[status] || "bg-gray-100 text-gray-800";
+  },
 
-    getPriorityClass(priority) {
-        const classes = {
-            'Baja': 'bg-gray-100 text-gray-800',
-            'Media': 'bg-yellow-100 text-yellow-800',
-            'Alta': 'bg-orange-100 text-orange-800',
-            'Urgente': 'bg-red-100 text-red-800'
-        };
-        return classes[priority] || 'bg-gray-100 text-gray-800';
-    },
+  getPriorityClass(priority) {
+    const classes = {
+      Baja: "bg-gray-100 text-gray-800",
+      Media: "bg-yellow-100 text-yellow-800",
+      Alta: "bg-orange-100 text-orange-800",
+      Urgente: "bg-red-100 text-red-800",
+    };
+    return classes[priority] || "bg-gray-100 text-gray-800";
+  },
 
-    formatDate(dateString) {
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString('es-ES', options);
-    },
+  formatDate(dateString) {
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("es-ES", options);
+  },
 
-    viewService(id) {
-        const service = this.services.find(s => s.id === id);
-        if (!service) return;
+  viewService(id) {
+    const service = this.services.find((s) => s.id === id);
+    if (!service) return;
 
-        const currentUser = app.currentUser;
-        const isClient = currentUser && currentUser.type === 'client';
-        const isAdmin = currentUser && currentUser.type === 'admin';
+    const currentUser = app.currentUser;
+    const isClient = currentUser && currentUser.type === "client";
+    const isAdmin = currentUser && currentUser.type === "admin";
 
-        const contentArea = document.getElementById('content-area');
-        contentArea.innerHTML = `
+    const contentArea = document.getElementById("content-area");
+    contentArea.innerHTML = `
             <div class="mb-6">
                 <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-bold text-gray-800">Detalles del Servicio #${service.id.toString().padStart(3, '0')}</h1>
-                    <button onclick="${isClient ? 'servicesModule.loadClientView()' : 'servicesModule.load()'}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">
+                    <h1 class="text-3xl font-bold text-gray-800">Detalles del Servicio #${service.id
+                      .toString()
+                      .padStart(3, "0")}</h1>
+                    <button onclick="${
+                      isClient
+                        ? "servicesModule.loadClientView()"
+                        : "servicesModule.load()"
+                    }" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">
                         <i class="fas fa-arrow-left mr-2"></i>Volver
                     </button>
                 </div>
@@ -991,22 +1056,30 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
-                            <p class="text-sm text-gray-900 mt-1">${service.clientName}</p>
+                            <p class="text-sm text-gray-900 mt-1">${
+                              service.clientName
+                            }</p>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <p class="text-sm text-gray-900 mt-1">${service.clientEmail || 'No especificado'}</p>
+                            <p class="text-sm text-gray-900 mt-1">${
+                              service.clientEmail || "No especificado"
+                            }</p>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Teléfono</label>
-                            <p class="text-sm text-gray-900 mt-1">${service.clientPhone || 'No especificado'}</p>
+                            <p class="text-sm text-gray-900 mt-1">${
+                              service.clientPhone || "No especificado"
+                            }</p>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Dirección</label>
-                            <p class="text-sm text-gray-900 mt-1">${service.address}</p>
+                            <p class="text-sm text-gray-900 mt-1">${
+                              service.address
+                            }</p>
                         </div>
                     </div>
 
@@ -1016,24 +1089,33 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Tipo de Residuo</label>
-                            <span class="inline-block px-2 py-1 text-xs rounded-full mt-1 ${this.getWasteTypeClass(service.wasteType)}">
+                            <span class="inline-block px-2 py-1 text-xs rounded-full mt-1 ${this.getWasteTypeClass(
+                              service.wasteType
+                            )}">
                                 ${service.wasteType}
                             </span>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Volumen Estimado</label>
-                            <p class="text-sm text-gray-900 mt-1">${service.estimatedVolume} ${service.volumeUnit || 'm³'}</p>
+                            <p class="text-sm text-gray-900 mt-1">${
+                              service.estimatedVolume
+                            } ${service.volumeUnit || "m³"}</p>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Fecha Solicitada</label>
-                            <p class="text-sm text-gray-900 mt-1">${this.formatDate(service.requestedDate)}</p>
+                            <p class="text-sm text-gray-900 mt-1">${this.formatDate(
+                              service.requestedDate
+                            )}</p>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Hora Preferida</label>
-                            <p class="text-sm text-gray-900 mt-1">${this.formatPreferredTime(service.preferredTime, service.specificTime)}</p>
+                            <p class="text-sm text-gray-900 mt-1">${this.formatPreferredTime(
+                              service.preferredTime,
+                              service.specificTime
+                            )}</p>
                         </div>
                     </div>
 
@@ -1043,43 +1125,67 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Estado Actual</label>
-                            <span class="inline-block px-2 py-1 text-xs rounded-full mt-1 ${this.getStatusClass(service.status)}">
+                            <span class="inline-block px-2 py-1 text-xs rounded-full mt-1 ${this.getStatusClass(
+                              service.status
+                            )}">
                                 ${service.status}
                             </span>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Prioridad</label>
-                            <span class="inline-block px-2 py-1 text-xs rounded-full mt-1 ${this.getPriorityClass(service.priority)}">
+                            <span class="inline-block px-2 py-1 text-xs rounded-full mt-1 ${this.getPriorityClass(
+                              service.priority
+                            )}">
                                 ${service.priority}
                             </span>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Fecha de Creación</label>
-                            <p class="text-sm text-gray-900 mt-1">${this.formatDate(service.createdDate)}</p>
+                            <p class="text-sm text-gray-900 mt-1">${this.formatDate(
+                              service.createdDate
+                            )}</p>
                         </div>
 
-                        ${service.approvedDate ? `
+                        ${
+                          service.approvedDate
+                            ? `
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Fecha de Aprobación</label>
-                                <p class="text-sm text-green-600 mt-1">${this.formatDate(service.approvedDate)}</p>
+                                <p class="text-sm text-green-600 mt-1">${this.formatDate(
+                                  service.approvedDate
+                                )}</p>
                             </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
 
-                        ${service.rejectedDate ? `
+                        ${
+                          service.rejectedDate
+                            ? `
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Fecha de Rechazo</label>
-                                <p class="text-sm text-red-600 mt-1">${this.formatDate(service.rejectedDate)}</p>
+                                <p class="text-sm text-red-600 mt-1">${this.formatDate(
+                                  service.rejectedDate
+                                )}</p>
                             </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
 
-                        ${service.revisedDate ? `
+                        ${
+                          service.revisedDate
+                            ? `
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Fecha de Revisión</label>
-                                <p class="text-sm text-blue-600 mt-1">${this.formatDate(service.revisedDate)}</p>
+                                <p class="text-sm text-blue-600 mt-1">${this.formatDate(
+                                  service.revisedDate
+                                )}</p>
                             </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                     </div>
 
                     <!-- Observaciones y Mensajes -->
@@ -1088,15 +1194,22 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Notas Adicionales</label>
-                            <p class="text-sm text-gray-900 mt-1">${service.additionalNotes || 'Sin observaciones adicionales'}</p>
+                            <p class="text-sm text-gray-900 mt-1">${
+                              service.additionalNotes ||
+                              "Sin observaciones adicionales"
+                            }</p>
                         </div>
 
-                        ${service.rejectionMessage ? `
+                        ${
+                          service.rejectionMessage
+                            ? `
                             <div>
                                 <label class="block text-sm font-medium text-red-700">Motivo del Rechazo</label>
                                 <p class="text-sm text-red-600 mt-1">${service.rejectionMessage}</p>
                             </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                     </div>
                 </div>
 
@@ -1104,7 +1217,10 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                 <div class="mt-8 pt-6 border-t border-gray-200">
                     <div class="flex justify-between items-center">
                         <div class="flex space-x-3">
-                            ${isAdmin && service.status === 'Pendiente de Aprobación' ? `
+                            ${
+                              isAdmin &&
+                              service.status === "Pendiente de Aprobación"
+                                ? `
                                 <button onclick="servicesModule.approveService(${service.id})" 
                                         class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
                                     <i class="fas fa-check mr-2"></i>Aprobar
@@ -1113,23 +1229,37 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                         class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center">
                                     <i class="fas fa-times mr-2"></i>Rechazar
                                 </button>
-                            ` : ''}
+                            `
+                                : ""
+                            }
 
-                            ${isClient && service.status === 'Rechazado' ? `
+                            ${
+                              isClient && service.status === "Rechazado"
+                                ? `
                                 <button onclick="servicesModule.editService(${service.id})" 
                                         class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
                                     <i class="fas fa-edit mr-2"></i>Editar y Reenviar
                                 </button>
-                            ` : ''}
+                            `
+                                : ""
+                            }
 
-                            ${isClient && service.status === 'Pendiente de Aprobación' ? `
+                            ${
+                              isClient &&
+                              service.status === "Pendiente de Aprobación"
+                                ? `
                                 <button onclick="servicesModule.editService(${service.id})" 
                                         class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center">
                                     <i class="fas fa-edit mr-2"></i>Editar
                                 </button>
-                            ` : ''}
+                            `
+                                : ""
+                            }
 
-                            ${isAdmin && service.status !== 'Pendiente de Aprobación' ? `
+                            ${
+                              isAdmin &&
+                              service.status !== "Pendiente de Aprobación"
+                                ? `
                                 <button onclick="servicesModule.editService(${service.id})" 
                                         class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
                                     <i class="fas fa-edit mr-2"></i>Editar
@@ -1138,33 +1268,41 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                         class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center">
                                     <i class="fas fa-calendar-plus mr-2"></i>Programar
                                 </button>
-                            ` : ''}
+                            `
+                                : ""
+                            }
                         </div>
                         
-                        ${isAdmin ? `
+                        ${
+                          isAdmin
+                            ? `
                             <button onclick="servicesModule.deleteService(${service.id})" 
                                     class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center">
                                 <i class="fas fa-trash mr-2"></i>Eliminar
                             </button>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                     </div>
                 </div>
             </div>
         `;
-    },
+  },
 
-    editService(id) {
-        const service = this.services.find(s => s.id === id);
-        if (!service) return;
+  editService(id) {
+    const service = this.services.find((s) => s.id === id);
+    if (!service) return;
 
-        const currentUser = app.currentUser;
-        const isClient = currentUser && currentUser.type === 'client';
-        const isAdmin = currentUser && currentUser.type === 'admin';
+    const currentUser = app.currentUser;
+    const isClient = currentUser && currentUser.type === "client";
+    const isAdmin = currentUser && currentUser.type === "admin";
 
-        const contentArea = document.getElementById('content-area');
-        contentArea.innerHTML = `
+    const contentArea = document.getElementById("content-area");
+    contentArea.innerHTML = `
             <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">Editar Servicio #${service.id.toString().padStart(3, '0')}</h1>
+                <h1 class="text-3xl font-bold text-gray-800">Editar Servicio #${service.id
+                  .toString()
+                  .padStart(3, "0")}</h1>
                 <p class="text-gray-600">Modifica los detalles de la solicitud de recolección</p>
             </div>
 
@@ -1177,7 +1315,9 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <input type="text" id="edit-client-name" required 
                                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                   value="${service.clientName}" ${isClient ? 'readonly' : ''}>
+                                   value="${service.clientName}" ${
+      isClient ? "readonly" : ""
+    }>
                         </div>
 
                         <div>
@@ -1186,7 +1326,9 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <input type="tel" id="edit-client-phone" required 
                                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                   value="${service.clientPhone || ''}" ${isClient ? 'readonly' : ''}>
+                                   value="${service.clientPhone || ""}" ${
+      isClient ? "readonly" : ""
+    }>
                         </div>
 
                         <div class="md:col-span-2">
@@ -1195,7 +1337,9 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <textarea id="edit-client-address" required rows="3"
                                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                      ${isClient ? 'readonly' : ''}>${service.address}</textarea>
+                                      ${isClient ? "readonly" : ""}>${
+      service.address
+    }</textarea>
                         </div>
 
                         <div>
@@ -1204,12 +1348,36 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <select id="edit-waste-type" required 
                                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                                <option value="Orgánico" ${service.wasteType === 'Orgánico' ? 'selected' : ''}>Orgánico</option>
-                                <option value="Reciclable" ${service.wasteType === 'Reciclable' ? 'selected' : ''}>Reciclable (Papel, Cartón, Plástico, Metal)</option>
-                                <option value="No Reciclable" ${service.wasteType === 'No Reciclable' ? 'selected' : ''}>No Reciclable</option>
-                                <option value="Peligroso" ${service.wasteType === 'Peligroso' ? 'selected' : ''}>Peligroso (Químicos, Baterías, etc.)</option>
-                                <option value="Electrónicos" ${service.wasteType === 'Electrónicos' ? 'selected' : ''}>Residuos Electrónicos</option>
-                                <option value="Construcción" ${service.wasteType === 'Construcción' ? 'selected' : ''}>Residuos de Construcción</option>
+                                <option value="Orgánico" ${
+                                  service.wasteType === "Orgánico"
+                                    ? "selected"
+                                    : ""
+                                }>Orgánico</option>
+                                <option value="Reciclable" ${
+                                  service.wasteType === "Reciclable"
+                                    ? "selected"
+                                    : ""
+                                }>Reciclable (Papel, Cartón, Plástico, Metal)</option>
+                                <option value="No Reciclable" ${
+                                  service.wasteType === "No Reciclable"
+                                    ? "selected"
+                                    : ""
+                                }>No Reciclable</option>
+                                <option value="Peligroso" ${
+                                  service.wasteType === "Peligroso"
+                                    ? "selected"
+                                    : ""
+                                }>Peligroso (Químicos, Baterías, etc.)</option>
+                                <option value="Electrónicos" ${
+                                  service.wasteType === "Electrónicos"
+                                    ? "selected"
+                                    : ""
+                                }>Residuos Electrónicos</option>
+                                <option value="Construcción" ${
+                                  service.wasteType === "Construcción"
+                                    ? "selected"
+                                    : ""
+                                }>Residuos de Construcción</option>
                             </select>
                         </div>
 
@@ -1222,9 +1390,21 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                        class="flex-1 px-3 py-2 border rounded-l-lg focus:outline-none focus:border-blue-500"
                                        value="${service.estimatedVolume}">
                                 <select id="edit-volume-unit" class="px-3 py-2 border-l-0 border rounded-r-lg focus:outline-none focus:border-blue-500">
-                                    <option value="m3" ${(service.volumeUnit || 'm3') === 'm3' ? 'selected' : ''}>m³</option>
-                                    <option value="kg" ${service.volumeUnit === 'kg' ? 'selected' : ''}>kg</option>
-                                    <option value="ton" ${service.volumeUnit === 'ton' ? 'selected' : ''}>Toneladas</option>
+                                    <option value="m3" ${
+                                      (service.volumeUnit || "m3") === "m3"
+                                        ? "selected"
+                                        : ""
+                                    }>m³</option>
+                                    <option value="kg" ${
+                                      service.volumeUnit === "kg"
+                                        ? "selected"
+                                        : ""
+                                    }>kg</option>
+                                    <option value="ton" ${
+                                      service.volumeUnit === "ton"
+                                        ? "selected"
+                                        : ""
+                                    }>Toneladas</option>
                                 </select>
                             </div>
                         </div>
@@ -1244,38 +1424,83 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <select id="edit-preferred-time" 
                                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                                <option value="" ${!service.preferredTime ? 'selected' : ''}>Sin preferencia</option>
-                                <option value="morning" ${service.preferredTime === 'morning' ? 'selected' : ''}>Mañana (8:00 AM - 12:00 PM)</option>
-                                <option value="afternoon" ${service.preferredTime === 'afternoon' ? 'selected' : ''}>Tarde (12:00 PM - 6:00 PM)</option>
-                                <option value="specific" ${service.preferredTime === 'specific' ? 'selected' : ''}>Hora específica</option>
+                                <option value="" ${
+                                  !service.preferredTime ? "selected" : ""
+                                }>Sin preferencia</option>
+                                <option value="morning" ${
+                                  service.preferredTime === "morning"
+                                    ? "selected"
+                                    : ""
+                                }>Mañana (8:00 AM - 12:00 PM)</option>
+                                <option value="afternoon" ${
+                                  service.preferredTime === "afternoon"
+                                    ? "selected"
+                                    : ""
+                                }>Tarde (12:00 PM - 6:00 PM)</option>
+                                <option value="specific" ${
+                                  service.preferredTime === "specific"
+                                    ? "selected"
+                                    : ""
+                                }>Hora específica</option>
                             </select>
                         </div>
 
-                        <div id="edit-specific-time-container" class="${service.preferredTime === 'specific' ? '' : 'hidden'}">
+                        <div id="edit-specific-time-container" class="${
+                          service.preferredTime === "specific" ? "" : "hidden"
+                        }">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Hora Específica
                             </label>
                             <input type="time" id="edit-specific-time" 
                                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                   value="${service.specificTime || ''}">
+                                   value="${service.specificTime || ""}">
                         </div>
 
-                        ${isAdmin ? `
+                        ${
+                          isAdmin
+                            ? `
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Estado
                                 </label>
                                 <select id="edit-status" 
                                         class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                                    <option value="Pendiente de Aprobación" ${service.status === 'Pendiente de Aprobación' ? 'selected' : ''}>Pendiente de Aprobación</option>
-                                    <option value="Aprobado" ${service.status === 'Aprobado' ? 'selected' : ''}>Aprobado</option>
-                                    <option value="Rechazado" ${service.status === 'Rechazado' ? 'selected' : ''}>Rechazado</option>
-                                    <option value="Programado" ${service.status === 'Programado' ? 'selected' : ''}>Programado</option>
-                                    <option value="En Proceso" ${service.status === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
-                                    <option value="Completado" ${service.status === 'Completado' ? 'selected' : ''}>Completado</option>
+                                    <option value="Pendiente de Aprobación" ${
+                                      service.status ===
+                                      "Pendiente de Aprobación"
+                                        ? "selected"
+                                        : ""
+                                    }>Pendiente de Aprobación</option>
+                                    <option value="Aprobado" ${
+                                      service.status === "Aprobado"
+                                        ? "selected"
+                                        : ""
+                                    }>Aprobado</option>
+                                    <option value="Rechazado" ${
+                                      service.status === "Rechazado"
+                                        ? "selected"
+                                        : ""
+                                    }>Rechazado</option>
+                                    <option value="Programado" ${
+                                      service.status === "Programado"
+                                        ? "selected"
+                                        : ""
+                                    }>Programado</option>
+                                    <option value="En Proceso" ${
+                                      service.status === "En Proceso"
+                                        ? "selected"
+                                        : ""
+                                    }>En Proceso</option>
+                                    <option value="Completado" ${
+                                      service.status === "Completado"
+                                        ? "selected"
+                                        : ""
+                                    }>Completado</option>
                                 </select>
                             </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -1283,10 +1508,20 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <select id="edit-priority" 
                                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                                <option value="Baja" ${service.priority === 'Baja' ? 'selected' : ''}>Baja</option>
-                                <option value="Media" ${service.priority === 'Media' ? 'selected' : ''}>Media</option>
-                                <option value="Alta" ${service.priority === 'Alta' ? 'selected' : ''}>Alta</option>
-                                <option value="Urgente" ${service.priority === 'Urgente' ? 'selected' : ''}>Urgente</option>
+                                <option value="Baja" ${
+                                  service.priority === "Baja" ? "selected" : ""
+                                }>Baja</option>
+                                <option value="Media" ${
+                                  service.priority === "Media" ? "selected" : ""
+                                }>Media</option>
+                                <option value="Alta" ${
+                                  service.priority === "Alta" ? "selected" : ""
+                                }>Alta</option>
+                                <option value="Urgente" ${
+                                  service.priority === "Urgente"
+                                    ? "selected"
+                                    : ""
+                                }>Urgente</option>
                             </select>
                         </div>
 
@@ -1296,10 +1531,14 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <textarea id="edit-additional-notes" rows="4"
                                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                      placeholder="Información adicional, instrucciones especiales, etc.">${service.additionalNotes || ''}</textarea>
+                                      placeholder="Información adicional, instrucciones especiales, etc.">${
+                                        service.additionalNotes || ""
+                                      }</textarea>
                         </div>
 
-                        ${isClient && service.status === 'Rechazado' ? `
+                        ${
+                          isClient && service.status === "Rechazado"
+                            ? `
                             <div class="md:col-span-2">
                                 <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                                     <div class="flex">
@@ -1314,11 +1553,15 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                     </div>
                                 </div>
                             </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6 border-t">
-                        <button type="button" onclick="servicesModule.viewService(${service.id})" 
+                        <button type="button" onclick="servicesModule.viewService(${
+                          service.id
+                        })" 
                                 class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                             Cancelar
                         </button>
@@ -1331,110 +1574,117 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
             </div>
         `;
 
-        this.initEditServiceForm(service.id);
-    },
+    this.initEditServiceForm(service.id);
+  },
 
-    initEditServiceForm(serviceId) {
-        const form = document.getElementById('edit-service-form');
-        const preferredTimeSelect = document.getElementById('edit-preferred-time');
-        const specificTimeContainer = document.getElementById('edit-specific-time-container');
+  initEditServiceForm(serviceId) {
+    const form = document.getElementById("edit-service-form");
+    const preferredTimeSelect = document.getElementById("edit-preferred-time");
+    const specificTimeContainer = document.getElementById(
+      "edit-specific-time-container"
+    );
 
-        // Handle specific time selection
-        preferredTimeSelect.addEventListener('change', function() {
-            if (this.value === 'specific') {
-                specificTimeContainer.classList.remove('hidden');
-            } else {
-                specificTimeContainer.classList.add('hidden');
-            }
-        });
+    // Handle specific time selection
+    preferredTimeSelect.addEventListener("change", function () {
+      if (this.value === "specific") {
+        specificTimeContainer.classList.remove("hidden");
+      } else {
+        specificTimeContainer.classList.add("hidden");
+      }
+    });
 
-        // Handle form submission
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveEditedService(serviceId);
-        });
-    },
+    // Handle form submission
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.saveEditedService(serviceId);
+    });
+  },
 
-    saveEditedService(serviceId) {
-        const serviceIndex = this.services.findIndex(s => s.id === serviceId);
-        if (serviceIndex === -1) return;
+  saveEditedService(serviceId) {
+    const serviceIndex = this.services.findIndex((s) => s.id === serviceId);
+    if (serviceIndex === -1) return;
 
-        const currentUser = app.currentUser;
-        const isClient = currentUser && currentUser.type === 'client';
+    const currentUser = app.currentUser;
+    const isClient = currentUser && currentUser.type === "client";
 
-        const formData = {
-            clientName: document.getElementById('edit-client-name').value,
-            clientPhone: document.getElementById('edit-client-phone').value,
-            address: document.getElementById('edit-client-address').value,
-            wasteType: document.getElementById('edit-waste-type').value,
-            estimatedVolume: document.getElementById('edit-estimated-volume').value,
-            volumeUnit: document.getElementById('edit-volume-unit').value,
-            requestedDate: document.getElementById('edit-requested-date').value,
-            preferredTime: document.getElementById('edit-preferred-time').value,
-            specificTime: document.getElementById('edit-specific-time').value,
-            priority: document.getElementById('edit-priority').value,
-            additionalNotes: document.getElementById('edit-additional-notes').value
-        };
+    const formData = {
+      clientName: document.getElementById("edit-client-name").value,
+      clientPhone: document.getElementById("edit-client-phone").value,
+      address: document.getElementById("edit-client-address").value,
+      wasteType: document.getElementById("edit-waste-type").value,
+      estimatedVolume: document.getElementById("edit-estimated-volume").value,
+      volumeUnit: document.getElementById("edit-volume-unit").value,
+      requestedDate: document.getElementById("edit-requested-date").value,
+      preferredTime: document.getElementById("edit-preferred-time").value,
+      specificTime: document.getElementById("edit-specific-time").value,
+      priority: document.getElementById("edit-priority").value,
+      additionalNotes: document.getElementById("edit-additional-notes").value,
+    };
 
-        // Si es admin, incluir el estado del formulario
-        if (!isClient) {
-            formData.status = document.getElementById('edit-status').value;
-        }
+    // Si es admin, incluir el estado del formulario
+    if (!isClient) {
+      formData.status = document.getElementById("edit-status").value;
+    }
 
-        // Si es un cliente editando una solicitud rechazada, cambiar estado
-        if (isClient) {
-            const originalService = this.services[serviceIndex];
-            if (originalService.status === 'Rechazado') {
-                formData.status = 'Pendiente de Aprobación';
-                formData.revisedDate = new Date().toISOString().split('T')[0];
-                formData.revisedBy = currentUser.id;
-                
-                // Notificar al admin sobre la revisión
-                this.notifyAdminServiceRevised(this.services[serviceIndex], formData);
-            }
-        }
+    // Si es un cliente editando una solicitud rechazada, cambiar estado
+    if (isClient) {
+      const originalService = this.services[serviceIndex];
+      if (originalService.status === "Rechazado") {
+        formData.status = "Pendiente de Aprobación";
+        formData.revisedDate = new Date().toISOString().split("T")[0];
+        formData.revisedBy = currentUser.id;
 
-        // Update the service
-        this.services[serviceIndex] = {
-            ...this.services[serviceIndex],
-            ...formData
-        };
-        this.saveServices(); // Guardar los servicios actualizados
+        // Notificar al admin sobre la revisión
+        this.notifyAdminServiceRevised(this.services[serviceIndex], formData);
+      }
+    }
 
-        // Show success message
-        const message = currentUser && currentUser.type === 'client' && formData.status === 'Pendiente de Aprobación'
-            ? 'Solicitud editada y enviada para aprobación exitosamente'
-            : 'Servicio actualizado exitosamente';
-        authSystem.showNotification(message, 'success');
+    // Update the service
+    this.services[serviceIndex] = {
+      ...this.services[serviceIndex],
+      ...formData,
+    };
+    this.saveServices(); // Guardar los servicios actualizados
 
-        // Redirect to service detail view
-        this.viewService(serviceId);
-    },
+    // Show success message
+    const message =
+      currentUser &&
+      currentUser.type === "client" &&
+      formData.status === "Pendiente de Aprobación"
+        ? "Solicitud editada y enviada para aprobación exitosamente"
+        : "Servicio actualizado exitosamente";
+    authSystem.showNotification(message, "success");
 
-    // Notificar al admin sobre solicitud revisada
-    notifyAdminServiceRevised(originalService, revisedData) {
-        const notificationMessage = `Solicitud revisada por cliente: ${revisedData.clientName} (${revisedData.wasteType})`;
-        
-        // Mostrar notificación al admin
-        if (app.currentUser && app.currentUser.type === 'admin') {
-            authSystem.showNotification(notificationMessage, 'info');
-        }
+    // Redirect to service detail view
+    this.viewService(serviceId);
+  },
 
-        // También mostrar en la consola para debugging
-        console.log('Solicitud revisada:', {
-            original: originalService,
-            revised: revisedData
-        });
-    },
+  // Notificar al admin sobre solicitud revisada
+  notifyAdminServiceRevised(originalService, revisedData) {
+    const notificationMessage = `Solicitud revisada por cliente: ${revisedData.clientName} (${revisedData.wasteType})`;
 
-    scheduleService(id) {
-        const service = this.services.find(s => s.id === id);
-        if (!service) return;
+    // Mostrar notificación al admin
+    if (app.currentUser && app.currentUser.type === "admin") {
+      authSystem.showNotification(notificationMessage, "info");
+    }
 
-        const contentArea = document.getElementById('content-area');
-        contentArea.innerHTML = `
+    // También mostrar en la consola para debugging
+    console.log("Solicitud revisada:", {
+      original: originalService,
+      revised: revisedData,
+    });
+  },
+
+  scheduleService(id) {
+    const service = this.services.find((s) => s.id === id);
+    if (!service) return;
+
+    const contentArea = document.getElementById("content-area");
+    contentArea.innerHTML = `
             <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">Programar Servicio #${service.id.toString().padStart(3, '0')}</h1>
+                <h1 class="text-3xl font-bold text-gray-800">Programar Servicio #${service.id
+                  .toString()
+                  .padStart(3, "0")}</h1>
                 <p class="text-gray-600">Configura la fecha y hora para la recolección del servicio</p>
             </div>
 
@@ -1446,9 +1696,15 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                         </div>
                         <div class="ml-3">
                             <p class="text-sm text-blue-700">
-                                <strong>Cliente:</strong> ${service.clientName}<br>
-                                <strong>Tipo de Residuo:</strong> ${service.wasteType}<br>
-                                <strong>Volumen:</strong> ${service.estimatedVolume} ${service.volumeUnit || 'm³'}
+                                <strong>Cliente:</strong> ${
+                                  service.clientName
+                                }<br>
+                                <strong>Tipo de Residuo:</strong> ${
+                                  service.wasteType
+                                }<br>
+                                <strong>Volumen:</strong> ${
+                                  service.estimatedVolume
+                                } ${service.volumeUnit || "m³"}
                             </p>
                         </div>
                     </div>
@@ -1462,7 +1718,9 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </label>
                             <input type="date" id="collection-date" required 
                                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                   min="${new Date().toISOString().split('T')[0]}">
+                                   min="${
+                                     new Date().toISOString().split("T")[0]
+                                   }">
                         </div>
 
                         <div>
@@ -1542,7 +1800,9 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6 border-t">
-                        <button type="button" onclick="servicesModule.viewService(${service.id})" 
+                        <button type="button" onclick="servicesModule.viewService(${
+                          service.id
+                        })" 
                                 class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                             Cancelar
                         </button>
@@ -1555,70 +1815,72 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
             </div>
         `;
 
-        this.initScheduleServiceForm(service.id);
-    },
+    this.initScheduleServiceForm(service.id);
+  },
 
-    initScheduleServiceForm(serviceId) {
-        const form = document.getElementById('schedule-service-form');
-        
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('collection-date').min = today;
+  initScheduleServiceForm(serviceId) {
+    const form = document.getElementById("schedule-service-form");
 
-        // Handle form submission
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveScheduledService(serviceId);
-        });
-    },
+    // Set minimum date to today
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("collection-date").min = today;
 
-    saveScheduledService(serviceId) {
-        const serviceIndex = this.services.findIndex(s => s.id === serviceId);
-        if (serviceIndex === -1) return;
+    // Handle form submission
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.saveScheduledService(serviceId);
+    });
+  },
 
-        const scheduleData = {
-            collectionDate: document.getElementById('collection-date').value,
-            collectionTime: document.getElementById('collection-time').value,
-            estimatedDuration: document.getElementById('estimated-duration').value,
-            equipmentRequired: document.getElementById('equipment-required').value,
-            personnelRequired: document.getElementById('personnel-required').value,
-            schedulePriority: document.getElementById('schedule-priority').value,
-            specialInstructions: document.getElementById('special-instructions').value,
-            scheduleNotes: document.getElementById('schedule-notes').value,
-            scheduledAt: new Date().toISOString(),
-            scheduledBy: 'Usuario actual' // TODO: Get from auth system
-        };
+  saveScheduledService(serviceId) {
+    const serviceIndex = this.services.findIndex((s) => s.id === serviceId);
+    if (serviceIndex === -1) return;
 
-        // Update the service
-        this.services[serviceIndex] = {
-            ...this.services[serviceIndex],
-            status: 'Programado',
-            schedule: scheduleData
-        };
-        this.saveServices(); // Guardar los servicios actualizados
+    const scheduleData = {
+      collectionDate: document.getElementById("collection-date").value,
+      collectionTime: document.getElementById("collection-time").value,
+      estimatedDuration: document.getElementById("estimated-duration").value,
+      equipmentRequired: document.getElementById("equipment-required").value,
+      personnelRequired: document.getElementById("personnel-required").value,
+      schedulePriority: document.getElementById("schedule-priority").value,
+      specialInstructions: document.getElementById("special-instructions")
+        .value,
+      scheduleNotes: document.getElementById("schedule-notes").value,
+      scheduledAt: new Date().toISOString(),
+      scheduledBy: "Usuario actual", // TODO: Get from auth system
+    };
 
-        // Show success message
-        authSystem.showNotification('Servicio programado exitosamente', 'success');
+    // Update the service
+    this.services[serviceIndex] = {
+      ...this.services[serviceIndex],
+      status: "Programado",
+      schedule: scheduleData,
+    };
+    this.saveServices(); // Guardar los servicios actualizados
 
-        // Redirect to service detail view
-        this.viewService(serviceId);
-    },
+    // Show success message
+    authSystem.showNotification("Servicio programado exitosamente", "success");
 
-    formatPreferredTime(preferredTime, specificTime) {
-        if (!preferredTime) return 'Sin preferencia';
-        if (preferredTime === 'morning') return 'Mañana (8:00 AM - 12:00 PM)';
-        if (preferredTime === 'afternoon') return 'Tarde (12:00 PM - 6:00 PM)';
-        if (preferredTime === 'specific' && specificTime) return `Hora específica: ${specificTime}`;
-        return 'Hora específica';
-    },
+    // Redirect to service detail view
+    this.viewService(serviceId);
+  },
 
-    deleteService(id) {
-        const service = this.services.find(s => s.id === id);
-        if (!service) return;
+  formatPreferredTime(preferredTime, specificTime) {
+    if (!preferredTime) return "Sin preferencia";
+    if (preferredTime === "morning") return "Mañana (8:00 AM - 12:00 PM)";
+    if (preferredTime === "afternoon") return "Tarde (12:00 PM - 6:00 PM)";
+    if (preferredTime === "specific" && specificTime)
+      return `Hora específica: ${specificTime}`;
+    return "Hora específica";
+  },
 
-        // Show confirmation modal
-        const contentArea = document.getElementById('content-area');
-        const modalHTML = `
+  deleteService(id) {
+    const service = this.services.find((s) => s.id === id);
+    if (!service) return;
+
+    // Show confirmation modal
+    const contentArea = document.getElementById("content-area");
+    const modalHTML = `
             <div id="delete-confirmation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
                 <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                     <div class="mt-3 text-center">
@@ -1631,9 +1893,17 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                 ¿Está seguro de que desea eliminar la solicitud de servicio?
                             </p>
                             <div class="mt-3 p-3 bg-gray-50 rounded-lg text-left">
-                                <p class="text-sm font-medium text-gray-700">Servicio #${service.id.toString().padStart(3, '0')}</p>
-                                <p class="text-sm text-gray-600">${service.clientName}</p>
-                                <p class="text-sm text-gray-600">${service.wasteType} - ${service.estimatedVolume} ${service.volumeUnit || 'm³'}</p>
+                                <p class="text-sm font-medium text-gray-700">Servicio #${service.id
+                                  .toString()
+                                  .padStart(3, "0")}</p>
+                                <p class="text-sm text-gray-600">${
+                                  service.clientName
+                                }</p>
+                                <p class="text-sm text-gray-600">${
+                                  service.wasteType
+                                } - ${service.estimatedVolume} ${
+      service.volumeUnit || "m³"
+    }</p>
                             </div>
                             <p class="text-sm text-red-600 mt-2 font-medium">
                                 Esta acción no se puede deshacer.
@@ -1656,129 +1926,159 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
             </div>
         `;
 
-        // Add modal to the page
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Add modal to the page
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-        // Get modal elements
-        const modal = document.getElementById('delete-confirmation-modal');
-        const cancelBtn = document.getElementById('cancel-delete');
-        const confirmBtn = document.getElementById('confirm-delete');
+    // Get modal elements
+    const modal = document.getElementById("delete-confirmation-modal");
+    const cancelBtn = document.getElementById("cancel-delete");
+    const confirmBtn = document.getElementById("confirm-delete");
 
-        // Handle cancel button
-        cancelBtn.addEventListener('click', () => {
-            modal.remove();
-        });
+    // Handle cancel button
+    cancelBtn.addEventListener("click", () => {
+      modal.remove();
+    });
 
-        // Handle confirm button
-        confirmBtn.addEventListener('click', () => {
-            // Remove the service
-            this.services = this.services.filter(s => s.id !== id);
-            this.saveServices(); // Guardar los servicios actualizados
-            
-            // Remove modal
-            modal.remove();
-            
-            // Refresh the table
-            this.loadServicesTable();
-            
-            // Show success notification
-            authSystem.showNotification('Solicitud eliminada exitosamente', 'success');
-        });
+    // Handle confirm button
+    confirmBtn.addEventListener("click", () => {
+      // Remove the service
+      this.services = this.services.filter((s) => s.id !== id);
+      this.saveServices(); // Guardar los servicios actualizados
 
-        // Close modal when clicking outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
+      // Remove modal
+      modal.remove();
 
-        // Close modal with Escape key
-        document.addEventListener('keydown', function closeOnEscape(e) {
-            if (e.key === 'Escape') {
-                modal.remove();
-                document.removeEventListener('keydown', closeOnEscape);
-            }
-        });
-    },
+      // Refresh the table
+      this.loadServicesTable();
 
-    applyFilters() {
-        const statusFilter = document.getElementById('status-filter').value;
-        const wasteTypeFilter = document.getElementById('waste-type-filter').value;
-        const dateFromFilter = document.getElementById('date-from-filter').value;
-        const dateToFilter = document.getElementById('date-to-filter').value;
+      // Show success notification
+      authSystem.showNotification(
+        "Solicitud eliminada exitosamente",
+        "success"
+      );
+    });
 
-        let filteredServices = [...this.services];
+    // Close modal when clicking outside
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
 
-        // Filtrar por estado
-        if (statusFilter) {
-            filteredServices = filteredServices.filter(service => service.status === statusFilter);
-        }
+    // Close modal with Escape key
+    document.addEventListener("keydown", function closeOnEscape(e) {
+      if (e.key === "Escape") {
+        modal.remove();
+        document.removeEventListener("keydown", closeOnEscape);
+      }
+    });
+  },
 
-        // Filtrar por tipo de residuo
-        if (wasteTypeFilter) {
-            filteredServices = filteredServices.filter(service => service.wasteType === wasteTypeFilter);
-        }
+  applyFilters() {
+    const statusFilter = document.getElementById("status-filter").value;
+    const wasteTypeFilter = document.getElementById("waste-type-filter").value;
+    const dateFromFilter = document.getElementById("date-from-filter").value;
+    const dateToFilter = document.getElementById("date-to-filter").value;
 
-        // Filtrar por fecha desde
-        if (dateFromFilter) {
-            filteredServices = filteredServices.filter(service => service.requestedDate >= dateFromFilter);
-        }
+    let filteredServices = [...this.services];
 
-        // Filtrar por fecha hasta
-        if (dateToFilter) {
-            filteredServices = filteredServices.filter(service => service.requestedDate <= dateToFilter);
-        }
+    // Filtrar por estado
+    if (statusFilter) {
+      filteredServices = filteredServices.filter(
+        (service) => service.status === statusFilter
+      );
+    }
 
-        // Mostrar servicios filtrados
-        this.displayFilteredServices(filteredServices);
-        
-        authSystem.showNotification(`Se encontraron ${filteredServices.length} solicitudes`, 'info');
-    },
+    // Filtrar por tipo de residuo
+    if (wasteTypeFilter) {
+      filteredServices = filteredServices.filter(
+        (service) => service.wasteType === wasteTypeFilter
+      );
+    }
+
+    // Filtrar por fecha desde
+    if (dateFromFilter) {
+      filteredServices = filteredServices.filter(
+        (service) => service.requestedDate >= dateFromFilter
+      );
+    }
+
+    // Filtrar por fecha hasta
+    if (dateToFilter) {
+      filteredServices = filteredServices.filter(
+        (service) => service.requestedDate <= dateToFilter
+      );
+    }
 
     // Mostrar servicios filtrados
-    displayFilteredServices(filteredServices) {
-        const tbody = document.getElementById('services-table-body');
-        
-        tbody.innerHTML = filteredServices.map(service => `
+    this.displayFilteredServices(filteredServices);
+
+    authSystem.showNotification(
+      `Se encontraron ${filteredServices.length} solicitudes`,
+      "info"
+    );
+  },
+
+  // Mostrar servicios filtrados
+  displayFilteredServices(filteredServices) {
+    const tbody = document.getElementById("services-table-body");
+
+    tbody.innerHTML = filteredServices
+      .map(
+        (service) => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #${service.id.toString().padStart(3, '0')}
+                    #${service.id.toString().padStart(3, "0")}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div>
-                        <div class="text-sm font-medium text-gray-900">${service.clientName}</div>
-                        <div class="text-sm text-gray-500">${service.address}</div>
+                        <div class="text-sm font-medium text-gray-900">${
+                          service.clientName
+                        }</div>
+                        <div class="text-sm text-gray-500">${
+                          service.address
+                        }</div>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(service.wasteType)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(
+                      service.wasteType
+                    )}">
                         ${service.wasteType}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${service.estimatedVolume} ${service.volumeUnit || 'm³'}
+                    ${service.estimatedVolume} ${service.volumeUnit || "m³"}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${this.formatDate(service.requestedDate)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(service.status)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(
+                      service.status
+                    )}">
                         ${service.status}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(service.priority)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(
+                      service.priority
+                    )}">
                         ${service.priority}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex space-x-2">
-                        <button onclick="servicesModule.viewService(${service.id})" 
+                        <button onclick="servicesModule.viewService(${
+                          service.id
+                        })" 
                                 class="text-blue-600 hover:text-blue-900" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
                         
-                        ${service.status === 'Pendiente de Aprobación' ? `
+                        ${
+                          service.status === "Pendiente de Aprobación"
+                            ? `
                             <button onclick="servicesModule.approveService(${service.id})" 
                                     class="text-green-600 hover:text-green-900" title="Aprobar">
                                 <i class="fas fa-check"></i>
@@ -1787,7 +2087,8 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                     class="text-red-600 hover:text-red-900" title="Rechazar">
                                 <i class="fas fa-times"></i>
                             </button>
-                        ` : `
+                        `
+                            : `
                             <button onclick="servicesModule.editService(${service.id})" 
                                     class="text-green-600 hover:text-green-900" title="Editar">
                                 <i class="fas fa-edit"></i>
@@ -1796,137 +2097,181 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                                     class="text-yellow-600 hover:text-yellow-900" title="Programar">
                                 <i class="fas fa-calendar-plus"></i>
                             </button>
-                        `}
+                        `
+                        }
                         
-                        <button onclick="servicesModule.deleteService(${service.id})" 
+                        <button onclick="servicesModule.deleteService(${
+                          service.id
+                        })" 
                                 class="text-red-600 hover:text-red-900" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </td>
             </tr>
-        `).join('');
-    },
+        `
+      )
+      .join("");
+  },
 
-    // Aplicar filtros para cliente
-    applyClientFilters() {
-        const statusFilter = document.getElementById('client-status-filter').value;
-        const wasteTypeFilter = document.getElementById('client-waste-type-filter').value;
-        const dateFromFilter = document.getElementById('client-date-from-filter').value;
+  // Aplicar filtros para cliente
+  applyClientFilters() {
+    const statusFilter = document.getElementById("client-status-filter").value;
+    const wasteTypeFilter = document.getElementById(
+      "client-waste-type-filter"
+    ).value;
+    const dateFromFilter = document.getElementById(
+      "client-date-from-filter"
+    ).value;
 
-        const currentUser = app.currentUser;
-        if (!currentUser || currentUser.type !== 'client') return;
+    const currentUser = app.currentUser;
+    if (!currentUser || currentUser.type !== "client") return;
 
-        // Filtrar servicios del cliente actual
-        let clientServices = this.services.filter(service => 
-            service.clientId === currentUser.id || service.clientEmail === currentUser.email
-        );
+    // Filtrar servicios del cliente actual
+    let clientServices = this.services.filter(
+      (service) =>
+        service.clientId === currentUser.id ||
+        service.clientEmail === currentUser.email
+    );
 
-        // Aplicar filtros
-        if (statusFilter) {
-            clientServices = clientServices.filter(service => service.status === statusFilter);
-        }
+    // Aplicar filtros
+    if (statusFilter) {
+      clientServices = clientServices.filter(
+        (service) => service.status === statusFilter
+      );
+    }
 
-        if (wasteTypeFilter) {
-            clientServices = clientServices.filter(service => service.wasteType === wasteTypeFilter);
-        }
+    if (wasteTypeFilter) {
+      clientServices = clientServices.filter(
+        (service) => service.wasteType === wasteTypeFilter
+      );
+    }
 
-        if (dateFromFilter) {
-            clientServices = clientServices.filter(service => service.requestedDate >= dateFromFilter);
-        }
+    if (dateFromFilter) {
+      clientServices = clientServices.filter(
+        (service) => service.requestedDate >= dateFromFilter
+      );
+    }
 
-        // Mostrar servicios filtrados
-        this.displayFilteredClientServices(clientServices);
-        
-        authSystem.showNotification(`Se encontraron ${clientServices.length} solicitudes`, 'info');
-    },
+    // Mostrar servicios filtrados
+    this.displayFilteredClientServices(clientServices);
 
-    // Mostrar servicios filtrados del cliente
-    displayFilteredClientServices(filteredServices) {
-        const tbody = document.getElementById('client-services-table-body');
-        
-        tbody.innerHTML = filteredServices.map(service => `
+    authSystem.showNotification(
+      `Se encontraron ${clientServices.length} solicitudes`,
+      "info"
+    );
+  },
+
+  // Mostrar servicios filtrados del cliente
+  displayFilteredClientServices(filteredServices) {
+    const tbody = document.getElementById("client-services-table-body");
+
+    tbody.innerHTML = filteredServices
+      .map(
+        (service) => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #${service.id.toString().padStart(3, '0')}
+                    #${service.id.toString().padStart(3, "0")}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(service.wasteType)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(
+                      service.wasteType
+                    )}">
                         ${service.wasteType}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${service.estimatedVolume} ${service.volumeUnit || 'm³'}
+                    ${service.estimatedVolume} ${service.volumeUnit || "m³"}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${this.formatDate(service.requestedDate)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(service.status)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(
+                      service.status
+                    )}">
                         ${service.status}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(service.priority)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(
+                      service.priority
+                    )}">
                         ${service.priority}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex space-x-2">
-                        <button onclick="servicesModule.viewService(${service.id})" 
+                        <button onclick="servicesModule.viewService(${
+                          service.id
+                        })" 
                                 class="text-blue-600 hover:text-blue-900" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
                         
-                        ${service.status === 'Rechazado' ? `
+                        ${
+                          service.status === "Rechazado"
+                            ? `
                             <button onclick="servicesModule.editService(${service.id})" 
                                     class="text-green-600 hover:text-green-900" title="Editar y Reenviar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                         
-                        ${service.status === 'Pendiente de Aprobación' ? `
+                        ${
+                          service.status === "Pendiente de Aprobación"
+                            ? `
                             <button onclick="servicesModule.editService(${service.id})" 
                                     class="text-yellow-600 hover:text-yellow-900" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                     </div>
                 </td>
             </tr>
-        `).join('');
-    },
+        `
+      )
+      .join("");
+  },
 
-    clearFilters() {
-        document.getElementById('status-filter').value = '';
-        document.getElementById('waste-type-filter').value = '';
-        document.getElementById('date-from-filter').value = '';
-        document.getElementById('date-to-filter').value = '';
-        this.loadServicesTable();
-        authSystem.showNotification('Filtros limpiados', 'info');
-    },
+  clearFilters() {
+    document.getElementById("status-filter").value = "";
+    document.getElementById("waste-type-filter").value = "";
+    document.getElementById("date-from-filter").value = "";
+    document.getElementById("date-to-filter").value = "";
+    this.loadServicesTable();
+    authSystem.showNotification("Filtros limpiados", "info");
+  },
 
-    // Cargar vista para clientes
-    loadClientView() {
-        const contentArea = document.getElementById('content-area');
-        const currentUser = app.currentUser;
-        
-        if (!currentUser || currentUser.type !== 'client') {
-            authSystem.showNotification('Acceso denegado', 'error');
-            return;
-        }
+  // Cargar vista para clientes
+  loadClientView() {
+    const contentArea = document.getElementById("content-area");
+    const currentUser = app.currentUser;
 
-        contentArea.innerHTML = `
+    if (!currentUser || currentUser.type !== "client") {
+      authSystem.showNotification("Acceso denegado", "error");
+      return;
+    }
+
+    contentArea.innerHTML = `
             <div class="mb-6">
                 <div class="flex justify-between items-center">
                     <h1 class="text-3xl font-bold text-gray-800">Mis Solicitudes de Servicio</h1>
                     <div class="flex space-x-3">
-                        ${currentUser.isTemporaryPassword ? `
+                        ${
+                          currentUser.isTemporaryPassword
+                            ? `
                             <button onclick="servicesModule.showTemporaryPasswordInfo()" 
                                     class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center">
                                 <i class="fas fa-exclamation-triangle mr-2"></i>Contraseña Temporal
                             </button>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                         <button onclick="servicesModule.loadNewService()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
                             <i class="fas fa-plus mr-2"></i>Nueva Solicitud
                         </button>
@@ -1934,7 +2279,9 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                 </div>
                 <p class="text-gray-600">Gestiona tus solicitudes de recolección de residuos</p>
                 
-                ${currentUser.isTemporaryPassword ? `
+                ${
+                  currentUser.isTemporaryPassword
+                    ? `
                     <div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
                         <div class="flex">
                             <div class="flex-shrink-0">
@@ -1950,7 +2297,9 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
                             </div>
                         </div>
                     </div>
-                ` : ''}
+                `
+                    : ""
+                }
             </div>
 
             <!-- Filtros para Cliente -->
@@ -2016,123 +2365,149 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
             </div>
         `;
 
-        this.loadClientServicesTable();
-    },
+    this.loadClientServicesTable();
+  },
 
-    // Cargar tabla de servicios del cliente
-    loadClientServicesTable() {
-        const tbody = document.getElementById('client-services-table-body');
-        const currentUser = app.currentUser;
-        
-        if (!currentUser || currentUser.type !== 'client') return;
+  // Cargar tabla de servicios del cliente
+  loadClientServicesTable() {
+    const tbody = document.getElementById("client-services-table-body");
+    const currentUser = app.currentUser;
 
-        // Filtrar servicios del cliente actual
-        const clientServices = this.services.filter(service => 
-            service.clientId === currentUser.id || service.clientEmail === currentUser.email
-        );
-        
-        tbody.innerHTML = clientServices.map(service => `
+    if (!currentUser || currentUser.type !== "client") return;
+
+    // Filtrar servicios del cliente actual
+    const clientServices = this.services.filter(
+      (service) =>
+        service.clientId === currentUser.id ||
+        service.clientEmail === currentUser.email
+    );
+
+    tbody.innerHTML = clientServices
+      .map(
+        (service) => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #${service.id.toString().padStart(3, '0')}
+                    #${service.id.toString().padStart(3, "0")}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(service.wasteType)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(
+                      service.wasteType
+                    )}">
                         ${service.wasteType}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${service.estimatedVolume} ${service.volumeUnit || 'm³'}
+                    ${service.estimatedVolume} ${service.volumeUnit || "m³"}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${this.formatDate(service.requestedDate)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(service.status)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(
+                      service.status
+                    )}">
                         ${service.status}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(service.priority)}">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(
+                      service.priority
+                    )}">
                         ${service.priority}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex space-x-2">
-                        <button onclick="servicesModule.viewService(${service.id})" 
+                        <button onclick="servicesModule.viewService(${
+                          service.id
+                        })" 
                                 class="text-blue-600 hover:text-blue-900" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
                         
-                        ${service.status === 'Rechazado' ? `
+                        ${
+                          service.status === "Rechazado"
+                            ? `
                             <button onclick="servicesModule.editService(${service.id})" 
                                     class="text-green-600 hover:text-green-900" title="Editar y Reenviar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                         
-                        ${service.status === 'Pendiente de Aprobación' ? `
+                        ${
+                          service.status === "Pendiente de Aprobación"
+                            ? `
                             <button onclick="servicesModule.editService(${service.id})" 
                                     class="text-yellow-600 hover:text-yellow-900" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                     </div>
                 </td>
             </tr>
-        `).join('');
-    },
+        `
+      )
+      .join("");
+  },
 
-    // Limpiar filtros para cliente
-    clearClientFilters() {
-        document.getElementById('client-status-filter').value = '';
-        document.getElementById('client-waste-type-filter').value = '';
-        document.getElementById('client-date-from-filter').value = '';
-        this.loadClientServicesTable();
-        authSystem.showNotification('Filtros limpiados', 'info');
-    },
+  // Limpiar filtros para cliente
+  clearClientFilters() {
+    document.getElementById("client-status-filter").value = "";
+    document.getElementById("client-waste-type-filter").value = "";
+    document.getElementById("client-date-from-filter").value = "";
+    this.loadClientServicesTable();
+    authSystem.showNotification("Filtros limpiados", "info");
+  },
 
-    // Método para cargar la vista principal según el tipo de usuario
-    loadMainView() {
-        const currentUser = app.currentUser;
-        
-        if (!currentUser) {
-            authSystem.showNotification('Debe iniciar sesión', 'error');
-            return;
-        }
+  // Método para cargar la vista principal según el tipo de usuario
+  loadMainView() {
+    const currentUser = app.currentUser;
 
-        if (currentUser.type === 'client') {
-            this.loadClientView();
-            
-            // Mostrar información de contraseña temporal si es necesario
-            setTimeout(() => {
-                this.showTemporaryPasswordInfo();
-            }, 1000);
-        } else {
-            this.load();
-        }
-    },
+    if (!currentUser) {
+      authSystem.showNotification("Debe iniciar sesión", "error");
+      return;
+    }
 
-    // Método para manejar la navegación desde el menú
-    handleNavigation(moduleName) {
-        if (moduleName === 'services') {
-            this.loadMainView();
-        } else {
-            // Para otros módulos, usar el sistema de navegación principal
-            if (window.app && window.app.loadModule) {
-                window.app.loadModule(moduleName);
-            }
-        }
-    },
+    if (currentUser.type === "client") {
+      this.loadClientView();
 
-    // Mostrar información de contraseña temporal para clientes
-    showTemporaryPasswordInfo() {
-        const currentUser = app.currentUser;
-        if (!currentUser || currentUser.type !== 'client' || !currentUser.isTemporaryPassword) {
-            return;
-        }
+      // Mostrar información de contraseña temporal si es necesario
+      setTimeout(() => {
+        this.showTemporaryPasswordInfo();
+      }, 1000);
+    } else {
+      this.load();
+    }
+  },
 
-        const modalHTML = `
+  // Método para manejar la navegación desde el menú
+  handleNavigation(moduleName) {
+    if (moduleName === "services") {
+      this.loadMainView();
+    } else {
+      // Para otros módulos, usar el sistema de navegación principal
+      if (window.app && window.app.loadModule) {
+        window.app.loadModule(moduleName);
+      }
+    }
+  },
+
+  // Mostrar información de contraseña temporal para clientes
+  showTemporaryPasswordInfo() {
+    const currentUser = app.currentUser;
+    if (
+      !currentUser ||
+      currentUser.type !== "client" ||
+      !currentUser.isTemporaryPassword
+    ) {
+      return;
+    }
+
+    const modalHTML = `
             <div id="temp-password-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 w-96 max-w-md">
                     <div class="flex items-center mb-4">
@@ -2162,48 +2537,48 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
             </div>
         `;
 
-        // Insertar modal en el DOM
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Insertar modal en el DOM
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-        // Event listeners
-        const modal = document.getElementById('temp-password-modal');
-        const changePasswordBtn = document.getElementById('change-password-btn');
-        const closeBtn = document.getElementById('close-temp-password');
+    // Event listeners
+    const modal = document.getElementById("temp-password-modal");
+    const changePasswordBtn = document.getElementById("change-password-btn");
+    const closeBtn = document.getElementById("close-temp-password");
 
-        // Cambiar contraseña
-        changePasswordBtn.addEventListener('click', () => {
-            modal.remove();
-            this.showChangePasswordForm();
-        });
+    // Cambiar contraseña
+    changePasswordBtn.addEventListener("click", () => {
+      modal.remove();
+      this.showChangePasswordForm();
+    });
 
-        // Cerrar
-        closeBtn.addEventListener('click', () => {
-            modal.remove();
-        });
+    // Cerrar
+    closeBtn.addEventListener("click", () => {
+      modal.remove();
+    });
 
-        // Cerrar al hacer clic fuera
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
+    // Cerrar al hacer clic fuera
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
 
-        // Cerrar con Escape
-        document.addEventListener('keydown', function closeOnEscape(e) {
-            if (e.key === 'Escape') {
-                modal.remove();
-                document.removeEventListener('keydown', closeOnEscape);
-            }
-        });
-    },
+    // Cerrar con Escape
+    document.addEventListener("keydown", function closeOnEscape(e) {
+      if (e.key === "Escape") {
+        modal.remove();
+        document.removeEventListener("keydown", closeOnEscape);
+      }
+    });
+  },
 
-    // Mostrar formulario para cambiar contraseña
-    showChangePasswordForm() {
-        const currentUser = app.currentUser;
-        if (!currentUser || currentUser.type !== 'client') return;
+  // Mostrar formulario para cambiar contraseña
+  showChangePasswordForm() {
+    const currentUser = app.currentUser;
+    if (!currentUser || currentUser.type !== "client") return;
 
-        const contentArea = document.getElementById('content-area');
-        contentArea.innerHTML = `
+    const contentArea = document.getElementById("content-area");
+    contentArea.innerHTML = `
             <div class="mb-6">
                 <h1 class="text-3xl font-bold text-gray-800">Cambiar Contraseña</h1>
                 <p class="text-gray-600">Cambia tu contraseña temporal por una nueva</p>
@@ -2253,99 +2628,123 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
             </div>
         `;
 
-        this.initChangePasswordForm();
-    },
+    this.initChangePasswordForm();
+  },
 
-    // Inicializar formulario de cambio de contraseña
-    initChangePasswordForm() {
-        const form = document.getElementById('change-password-form');
-        
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handlePasswordChange();
-        });
-    },
+  // Inicializar formulario de cambio de contraseña
+  initChangePasswordForm() {
+    const form = document.getElementById("change-password-form");
 
-    // Manejar cambio de contraseña
-    handlePasswordChange() {
-        const currentPassword = document.getElementById('current-password').value;
-        const newPassword = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.handlePasswordChange();
+    });
+  },
 
-        // Validaciones
-        if (newPassword.length < 8) {
-            authSystem.showNotification('La nueva contraseña debe tener al menos 8 caracteres', 'error');
-            return;
-        }
+  // Manejar cambio de contraseña
+  handlePasswordChange() {
+    const currentPassword = document.getElementById("current-password").value;
+    const newPassword = document.getElementById("new-password").value;
+    const confirmPassword = document.getElementById("confirm-password").value;
 
-        if (newPassword !== confirmPassword) {
-            authSystem.showNotification('Las contraseñas no coinciden', 'error');
-            return;
-        }
-
-        // Verificar contraseña actual
-        const currentUser = app.currentUser;
-        if (currentPassword !== currentUser.password) {
-            authSystem.showNotification('La contraseña actual es incorrecta', 'error');
-            return;
-        }
-
-        // Cambiar contraseña
-        if (window.authSystem && window.authSystem.users) {
-            const userIndex = window.authSystem.users.findIndex(u => u.id === currentUser.id);
-            if (userIndex !== -1) {
-                window.authSystem.users[userIndex].password = newPassword;
-                window.authSystem.users[userIndex].isTemporaryPassword = false;
-                
-                // Actualizar usuario actual
-                app.currentUser.password = newPassword;
-                app.currentUser.isTemporaryPassword = false;
-                
-                // Guardar en localStorage
-                if (window.authSystem.saveUsers) {
-                    window.authSystem.saveUsers();
-                }
-                
-                authSystem.showNotification('Contraseña cambiada exitosamente', 'success');
-                
-                // Redirigir a la vista de cliente
-                this.loadClientView();
-            }
-        }
-    },
-
-    // Método para verificar si hay solicitudes pendientes de aprobación (para admin)
-    checkPendingApprovals() {
-        const pendingServices = this.services.filter(service => service.status === 'Pendiente de Aprobación');
-        
-        if (pendingServices.length > 0) {
-            // Mostrar notificación al admin
-            const currentUser = app.currentUser;
-            if (currentUser && currentUser.type === 'admin') {
-                authSystem.showNotification(`Tienes ${pendingServices.length} solicitud(es) pendiente(s) de aprobación`, 'info');
-            }
-        }
-    },
-
-    // Método para obtener estadísticas de servicios (para dashboard)
-    getServiceStats() {
-        const totalServices = this.services.length;
-        const pendingApproval = this.services.filter(s => s.status === 'Pendiente de Aprobación').length;
-        const approved = this.services.filter(s => s.status === 'Aprobado').length;
-        const rejected = this.services.filter(s => s.status === 'Rechazado').length;
-        const completed = this.services.filter(s => s.status === 'Completado').length;
-
-        return {
-            total: totalServices,
-            pendingApproval,
-            approved,
-            rejected,
-            completed
-        };
+    // Validaciones
+    if (newPassword.length < 8) {
+      authSystem.showNotification(
+        "La nueva contraseña debe tener al menos 8 caracteres",
+        "error"
+      );
+      return;
     }
+
+    if (newPassword !== confirmPassword) {
+      authSystem.showNotification("Las contraseñas no coinciden", "error");
+      return;
+    }
+
+    // Verificar contraseña actual
+    const currentUser = app.currentUser;
+    if (currentPassword !== currentUser.password) {
+      authSystem.showNotification(
+        "La contraseña actual es incorrecta",
+        "error"
+      );
+      return;
+    }
+
+    // Cambiar contraseña
+    if (window.authSystem && window.authSystem.users) {
+      const userIndex = window.authSystem.users.findIndex(
+        (u) => u.id === currentUser.id
+      );
+      if (userIndex !== -1) {
+        window.authSystem.users[userIndex].password = newPassword;
+        window.authSystem.users[userIndex].isTemporaryPassword = false;
+
+        // Actualizar usuario actual
+        app.currentUser.password = newPassword;
+        app.currentUser.isTemporaryPassword = false;
+
+        // Guardar en localStorage
+        if (window.authSystem.saveUsers) {
+          window.authSystem.saveUsers();
+        }
+
+        authSystem.showNotification(
+          "Contraseña cambiada exitosamente",
+          "success"
+        );
+
+        // Redirigir a la vista de cliente
+        this.loadClientView();
+      }
+    }
+  },
+
+  // Método para verificar si hay solicitudes pendientes de aprobación (para admin)
+  checkPendingApprovals() {
+    const pendingServices = this.services.filter(
+      (service) => service.status === "Pendiente de Aprobación"
+    );
+
+    if (pendingServices.length > 0) {
+      // Mostrar notificación al admin
+      const currentUser = app.currentUser;
+      if (currentUser && currentUser.type === "admin") {
+        authSystem.showNotification(
+          `Tienes ${pendingServices.length} solicitud(es) pendiente(s) de aprobación`,
+          "info"
+        );
+      }
+    }
+  },
+
+  // Método para obtener estadísticas de servicios (para dashboard)
+  getServiceStats() {
+    const totalServices = this.services.length;
+    const pendingApproval = this.services.filter(
+      (s) => s.status === "Pendiente de Aprobación"
+    ).length;
+    const approved = this.services.filter(
+      (s) => s.status === "Aprobado"
+    ).length;
+    const rejected = this.services.filter(
+      (s) => s.status === "Rechazado"
+    ).length;
+    const completed = this.services.filter(
+      (s) => s.status === "Completado"
+    ).length;
+
+    return {
+      total: totalServices,
+      pendingApproval,
+      approved,
+      rejected,
+      completed,
+    };
+  },
 };
 
 // Inicializar el módulo cuando se cargue
-document.addEventListener('DOMContentLoaded', function() {
-    servicesModule.init();
+document.addEventListener("DOMContentLoaded", function () {
+  servicesModule.init();
 });
