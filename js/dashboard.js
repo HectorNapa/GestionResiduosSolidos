@@ -81,14 +81,14 @@ window.dashboardModule = {
 
             <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-lg shadow">
+                <div class="bg-white p-6 rounded-lg shadow relative h-72">
                     <h3 class="text-lg font-semibold mb-4">Recolecciones por Tipo de Residuo</h3>
-                    <canvas id="wasteTypeChart" width="400" height="200"></canvas>
+                    <canvas id="wasteTypeChart"></canvas>
                 </div>
 
-                <div class="bg-white p-6 rounded-lg shadow">
+                <div class="bg-white p-6 rounded-lg shadow relative h-72">
                     <h3 class="text-lg font-semibold mb-4">Tendencia Mensual de Recolección</h3>
-                    <canvas id="monthlyTrendChart" width="400" height="200"></canvas>
+                    <canvas id="monthlyTrendChart"></canvas>
                 </div>
             </div>
 
