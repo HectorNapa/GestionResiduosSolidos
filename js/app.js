@@ -9,7 +9,15 @@ class WasteManagementApp {
         this.showLoadingScreen();
         setTimeout(() => {
             this.hideLoadingScreen();
-            this.showLoginScreen();
+            
+            // Verificar si ya hay una sesión activa
+            if (this.currentUser) {
+                // Si hay usuario, mostrar la aplicación principal
+                this.showMainApp();
+            } else {
+                // Si no hay usuario, mostrar pantalla de login
+                this.showLoginScreen();
+            }
         }, 2000);
     }
 
@@ -92,6 +100,11 @@ class WasteManagementApp {
     }
 
     loadModule(moduleName) {
+        // Verificar autenticación antes de cargar cualquier módulo
+        if (!this.requireAuth()) {
+            return;
+        }
+
         this.currentModule = moduleName;
         const contentArea = document.getElementById('content-area');
         
@@ -138,6 +151,16 @@ class WasteManagementApp {
             default:
                 contentArea.innerHTML = '<div class="text-center py-8"><h2 class="text-2xl">Módulo en desarrollo</h2></div>';
         }
+    }
+
+    // Verificar que el usuario esté autenticado
+    requireAuth() {
+        if (!this.currentUser) {
+            this.showLoginScreen();
+            authSystem.showNotification('Debe iniciar sesión para acceder a esta función', 'error');
+            return false;
+        }
+        return true;
     }
 
     loadDashboard() {
@@ -415,8 +438,7 @@ const app = new WasteManagementApp();
 
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('logout-btn').addEventListener('click', function() {
-        app.currentUser = null;
-        document.getElementById('main-app').classList.add('hidden');
-        app.showLoginScreen();
+        // Usar el sistema de autenticación para cerrar sesión
+        authSystem.logout();
     });
 });
