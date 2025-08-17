@@ -143,7 +143,6 @@ window.servicesModule = {
     loadNewService() {
         const contentArea = document.getElementById('content-area');
         const currentUser = app.currentUser;
-        const isClient = currentUser && currentUser.type === 'client';
         
         contentArea.innerHTML = `
             <div class="mb-6">
@@ -153,69 +152,6 @@ window.servicesModule = {
 
             <div class="bg-white rounded-lg shadow p-6">
                 <form id="new-service-form" class="space-y-6">
-                    ${!isClient ? `
-                        <!-- Información del Cliente -->
-                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-info-circle text-blue-400"></i>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-blue-700">
-                                        <strong>Información del Cliente:</strong> Si es un cliente nuevo, se creará automáticamente una cuenta. 
-                                        Si ya existe, solo se creará la solicitud.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Email del Cliente *
-                                </label>
-                                <input type="email" id="client-email" required 
-                                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                       placeholder="cliente@empresa.com">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Cédula de Identidad *
-                                </label>
-                                <input type="text" id="client-cedula" required 
-                                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                       placeholder="1234567890">
-                            </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre del Cliente *
-                            </label>
-                            <input type="text" id="client-name" required 
-                                   class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                   placeholder="Nombre de la empresa o persona">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Teléfono de Contacto *
-                            </label>
-                            <input type="tel" id="client-phone" required 
-                                   class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                   placeholder="(555) 123-4567">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Dirección Completa *
-                            </label>
-                            <textarea id="client-address" required rows="3"
-                                      class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                      placeholder="Dirección completa con referencias"></textarea>
-                            </div>
-                        </div>
-                    ` : `
                         <!-- Información del Cliente (Pre-llenada para clientes) -->
                         <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
                             <div class="flex">
@@ -257,7 +193,6 @@ window.servicesModule = {
                                           class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600">${currentUser.address || ''}</textarea>
                             </div>
                         </div>
-                    `}
 
                     <!-- Información del Servicio -->
                     <div class="md:col-span-2">
@@ -364,13 +299,13 @@ window.servicesModule = {
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6 border-t">
-                        <button type="button" onclick="${isClient ? 'servicesModule.loadClientView()' : 'app.loadModule(\'dashboard\')'}" 
+                        <button type="button" onclick="app.loadModule('services')"
                                 class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                             Cancelar
                         </button>
                         <button type="submit" 
                                 class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            <i class="fas fa-save mr-2"></i>${isClient ? 'Crear Solicitud' : 'Crear Solicitud y Usuario'}
+                            <i class="fas fa-save mr-2"></i>Crear Solicitud
                         </button>
                     </div>
                 </form>
@@ -407,38 +342,13 @@ window.servicesModule = {
 
     saveNewService() {
         const currentUser = app.currentUser;
-        const isClient = currentUser && currentUser.type === 'client';
         
-        let formData;
-        
-        if (isClient) {
-            // Cliente creando solicitud - usar datos pre-llenados
-            formData = {
-                clientEmail: currentUser.email,
-                clientCedula: currentUser.cedula || '',
-                clientName: currentUser.name,
-                clientPhone: currentUser.phone || '',
-                address: currentUser.address || '',
-                wasteType: document.getElementById('waste-type').value,
-                estimatedVolume: document.getElementById('estimated-volume').value,
-                volumeUnit: document.getElementById('volume-unit').value,
-                requestedDate: document.getElementById('requested-date').value,
-                preferredTime: document.getElementById('preferred-time').value,
-                specificTime: document.getElementById('specific-time').value,
-                priority: document.getElementById('priority').value,
-                additionalNotes: document.getElementById('additional-notes').value,
-                status: 'Pendiente de Aprobación',
-                createdDate: new Date().toISOString().split('T')[0],
-                createdBy: currentUser.id
-            };
-        } else {
-            // Admin creando solicitud - usar datos del formulario
-            formData = {
-                clientEmail: document.getElementById('client-email').value,
-                clientCedula: document.getElementById('client-cedula').value,
-            clientName: document.getElementById('client-name').value,
-            clientPhone: document.getElementById('client-phone').value,
-            address: document.getElementById('client-address').value,
+        let formData = {
+            clientEmail: currentUser.email,
+            clientCedula: currentUser.cedula || '',
+            clientName: currentUser.name,
+            clientPhone: currentUser.phone || '',
+            address: currentUser.address || '',
             wasteType: document.getElementById('waste-type').value,
             estimatedVolume: document.getElementById('estimated-volume').value,
             volumeUnit: document.getElementById('volume-unit').value,
@@ -447,31 +357,15 @@ window.servicesModule = {
             specificTime: document.getElementById('specific-time').value,
             priority: document.getElementById('priority').value,
             additionalNotes: document.getElementById('additional-notes').value,
-                status: 'Pendiente de Aprobación',
-                createdDate: new Date().toISOString().split('T')[0],
-                createdBy: currentUser ? currentUser.id : 'admin'
-            };
-        }
+            status: 'Pendiente de Aprobación',
+            createdDate: new Date().toISOString().split('T')[0],
+            createdBy: currentUser.id
+        };
 
-        // Validar si el cliente ya existe (solo para admin)
-        if (!isClient) {
-            const existingClient = this.checkExistingClient(formData.clientEmail, formData.clientCedula);
-            
-            if (existingClient) {
-                // Cliente existe, solo crear la solicitud
-                this.createServiceOnly(formData, existingClient);
-            } else {
-                // Cliente nuevo, crear usuario y solicitud
-                this.createNewClientAndService(formData);
-            }
-        } else {
-            // Cliente creando solicitud - crear directamente
-            this.createClientService(formData);
-        }
+        this.createService(formData);
     },
 
-    // Crear solicitud para cliente existente
-    createClientService(formData) {
+    createService(formData) {
         const newService = {
             id: this.generateServiceId(),
             clientId: app.currentUser.id,
@@ -495,185 +389,11 @@ window.servicesModule = {
         this.services.push(newService);
         this.saveServices();
 
-        // Notificar al admin
-        this.notifyAdminNewService(newService, false);
-
         // Mostrar mensaje de éxito
         authSystem.showNotification('Solicitud creada exitosamente', 'success');
 
         // Redirigir a la vista de cliente
         this.loadClientView();
-    },
-
-    // Verificar si el cliente ya existe
-    checkExistingClient(email, cedula) {
-        // Buscar en el sistema de usuarios
-        if (window.authSystem && window.authSystem.users) {
-            return window.authSystem.users.find(user => 
-                user.email === email || user.cedula === cedula
-            );
-        }
-        return null;
-    },
-
-    // Crear solo la solicitud (cliente existente)
-    createServiceOnly(formData, existingClient) {
-        const newService = {
-            id: this.generateServiceId(),
-            clientId: existingClient.id,
-            clientName: existingClient.name,
-            clientEmail: existingClient.email,
-            clientPhone: existingClient.phone || formData.clientPhone,
-            address: formData.address,
-            wasteType: formData.wasteType,
-            estimatedVolume: formData.estimatedVolume,
-            volumeUnit: formData.volumeUnit,
-            requestedDate: formData.requestedDate,
-            preferredTime: formData.preferredTime,
-            specificTime: formData.specificTime,
-            priority: formData.priority,
-            additionalNotes: formData.additionalNotes,
-            status: formData.status,
-            createdDate: formData.createdDate,
-            createdBy: formData.createdBy
-        };
-
-        this.services.push(newService);
-        this.saveServices();
-
-        // Notificar al admin
-        this.notifyAdminNewService(newService, false);
-
-        // Mostrar mensaje de éxito
-        authSystem.showNotification('Solicitud creada exitosamente para cliente existente', 'success');
-
-        // Redirigir a la lista de servicios
-        app.loadModule('services');
-    },
-
-    // Crear nuevo cliente y solicitud
-    createNewClientAndService(formData) {
-        // Generar contraseña temporal
-        const tempPassword = this.generateTemporaryPassword();
-        
-        // Crear nuevo usuario cliente
-        const newClient = {
-            id: this.generateUserId(),
-            username: formData.clientEmail,
-            password: tempPassword,
-            type: 'client',
-            name: formData.clientName,
-            email: formData.clientEmail,
-            cedula: formData.clientCedula,
-            phone: formData.clientPhone,
-            address: formData.address,
-            permissions: ['services', 'tracking', 'invoices'],
-            createdDate: new Date().toISOString().split('T')[0],
-            isTemporaryPassword: true
-        };
-
-        // Agregar usuario al sistema de autenticación
-        if (window.authSystem && window.authSystem.users) {
-            window.authSystem.users.push(newClient);
-        }
-
-        // Crear la solicitud
-        const newService = {
-            id: this.generateServiceId(),
-            clientId: newClient.id,
-            clientName: newClient.name,
-            clientEmail: newClient.email,
-            clientPhone: newClient.phone,
-            address: formData.address,
-            wasteType: formData.wasteType,
-            estimatedVolume: formData.estimatedVolume,
-            volumeUnit: formData.volumeUnit,
-            requestedDate: formData.requestedDate,
-            preferredTime: formData.preferredTime,
-            specificTime: formData.specificTime,
-            priority: formData.priority,
-            additionalNotes: formData.additionalNotes,
-            status: formData.status,
-            createdDate: formData.createdDate,
-            createdBy: formData.createdBy
-        };
-
-        this.services.push(newService);
-        this.saveServices();
-
-        // Enviar notificación WhatsApp
-        this.sendWhatsAppNotification(newClient, tempPassword);
-
-        // Notificar al admin
-        this.notifyAdminNewService(newService, true);
-
-        // Mostrar mensaje de éxito
-        authSystem.showNotification('Cliente y solicitud creados exitosamente', 'success');
-
-        // Redirigir a la lista de servicios
-        app.loadModule('services');
-    },
-
-    // Generar ID único para servicio
-    generateServiceId() {
-        return this.services.length > 0 ? Math.max(...this.services.map(s => s.id)) + 1 : 1;
-    },
-
-    // Generar ID único para usuario
-    generateUserId() {
-        if (window.authSystem && window.authSystem.users) {
-            return window.authSystem.users.length > 0 ? Math.max(...window.authSystem.users.map(u => u.id)) + 1 : 1;
-        }
-        return 1;
-    },
-
-    // Generar contraseña temporal
-    generateTemporaryPassword() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let password = '';
-        for (let i = 0; i < 8; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return password;
-    },
-
-    // Enviar notificación WhatsApp
-    sendWhatsAppNotification(client, tempPassword) {
-        const message = `¡Bienvenido a EcoGestión! 🎉
-
-Tu cuenta ha sido creada exitosamente:
-
-📧 Email: ${client.email}
-🔑 Contraseña temporal: ${tempPassword}
-
-🔗 Accede a la plataforma:
-file:///C:/Users/CLEAR%20MINDS/Desktop/ProyectoEcoGestion/Proyecto%20residuos/GestionResiduosSolidos/index.html
-
-⚠️ IMPORTANTE: Cambia tu contraseña temporal en tu primer inicio de sesión.
-
-¡Gracias por confiar en nosotros! 🌱`;
-
-        // Crear enlace de WhatsApp
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        
-        // Abrir WhatsApp en nueva ventana
-        window.open(whatsappUrl, '_blank');
-    },
-
-    // Notificar al admin sobre nueva solicitud
-    notifyAdminNewService(service, isNewClient) {
-        const notificationMessage = isNewClient 
-            ? `Nueva solicitud de cliente NUEVO: ${service.clientName} (${service.wasteType})`
-            : `Nueva solicitud de cliente existente: ${service.clientName} (${service.wasteType})`;
-
-        // Mostrar notificación al admin
-        if (app.currentUser && app.currentUser.type === 'admin') {
-            authSystem.showNotification(notificationMessage, 'info');
-        }
-
-        // También mostrar en la consola para debugging
-        console.log('Nueva solicitud creada:', service);
-        console.log('Es cliente nuevo:', isNewClient);
     },
 
     // Aprobar solicitud
@@ -838,10 +558,15 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
 • Estado: Rechazado`;
 
         if (rejectionMessage) {
-            message += `\n\n📝 Motivo del rechazo:\n${rejectionMessage}`;
+            message += `
+
+📝 Motivo del rechazo:
+${rejectionMessage}`;
         }
 
-        message += `\n\n💡 Puedes editar tu solicitud y volver a enviarla desde tu cuenta.
+        message += `
+
+💡 Puedes editar tu solicitud y volver a enviarla desde tu cuenta.
 
 ¡Gracias por tu comprensión! 🌱`;
 
@@ -1897,192 +1622,6 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
         `).join('');
     },
 
-    clearFilters() {
-        document.getElementById('status-filter').value = '';
-        document.getElementById('waste-type-filter').value = '';
-        document.getElementById('date-from-filter').value = '';
-        document.getElementById('date-to-filter').value = '';
-        this.loadServicesTable();
-        authSystem.showNotification('Filtros limpiados', 'info');
-    },
-
-    // Cargar vista para clientes
-    loadClientView() {
-        const contentArea = document.getElementById('content-area');
-        const currentUser = app.currentUser;
-        
-        if (!currentUser || currentUser.type !== 'client') {
-            authSystem.showNotification('Acceso denegado', 'error');
-            return;
-        }
-
-        contentArea.innerHTML = `
-            <div class="mb-6">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-bold text-gray-800">Mis Solicitudes de Servicio</h1>
-                    <div class="flex space-x-3">
-                        ${currentUser.isTemporaryPassword ? `
-                            <button onclick="servicesModule.showTemporaryPasswordInfo()" 
-                                    class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>Contraseña Temporal
-                            </button>
-                        ` : ''}
-                        <button onclick="servicesModule.loadNewService()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                            <i class="fas fa-plus mr-2"></i>Nueva Solicitud
-                        </button>
-                    </div>
-                </div>
-                <p class="text-gray-600">Gestiona tus solicitudes de recolección de residuos</p>
-                
-                ${currentUser.isTemporaryPassword ? `
-                    <div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-yellow-700">
-                                    <strong>Contraseña Temporal:</strong> Por seguridad, se recomienda cambiar tu contraseña temporal. 
-                                    <button onclick="servicesModule.showChangePasswordForm()" class="text-yellow-800 underline ml-1">
-                                        Cambiar ahora
-                                    </button>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                ` : ''}
-            </div>
-
-            <!-- Filtros para Cliente -->
-            <div class="bg-white p-4 rounded-lg shadow mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                        <select id="client-status-filter" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                            <option value="">Todos</option>
-                            <option value="Pendiente de Aprobación">Pendiente de Aprobación</option>
-                            <option value="Aprobado">Aprobado</option>
-                            <option value="Rechazado">Rechazado</option>
-                            <option value="Programado">Programado</option>
-                            <option value="En Proceso">En Proceso</option>
-                            <option value="Completado">Completado</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Residuo</label>
-                        <select id="client-waste-type-filter" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                            <option value="">Todos</option>
-                            <option value="Orgánico">Orgánico</option>
-                            <option value="Reciclable">Reciclable</option>
-                            <option value="No Reciclable">No Reciclable</option>
-                            <option value="Peligroso">Peligroso</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Desde</label>
-                        <input type="date" id="client-date-from-filter" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <button onclick="servicesModule.applyClientFilters()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                        <i class="fas fa-filter mr-2"></i>Aplicar Filtros
-                    </button>
-                    <button onclick="servicesModule.clearClientFilters()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 ml-2">
-                        <i class="fas fa-times mr-2"></i>Limpiar
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tabla de Servicios del Cliente -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo Residuo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volumen Est.</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Solicitada</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prioridad</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200" id="client-services-table-body">
-                            <!-- Servicios del cliente se cargarán aquí -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-
-        this.loadClientServicesTable();
-    },
-
-    // Cargar tabla de servicios del cliente
-    loadClientServicesTable() {
-        const tbody = document.getElementById('client-services-table-body');
-        const currentUser = app.currentUser;
-        
-        if (!currentUser || currentUser.type !== 'client') return;
-
-        // Filtrar servicios del cliente actual
-        const clientServices = this.services.filter(service => 
-            service.clientId === currentUser.id || service.clientEmail === currentUser.email
-        );
-        
-        tbody.innerHTML = clientServices.map(service => `
-            <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #${service.id.toString().padStart(3, '0')}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(service.wasteType)}">
-                        ${service.wasteType}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${service.estimatedVolume} ${service.volumeUnit || 'm³'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${this.formatDate(service.requestedDate)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(service.status)}">
-                        ${service.status}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(service.priority)}">
-                        ${service.priority}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                        <button onclick="servicesModule.viewService(${service.id})" 
-                                class="text-blue-600 hover:text-blue-900" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        
-                        ${service.status === 'Rechazado' ? `
-                            <button onclick="servicesModule.editService(${service.id})" 
-                                    class="text-green-600 hover:text-green-900" title="Editar y Reenviar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        ` : ''}
-                        
-                        ${service.status === 'Pendiente de Aprobación' ? `
-                            <button onclick="servicesModule.editService(${service.id})" 
-                                    class="text-yellow-600 hover:text-yellow-900" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-    },
-
     // Limpiar filtros para cliente
     clearClientFilters() {
         document.getElementById('client-status-filter').value = '';
@@ -2279,69 +1818,27 @@ Nos pondremos en contacto contigo pronto para coordinar la recolección.
         }
 
         if (newPassword !== confirmPassword) {
-            authSystem.showNotification('Las contraseñas no coinciden', 'error');
+            authSystem.showNotification('Las nuevas contraseñas no coinciden', 'error');
             return;
         }
 
-        // Verificar contraseña actual
-        const currentUser = app.currentUser;
-        if (currentPassword !== currentUser.password) {
-            authSystem.showNotification('La contraseña actual es incorrecta', 'error');
-            return;
-        }
-
-        // Cambiar contraseña
-        if (window.authSystem && window.authSystem.users) {
-            const userIndex = window.authSystem.users.findIndex(u => u.id === currentUser.id);
-            if (userIndex !== -1) {
-                window.authSystem.users[userIndex].password = newPassword;
-                window.authSystem.users[userIndex].isTemporaryPassword = false;
-                
-                // Actualizar usuario actual
-                app.currentUser.password = newPassword;
-                app.currentUser.isTemporaryPassword = false;
-                
-                // Guardar en localStorage
-                if (window.authSystem.saveUsers) {
-                    window.authSystem.saveUsers();
-                }
-                
+        // Lógica para cambiar la contraseña (usar authSystem)
+        if (window.authSystem) {
+            const success = window.authSystem.changePassword(app.currentUser.email, currentPassword, newPassword);
+            if (success) {
                 authSystem.showNotification('Contraseña cambiada exitosamente', 'success');
-                
-                // Redirigir a la vista de cliente
                 this.loadClientView();
+            } else {
+                authSystem.showNotification('La contraseña actual es incorrecta', 'error');
             }
         }
     },
-
-    // Método para verificar si hay solicitudes pendientes de aprobación (para admin)
-    checkPendingApprovals() {
-        const pendingServices = this.services.filter(service => service.status === 'Pendiente de Aprobación');
-        
-        if (pendingServices.length > 0) {
-            // Mostrar notificación al admin
-            const currentUser = app.currentUser;
-            if (currentUser && currentUser.type === 'admin') {
-                authSystem.showNotification(`Tienes ${pendingServices.length} solicitud(es) pendiente(s) de aprobación`, 'info');
-            }
-        }
+    generateServiceId() {
+        return this.services.length > 0 ? Math.max(...this.services.map(s => s.id)) + 1 : 1;
     },
 
-    // Método para obtener estadísticas de servicios (para dashboard)
-    getServiceStats() {
-        const totalServices = this.services.length;
-        const pendingApproval = this.services.filter(s => s.status === 'Pendiente de Aprobación').length;
-        const approved = this.services.filter(s => s.status === 'Aprobado').length;
-        const rejected = this.services.filter(s => s.status === 'Rechazado').length;
-        const completed = this.services.filter(s => s.status === 'Completado').length;
-
-        return {
-            total: totalServices,
-            pendingApproval,
-            approved,
-            rejected,
-            completed
-        };
+    getApprovedServices() {
+        return this.services.filter(service => service.status === 'Aprobado');
     }
 };
 
