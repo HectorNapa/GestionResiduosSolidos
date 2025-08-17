@@ -68,6 +68,10 @@ window.servicesModule = {
         }
     },
 
+    getApprovedServices() {
+        return this.services.filter(s => s.status === 'Aprobado');
+    },
+
     // ========== VISTA LISTA ==========
     load() {
         const contentArea = document.getElementById('content-area');

@@ -1,53 +1,136 @@
+// routes.js
 window.routesModule = {
+    // ====== Datos iniciales (se sobreescriben desde localStorage si existen) ======
     routes: [
         {
             id: 1,
             name: 'Ruta Norte A',
             code: 'R-001',
-            vehicle: 'Camión C-001',
+            vehicle: 'C-001', // usamos el CÓDIGO del vehículo
             driver: 'Carlos Rodríguez',
             helper: 'Ana García',
             date: '2024-01-16',
             startTime: '08:00',
-            estimatedDuration: '4 horas',
-            status: 'Programada',
+            estimatedDuration: 4, // horas (número)
+            status: 'En Progreso',
             collectionPoints: [
                 { address: 'Av. Principal 123', client: 'Empresa ABC', wasteType: 'Orgánico', estimated: '2.5 m³' },
-                { address: 'Calle Norte 456', client: 'Oficinas XYZ', wasteType: 'Reciclable', estimated: '1.8 m³' },
-                { address: 'Av. Central 789', client: 'Hotel Plaza', wasteType: 'Orgánico', estimated: '3.2 m³' }
+                { address: 'Calle Norte 456',   client: 'Oficinas XYZ',  wasteType: 'Reciclable', estimated: '1.8 m³' },
+                { address: 'Av. Central 789',   client: 'Hotel Plaza',   wasteType: 'Orgánico', estimated: '3.2 m³' }
             ]
         },
         {
             id: 2,
             name: 'Ruta Centro B',
             code: 'R-002',
-            vehicle: 'Camión C-002',
+            vehicle: 'C-002',
             driver: 'Luis Martínez',
             helper: 'Pedro Silva',
             date: '2024-01-16',
             startTime: '13:00',
-            estimatedDuration: '3.5 horas',
+            estimatedDuration: 3.5, // horas
             status: 'En Progreso',
             collectionPoints: [
-                { address: 'Plaza Mayor 100', client: 'Restaurante Central', wasteType: 'Orgánico', estimated: '4.1 m³' },
-                { address: 'Calle Comercio 250', client: 'Tienda Moderna', wasteType: 'Reciclable', estimated: '0.8 m³' }
+                { address: 'Plaza Mayor 100',   client: 'Restaurante Central', wasteType: 'Orgánico',   estimated: '4.1 m³' },
+                { address: 'Calle Comercio 250', client: 'Tienda Moderna',      wasteType: 'Reciclable', estimated: '0.8 m³' }
             ]
         }
     ],
 
     vehicles: [
         { id: 1, code: 'C-001', brand: 'Mercedes', model: 'Actros', capacity: '15 m³', status: 'Disponible' },
-        { id: 2, code: 'C-002', brand: 'Volvo', model: 'FH', capacity: '18 m³', status: 'En Ruta' },
-        { id: 3, code: 'C-003', brand: 'Scania', model: 'R450', capacity: '20 m³', status: 'Mantenimiento' }
+        { id: 2, code: 'C-002', brand: 'Volvo',    model: 'FH',     capacity: '18 m³', status: 'En Ruta' },
+        { id: 3, code: 'C-003', brand: 'Scania',   model: 'R450',   capacity: '20 m³', status: 'Mantenimiento' }
     ],
 
     drivers: [
         { id: 1, name: 'Carlos Rodríguez', license: 'A-12345', status: 'Disponible' },
-        { id: 2, name: 'Luis Martínez', license: 'A-67890', status: 'En Ruta' },
-        { id: 3, name: 'Miguel Torres', license: 'A-11223', status: 'Disponible' }
+        { id: 2, name: 'Luis Martínez',    license: 'A-67890', status: 'En Ruta' },
+        { id: 3, name: 'Miguel Torres',    license: 'A-11223', status: 'Disponible' }
     ],
 
+    // ====== Estado de filtros ======
+    routesFilterMode: 'today',        // 'today' | 'all'
+    routesStatusFilter: 'Todos',      // 'Todos' | 'Programada' | 'En Progreso' | 'Completada' | 'Cancelada'
+
+    // ====== Persistencia ======
+    loadRoutesFromStorage() {
+        try {
+            const raw = localStorage.getItem('ecogestion_routes');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) this.routes = parsed;
+            }
+        } catch (e) { /* ignore */ }
+    },
+
+    saveAll() {
+        try { localStorage.setItem('ecogestion_routes', JSON.stringify(this.routes)); } catch(e) {}
+    },
+
+    ensureLoaded() {
+        if (!this._loaded) {
+            this.loadRoutesFromStorage();
+            this._loaded = true;
+        }
+    },
+
+    // ====== Helpers de tiempo / duración / conflicto ======
+    parseDurationHours(d) {
+        if (typeof d === 'number') return d;
+        if (d == null) return 1;
+        const s = String(d).replace(',', '.');
+        const num = parseFloat(s.match(/(\d+(\.\d+)?)/)?.[0]);
+        return isNaN(num) ? 1 : num;
+    },
+
+    timeToMinutes(hhmm) {
+        const [h, m] = String(hhmm || '').split(':').map(x => parseInt(x, 10));
+        if (isNaN(h) || isNaN(m)) return NaN;
+        return h * 60 + m;
+    },
+
+    findVehicleConflict(vehicleCode, date, startTime, durationHours, excludeId = null) {
+        const start = this.timeToMinutes(startTime);
+        const end   = start + Math.round(durationHours * 60);
+        if (isNaN(start) || isNaN(end)) return null;
+
+        for (const r of this.routes) {
+            if (excludeId && r.id === excludeId) continue;
+            if (r.vehicle !== vehicleCode) continue;
+            if (r.date !== date) continue;
+
+            const rStart = this.timeToMinutes(r.startTime);
+            const rDur   = this.parseDurationHours(r.estimatedDuration);
+            const rEnd   = rStart + Math.round(rDur * 60);
+            if (isNaN(rStart) || isNaN(rEnd)) continue;
+
+            if (start < rEnd && rStart < end) {
+                return r;
+            }
+        }
+        return null;
+    },
+
+    formatDuration(h) {
+        const n = this.parseDurationHours(h);
+        return n === 1 ? '1 hora' : `${n} horas`;
+    },
+
+    // Vehículos: utilidades de etiqueta
+    getVehicleByCode(code) {
+        return this.vehicles.find(v => v.code === code);
+    },
+
+    getVehicleLabelByCode(code) {
+        const v = this.getVehicleByCode(code);
+        return v ? `${v.brand} ${v.model} (${v.code})` : code || '—';
+    },
+
+    // ====== UI principal ======
     load() {
+        this.ensureLoaded();
+
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = `
             <div class="mb-6">
@@ -60,13 +143,13 @@ window.routesModule = {
                 <p class="text-gray-600">Organiza y gestiona las rutas de recolección</p>
             </div>
 
-            <!-- Route Summary Cards -->
+            <!-- Resumen -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-blue-100">Rutas Hoy</p>
-                            <p class="text-3xl font-bold">${this.getTodayRoutesCount()}</p>
+                            <p class="text-3xl font-bold" id="metric-routes-today">${this.getTodayRoutesCount()}</p>
                         </div>
                         <i class="fas fa-route text-4xl text-blue-200"></i>
                     </div>
@@ -76,7 +159,7 @@ window.routesModule = {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-green-100">Completadas</p>
-                            <p class="text-3xl font-bold">${this.getCompletedRoutesCount()}</p>
+                            <p class="text-3xl font-bold" id="metric-routes-completed">${this.getCompletedRoutesCount()}</p>
                         </div>
                         <i class="fas fa-check-circle text-4xl text-green-200"></i>
                     </div>
@@ -86,7 +169,7 @@ window.routesModule = {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-yellow-100">En Progreso</p>
-                            <p class="text-3xl font-bold">${this.getInProgressRoutesCount()}</p>
+                            <p class="text-3xl font-bold" id="metric-routes-inprogress">${this.getInProgressRoutesCount()}</p>
                         </div>
                         <i class="fas fa-truck text-4xl text-yellow-200"></i>
                     </div>
@@ -96,19 +179,19 @@ window.routesModule = {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-purple-100">Vehículos Activos</p>
-                            <p class="text-3xl font-bold">${this.getActiveVehiclesCount()}</p>
+                            <p class="text-3xl font-bold" id="metric-vehicles-active">${this.getActiveVehiclesCount()}</p>
                         </div>
                         <i class="fas fa-truck-moving text-4xl text-purple-200"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Tabs Navigation -->
+            <!-- Tabs -->
             <div class="mb-6">
                 <nav class="flex space-x-8">
                     <a href="#" onclick="routesModule.showTab('routes')" id="routes-tab" 
                        class="tab-link active border-b-2 border-blue-500 text-blue-600 py-2 px-1 font-medium">
-                        Rutas del Día
+                        Rutas
                     </a>
                     <a href="#" onclick="routesModule.showTab('vehicles')" id="vehicles-tab"
                        class="tab-link text-gray-500 hover:text-gray-700 py-2 px-1 font-medium">
@@ -121,17 +204,15 @@ window.routesModule = {
                 </nav>
             </div>
 
-            <!-- Tab Content -->
-            <div id="tab-content">
-                <!-- Content will be loaded here -->
-            </div>
+            <!-- Contenido de pestaña -->
+            <div id="tab-content"></div>
         `;
 
         this.showTab('routes');
+        this.updateSummaryCards(); // asegurar métricas correctas al cargar
     },
 
     showTab(tabName) {
-        // Update tab navigation
         document.querySelectorAll('.tab-link').forEach(tab => {
             tab.classList.remove('active', 'border-b-2', 'border-blue-500', 'text-blue-600');
             tab.classList.add('text-gray-500', 'hover:text-gray-700');
@@ -141,9 +222,7 @@ window.routesModule = {
         activeTab.classList.add('active', 'border-b-2', 'border-blue-500', 'text-blue-600');
         activeTab.classList.remove('text-gray-500', 'hover:text-gray-700');
 
-        // Load tab content
         const tabContent = document.getElementById('tab-content');
-        
         switch(tabName) {
             case 'routes':
                 this.loadRoutesTab(tabContent);
@@ -157,97 +236,160 @@ window.routesModule = {
         }
     },
 
+    // ====== Filtros ======
+    getFilteredRoutes() {
+        const todayStr = new Date().toISOString().slice(0,10);
+        let list = [...this.routes];
+
+        if (this.routesFilterMode === 'today') {
+            list = list.filter(r => r.date === todayStr);
+        }
+
+        if (this.routesStatusFilter && this.routesStatusFilter !== 'Todos') {
+            list = list.filter(r => r.status === this.routesStatusFilter);
+        }
+
+        return list;
+    },
+
+    onFilterChange() {
+        const modeSel   = document.getElementById('filter-mode');
+        const statusSel = document.getElementById('filter-status');
+        if (modeSel)   this.routesFilterMode  = modeSel.value;
+        if (statusSel) this.routesStatusFilter = statusSel.value;
+        this.renderRoutesList();
+    },
+
+    renderRoutesList() {
+        const listEl = document.getElementById('routes-list');
+        if (!listEl) return;
+
+        const routesToRender = this.getFilteredRoutes();
+
+        if (!routesToRender.length) {
+            listEl.innerHTML = `
+                <div class="p-6 text-center text-gray-500 bg-white rounded-lg border">
+                    No hay rutas para los filtros seleccionados.
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = routesToRender.map(route => `
+            <div class="border rounded-lg p-4 ${this.getRouteStatusBorderClass(route.status)}">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <h4 class="text-lg font-semibold">${route.name}</h4>
+                            <span class="text-sm text-gray-500">${route.code}</span>
+                            <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(route.status)}">
+                                ${route.status}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                            <div class="flex items-center">
+                                <i class="fas fa-truck mr-2"></i>
+                                <span>${this.getVehicleLabelByCode(route.vehicle)}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-user mr-2"></i>
+                                <span>${route.driver}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock mr-2"></i>
+                                <span>${route.date} · ${route.startTime} · ${this.formatDuration(route.estimatedDuration)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="routesModule.viewRoute(${route.id})" 
+                                class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="routesModule.editRoute(${route.id})" 
+                                class="text-green-600 hover:text-green-900" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="routesModule.trackRoute(${route.id})" 
+                                class="text-yellow-600 hover:text-yellow-900" title="Rastrear">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                        <button onclick="routesModule.showAddCollectionPointModal(${route.id})" 
+                                class="text-purple-600 hover:text-purple-900" title="Añadir Punto de Recolección">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <h5 class="font-medium mb-2">Puntos de Recolección (${route.collectionPoints.length})</h5>
+                    <div class="space-y-2">
+                        ${route.collectionPoints.map((point, index) => `
+                            <div class="flex items-center justify-between text-sm">
+                                <div class="flex items-center space-x-3">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                        ${index + 1}
+                                    </span>
+                                    <div>
+                                        <div class="font-medium">${point.client}</div>
+                                        <div class="text-gray-600">${point.address}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-gray-900">${point.estimated}</div>
+                                    <div class="text-gray-500">${point.wasteType}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    },
+
     loadRoutesTab(container) {
+        const statuses = ['Todos', 'Programada', 'En Progreso', 'Completada', 'Cancelada'];
+
         container.innerHTML = `
             <div class="bg-white rounded-lg shadow">
                 <div class="p-6 border-b">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold">Rutas del Día - ${this.formatDate(new Date())}</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="routesModule.optimizeRoutes()" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
-                                <i class="fas fa-magic mr-1"></i>Optimizar
-                            </button>
-                            <button onclick="routesModule.exportRoutes()" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">
-                                <i class="fas fa-download mr-1"></i>Exportar
-                            </button>
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <h3 class="text-lg font-semibold">Listado de Rutas</h3>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Mostrar</label>
+                                <select id="filter-mode" onchange="routesModule.onFilterChange()"
+                                        class="w-44 px-3 py-2 border rounded-lg">
+                                    <option value="today" ${this.routesFilterMode === 'today' ? 'selected' : ''}>Rutas de hoy</option>
+                                    <option value="all" ${this.routesFilterMode === 'all' ? 'selected' : ''}>Todas las rutas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Estado</label>
+                                <select id="filter-status" onchange="routesModule.onFilterChange()"
+                                        class="w-44 px-3 py-2 border rounded-lg">
+                                    ${statuses.map(s => `<option value="${s}" ${this.routesStatusFilter === s ? 'selected' : ''}>${s}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="routesModule.optimizeRoutes()" class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700">
+                                    <i class="fas fa-magic mr-1"></i>Optimizar
+                                </button>
+                                <button onclick="routesModule.exportRoutes()" class="ml-2 bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">
+                                    <i class="fas fa-download mr-1"></i>Exportar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="p-6 space-y-6">
-                    ${this.routes.map(route => `
-                        <div class="border rounded-lg p-4 ${this.getRouteStatusBorderClass(route.status)}">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-3 mb-2">
-                                        <h4 class="text-lg font-semibold">${route.name}</h4>
-                                        <span class="text-sm text-gray-500">${route.code}</span>
-                                        <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(route.status)}">
-                                            ${route.status}
-                                        </span>
-                                    </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-truck mr-2"></i>
-                                            <span>${route.vehicle}</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-user mr-2"></i>
-                                            <span>${route.driver}</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-clock mr-2"></i>
-                                            <span>${route.startTime} - ${route.estimatedDuration}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="routesModule.viewRoute(${route.id})" 
-                                            class="text-blue-600 hover:text-blue-900" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button onclick="routesModule.editRoute(${route.id})" 
-                                            class="text-green-600 hover:text-green-900" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button onclick="routesModule.trackRoute(${route.id})" 
-                                            class="text-yellow-600 hover:text-yellow-900" title="Rastrear">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </button>
-                                    <button onclick="routesModule.showAddCollectionPointModal(${route.id})" 
-                                            class="text-purple-600 hover:text-purple-900" title="Añadir Punto de Recolección">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-gray-50 rounded-lg p-3">
-                                <h5 class="font-medium mb-2">Puntos de Recolección (${route.collectionPoints.length})</h5>
-                                <div class="space-y-2">
-                                    ${route.collectionPoints.map((point, index) => `
-                                        <div class="flex items-center justify-between text-sm">
-                                            <div class="flex items-center space-x-3">
-                                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                                                    ${index + 1}
-                                                </span>
-                                                <div>
-                                                    <div class="font-medium">${point.client}</div>
-                                                    <div class="text-gray-600">${point.address}</div>
-                                                </div>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-gray-900">${point.estimated}</div>
-                                                <div class="text-gray-500">${point.wasteType}</div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
+                <div class="p-6 space-y-6" id="routes-list">
+                    <!-- aquí se renderiza la lista -->
                 </div>
             </div>
         `;
+
+        this.renderRoutesList();
     },
 
     loadVehiclesTab(container) {
@@ -276,9 +418,7 @@ window.routesModule = {
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap font-medium">${vehicle.code}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div>
-                                                <div class="font-medium">${vehicle.brand} ${vehicle.model}</div>
-                                            </div>
+                                            <div class="font-medium">${vehicle.brand} ${vehicle.model}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">${vehicle.capacity}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -425,9 +565,10 @@ window.routesModule = {
         `;
     },
 
-    // Helper methods
+    // ====== Métricas / estilos ======
     getTodayRoutesCount() {
-        return this.routes.length;
+        const today = new Date().toISOString().slice(0,10);
+        return this.routes.filter(r => r.date === today).length;
     },
 
     getCompletedRoutesCount() {
@@ -439,7 +580,25 @@ window.routesModule = {
     },
 
     getActiveVehiclesCount() {
-        return this.vehicles.filter(v => v.status === 'En Ruta').length;
+        // Un vehículo se considera "activo" si está asignado a una ruta que está "En Progreso".
+        const activeVehicleCodes = this.routes
+            .filter(r => r.status === 'En Progreso')
+            .map(r => r.vehicle);
+        // Se usa un Set para contar solo los vehículos únicos.
+        return new Set(activeVehicleCodes).size;
+    },
+
+    // NUEVO: refresca las 4 tarjetas
+    updateSummaryCards() {
+        const elToday      = document.getElementById('metric-routes-today');
+        const elCompleted  = document.getElementById('metric-routes-completed');
+        const elInProgress = document.getElementById('metric-routes-inprogress');
+        const elActiveVeh  = document.getElementById('metric-vehicles-active');
+
+        if (elToday)      elToday.textContent     = this.getTodayRoutesCount();
+        if (elCompleted)  elCompleted.textContent = this.getCompletedRoutesCount();
+        if (elInProgress) elInProgress.textContent= this.getInProgressRoutesCount();
+        if (elActiveVeh)  elActiveVeh.textContent = this.getActiveVehiclesCount();
     },
 
     getRouteStatusBorderClass(status) {
@@ -454,19 +613,19 @@ window.routesModule = {
 
     getStatusClass(status) {
         const classes = {
-            'Programada': 'bg-blue-100 text-blue-800',
+            'Programada':  'bg-blue-100 text-blue-800',
             'En Progreso': 'bg-yellow-100 text-yellow-800',
-            'Completada': 'bg-green-100 text-green-800',
-            'Cancelada': 'bg-red-100 text-red-800'
+            'Completada':  'bg-green-100 text-green-800',
+            'Cancelada':   'bg-red-100 text-red-800'
         };
         return classes[status] || 'bg-gray-100 text-gray-800';
     },
 
     getVehicleStatusClass(status) {
         const classes = {
-            'Disponible': 'bg-green-100 text-green-800',
-            'En Ruta': 'bg-blue-100 text-blue-800',
-            'Mantenimiento': 'bg-red-100 text-red-800',
+            'Disponible':     'bg-green-100 text-green-800',
+            'En Ruta':        'bg-blue-100 text-blue-800',
+            'Mantenimiento':  'bg-red-100 text-red-800',
             'Fuera de Servicio': 'bg-gray-100 text-gray-800'
         };
         return classes[status] || 'bg-gray-100 text-gray-800';
@@ -474,40 +633,168 @@ window.routesModule = {
 
     getDriverStatusClass(status) {
         const classes = {
-            'Disponible': 'bg-green-100 text-green-800',
-            'En Ruta': 'bg-blue-100 text-blue-800',
-            'Descanso': 'bg-yellow-100 text-yellow-800',
+            'Disponible':    'bg-green-100 text-green-800',
+            'En Ruta':       'bg-blue-100 text-blue-800',
+            'Descanso':      'bg-yellow-100 text-yellow-800',
             'No Disponible': 'bg-red-100 text-red-800'
         };
         return classes[status] || 'bg-gray-100 text-gray-800';
     },
 
     formatDate(date) {
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         return date.toLocaleDateString('es-ES', options);
     },
 
+    // ====== CRUD de Rutas ======
+    showNewRouteModal() {
+        if (!this.vehicles || !Array.isArray(this.vehicles)) this.vehicles = [];
+        if (!this.drivers  || !Array.isArray(this.drivers))  this.drivers  = [];
+
+        const hasVehicles = this.vehicles.length > 0;
+        const hasDrivers  = this.drivers.length  > 0;
+
+        const vehicleOptions = hasVehicles
+            ? this.vehicles.map(v => `
+                <option value="${v.code}">
+                    ${v.brand} ${v.model} (${v.code}) · ${v.status}
+                </option>`).join('')
+            : '';
+
+        const driverOptions = hasDrivers
+            ? this.drivers.map(d => `<option value="${d.name}">${d.name}</option>`).join('')
+            : '';
+
+        const modalHTML = `
+            <div id="new-route-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+                    <h3 class="text-lg font-semibold mb-4">Nueva Ruta</h3>
+                    <form id="new-route-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nombre de la Ruta</label>
+                                <input type="text" id="route-name" class="w-full px-3 py-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Código de Ruta</label>
+                                <input type="text" id="route-code" class="w-full px-3 py-2 border rounded-lg" required>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Vehículo</label>
+                                ${hasVehicles ? `
+                                    <select id="route-vehicle" class="w-full px-3 py-2 border rounded-lg" required>
+                                        ${vehicleOptions}
+                                    </select>
+                                ` : `
+                                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                                        No hay vehículos cargados. Agrega vehículos en la pestaña “Vehículos”.
+                                    </div>
+                                `}
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Conductor</label>
+                                ${hasDrivers ? `
+                                    <select id="route-driver" class="w-full px-3 py-2 border rounded-lg" required>
+                                        ${driverOptions}
+                                    </select>
+                                ` : `
+                                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                                        No hay conductores cargados. Agrega conductores en la pestaña “Vehículos”.
+                                    </div>
+                                `}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Ayudante</label>
+                                <input type="text" id="route-helper" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Fecha</label>
+                                <input type="date" id="route-date" class="w-full px-3 py-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Hora de Inicio</label>
+                                <input type="time" id="route-start-time" class="w-full px-3 py-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Duración Estimada (horas)</label>
+                                <input type="number" id="route-estimated-duration" class="w-full px-3 py-2 border rounded-lg"
+                                       min="0.5" step="0.5" placeholder="4" required>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-4 mt-6">
+                            <button type="button" onclick="document.getElementById('new-route-modal').remove()" class="px-4 py-2 border rounded-lg">Cancelar</button>
+                            <button type="submit" id="btn-create-route" class="px-4 py-2 bg-blue-600 text-white rounded-lg" ${hasVehicles && hasDrivers ? '' : 'disabled'}>
+                                Crear Ruta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        const dateInp = document.getElementById('route-date');
+        if (dateInp) dateInp.min = new Date().toISOString().slice(0,10);
+
+        const form = document.getElementById('new-route-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveNewRoute();
+            document.getElementById('new-route-modal').remove();
+        });
+    },
+
     saveNewRoute() {
+        const name = (document.getElementById('route-name')?.value || '').trim();
+        const code = (document.getElementById('route-code')?.value || '').trim();
+        const veh  = (document.getElementById('route-vehicle')?.value || '').trim();
+        const drv  = (document.getElementById('route-driver')?.value || '').trim();
+        const help = (document.getElementById('route-helper')?.value || '').trim();
+        const date = (document.getElementById('route-date')?.value || '').trim();
+        const time = (document.getElementById('route-start-time')?.value || '').trim();
+        const durI = document.getElementById('route-estimated-duration')?.value;
+
+        if (!name || !code || !veh || !drv || !date || !time || !durI) {
+            authSystem.showNotification('Completa los campos obligatorios', 'error');
+            return;
+        }
+
+        const dur = this.parseDurationHours(durI);
+        if (!isFinite(dur) || dur <= 0) {
+            authSystem.showNotification('Duración inválida. Usa un número de horas mayor a 0.', 'error');
+            return;
+        }
+
+        const conflict = this.findVehicleConflict(veh, date, time, dur, null);
+        if (conflict) {
+            authSystem.showNotification(
+                `Choque de horario para el vehículo ${veh} con la ruta "${conflict.name}" (${conflict.code}) a las ${conflict.startTime}.`,
+                'error'
+            );
+            return;
+        }
+
         const newRoute = {
-            id: this.routes.length + 1,
-            name: document.getElementById('route-name').value,
-            code: document.getElementById('route-code').value,
-            vehicle: document.getElementById('route-vehicle').value,
-            driver: document.getElementById('route-driver').value,
-            helper: document.getElementById('route-helper').value,
-            date: document.getElementById('route-date').value,
-            startTime: document.getElementById('route-start-time').value,
-            estimatedDuration: document.getElementById('route-estimated-duration').value,
+            id: this.routes.length > 0 ? Math.max(...this.routes.map(r => r.id)) + 1 : 1,
+            name, code,
+            vehicle: veh,
+            driver: drv,
+            helper: help,
+            date,
+            startTime: time,
+            estimatedDuration: dur,
             status: 'Programada',
             collectionPoints: []
         };
+
         this.routes.push(newRoute);
-        this.loadRoutesTab(document.getElementById('tab-content'));
+        this.saveAll();
+        this.renderRoutesList();     // mantiene los filtros visibles
+        this.updateSummaryCards();   // <— REFRESCA TARJETAS
         authSystem.showNotification('Ruta creada exitosamente', 'success');
     },
 
@@ -519,15 +806,15 @@ window.routesModule = {
             <div id="view-route-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 w-full max-w-lg">
                     <h3 class="text-lg font-semibold mb-4">Detalles de la Ruta</h3>
-                    <div>
+                    <div class="space-y-1">
                         <p><strong>Nombre:</strong> ${route.name}</p>
                         <p><strong>Código:</strong> ${route.code}</p>
-                        <p><strong>Vehículo:</strong> ${route.vehicle}</p>
+                        <p><strong>Vehículo:</strong> ${this.getVehicleLabelByCode(route.vehicle)}</p>
                         <p><strong>Conductor:</strong> ${route.driver}</p>
-                        <p><strong>Ayudante:</strong> ${route.helper}</p>
+                        <p><strong>Ayudante:</strong> ${route.helper || '—'}</p>
                         <p><strong>Fecha:</strong> ${route.date}</p>
                         <p><strong>Hora de Inicio:</strong> ${route.startTime}</p>
-                        <p><strong>Duración Estimada:</strong> ${route.estimatedDuration}</p>
+                        <p><strong>Duración Estimada:</strong> ${this.formatDuration(route.estimatedDuration)}</p>
                         <p><strong>Estado:</strong> ${route.status}</p>
                     </div>
                     <div class="flex justify-end mt-6">
@@ -560,7 +847,10 @@ window.routesModule = {
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Vehículo</label>
                                 <select id="edit-route-vehicle" class="w-full px-3 py-2 border rounded-lg" required>
-                                    ${this.vehicles.map(v => `<option value="${v.code}" ${route.vehicle === v.code ? 'selected' : ''}>${v.brand} ${v.model} (${v.code})</option>`).join('')}
+                                    ${this.vehicles.map(v => `
+                                        <option value="${v.code}" ${route.vehicle === v.code ? 'selected' : ''}>
+                                            ${v.brand} ${v.model} (${v.code}) · ${v.status}
+                                        </option>`).join('')}
                                 </select>
                             </div>
                             <div>
@@ -571,7 +861,7 @@ window.routesModule = {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Ayudante</label>
-                                <input type="text" id="edit-route-helper" class="w-full px-3 py-2 border rounded-lg" value="${route.helper}">
+                                <input type="text" id="edit-route-helper" class="w-full px-3 py-2 border rounded-lg" value="${route.helper || ''}">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Fecha</label>
@@ -582,8 +872,8 @@ window.routesModule = {
                                 <input type="time" id="edit-route-start-time" class="w-full px-3 py-2 border rounded-lg" value="${route.startTime}" required>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Duración Estimada</label>
-                                <input type="text" id="edit-route-estimated-duration" class="w-full px-3 py-2 border rounded-lg" value="${route.estimatedDuration}" required>
+                                <label class="block text-sm font-medium text-gray-700">Duración Estimada (horas)</label>
+                                <input type="number" id="edit-route-estimated-duration" class="w-full px-3 py-2 border rounded-lg" value="${this.parseDurationHours(route.estimatedDuration)}" min="0.5" step="0.5" required>
                             </div>
                         </div>
                         <div class="flex justify-end space-x-4 mt-6">
@@ -608,25 +898,48 @@ window.routesModule = {
         const routeIndex = this.routes.findIndex(r => r.id === id);
         if (routeIndex === -1) return;
 
+        const veh  = (document.getElementById('edit-route-vehicle')?.value || '').trim();
+        const date = (document.getElementById('edit-route-date')?.value || '').trim();
+        const time = (document.getElementById('edit-route-start-time')?.value || '').trim();
+        const durI = document.getElementById('edit-route-estimated-duration')?.value;
+
+        const dur  = this.parseDurationHours(durI);
+        if (!isFinite(dur) || dur <= 0) {
+            authSystem.showNotification('Duración inválida. Usa un número de horas mayor a 0.', 'error');
+            return;
+        }
+
+        const conflict = this.findVehicleConflict(veh, date, time, dur, id);
+        if (conflict) {
+            authSystem.showNotification(
+                `Choque de horario para el vehículo ${veh} con la ruta "${conflict.name}" (${conflict.code}) a las ${conflict.startTime}.`,
+                'error'
+            );
+            return;
+        }
+
         const updatedRoute = {
-            id: id,
+            id,
             name: document.getElementById('edit-route-name').value,
             code: document.getElementById('edit-route-code').value,
-            vehicle: document.getElementById('edit-route-vehicle').value,
+            vehicle: veh,
             driver: document.getElementById('edit-route-driver').value,
             helper: document.getElementById('edit-route-helper').value,
-            date: document.getElementById('edit-route-date').value,
-            startTime: document.getElementById('edit-route-start-time').value,
-            estimatedDuration: document.getElementById('edit-route-estimated-duration').value,
+            date,
+            startTime: time,
+            estimatedDuration: dur,
             status: this.routes[routeIndex].status,
             collectionPoints: this.routes[routeIndex].collectionPoints
         };
 
         this.routes[routeIndex] = updatedRoute;
-        this.loadRoutesTab(document.getElementById('tab-content'));
+        this.saveAll();
+        this.renderRoutesList();
+        this.updateSummaryCards(); // <— REFRESCA TARJETAS
         authSystem.showNotification('Ruta actualizada exitosamente', 'success');
     },
 
+    // ====== Otras acciones ======
     trackRoute(id) {
         authSystem.showNotification('Rastreando ruta...', 'info');
     },
@@ -639,7 +952,64 @@ window.routesModule = {
     },
 
     exportRoutes() {
-        authSystem.showNotification('Exportando rutas...', 'info');
+        const routesToExport = this.getFilteredRoutes();
+
+        if (routesToExport.length === 0) {
+            authSystem.showNotification('No hay rutas para exportar con los filtros actuales.', 'warning');
+            return;
+        }
+
+        // Definir las cabeceras del CSV
+        const headers = [
+            'ID', 'Nombre', 'Codigo', 'Vehiculo', 'Conductor', 'Ayudante',
+            'Fecha', 'Hora de Inicio', 'Duracion Estimada (h)', 'Estado',
+            'Puntos de Recoleccion'
+        ];
+
+        // Convertir cada ruta a una fila de CSV
+        const csvRows = routesToExport.map(route => {
+            // Convertir los puntos de recolección en un solo string
+            const collectionPointsStr = route.collectionPoints
+                .map(p => `[${p.client} en ${p.address} - ${p.estimated} ${p.wasteType}]`)
+                .join('; ');
+
+            const row = [
+                route.id,
+                `"${(route.name || '').replace(/"/g, '"')}"`,
+                `"${(route.code || '').replace(/"/g, '"')}"`,
+                `"${(route.vehicle || '').replace(/"/g, '"')}"`,
+                `"${(route.driver || '').replace(/"/g, '"')}"`,
+                `"${(route.helper || '').replace(/"/g, '"')}"`,
+                route.date,
+                route.startTime,
+                route.estimatedDuration,
+                route.status,
+                `"${collectionPointsStr.replace(/"/g, '"')}"` // Escapar comillas dobles
+            ];
+            return row.join(',');
+        });
+
+        // Unir cabeceras y filas
+        const csvContent = [headers.join(','), ...csvRows].join('\n');
+
+        // Crear un Blob y simular el clic para descargar
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            const today = new Date().toISOString().slice(0, 10);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `export_rutas_${today}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            authSystem.showNotification('Rutas exportadas exitosamente.', 'success');
+        } else {
+            authSystem.showNotification('La exportación automática no es compatible con este navegador.', 'error');
+        }
     },
 
     runOptimization() {
@@ -649,6 +1019,7 @@ window.routesModule = {
         }, 3000);
     },
 
+    // ====== Vehículos ======
     viewVehicle(id) {
         const vehicle = this.vehicles.find(v => v.id === id);
         if (!vehicle) return;
@@ -732,7 +1103,7 @@ window.routesModule = {
         if (vehicleIndex === -1) return;
 
         const updatedVehicle = {
-            id: id,
+            id,
             code: document.getElementById('edit-vehicle-code').value,
             brand: document.getElementById('edit-vehicle-brand').value,
             model: document.getElementById('edit-vehicle-model').value,
@@ -742,9 +1113,11 @@ window.routesModule = {
 
         this.vehicles[vehicleIndex] = updatedVehicle;
         this.loadVehiclesTab(document.getElementById('tab-content'));
+        this.updateSummaryCards(); // <— REFRESCA TARJETAS (vehículos activos)
         authSystem.showNotification('Vehículo actualizado exitosamente', 'success');
     },
 
+    // ====== Conductores ======
     viewDriver(id) {
         const driver = this.drivers.find(d => d.id === id);
         if (!driver) return;
@@ -818,7 +1191,7 @@ window.routesModule = {
         if (driverIndex === -1) return;
 
         const updatedDriver = {
-            id: id,
+            id,
             name: document.getElementById('edit-driver-name').value,
             license: document.getElementById('edit-driver-license').value,
             status: document.getElementById('edit-driver-status').value
@@ -829,7 +1202,24 @@ window.routesModule = {
         authSystem.showNotification('Conductor actualizado exitosamente', 'success');
     },
 
+    // ====== Puntos de recolección ======
     showAddCollectionPointModal(routeId) {
+        if (!window.servicesModule || typeof servicesModule.getApprovedServices !== 'function') {
+            const modalWarn = `
+                <div id="add-collection-point-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+                        <h3 class="text-lg font-semibold mb-4">Añadir Punto de Recolección</h3>
+                        <p class="text-sm text-red-600">No se encontró el módulo de Servicios o la función getApprovedServices(). Verifica que <strong>services.js</strong> esté cargado antes que <strong>routes.js</strong>.</p>
+                        <div class="flex justify-end mt-6">
+                            <button type="button" onclick="document.getElementById('add-collection-point-modal').remove()" class="px-4 py-2 border rounded-lg">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalWarn);
+            return;
+        }
+
         const allCollectionPoints = this.routes.flatMap(r => r.collectionPoints);
         const approvedServices = servicesModule.getApprovedServices();
 
@@ -841,31 +1231,42 @@ window.routesModule = {
             <div id="add-collection-point-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 w-full max-w-lg">
                     <h3 class="text-lg font-semibold mb-4">Añadir Punto de Recolección</h3>
-                    <form id="add-collection-point-form">
-                        <div class="space-y-2">
-                            ${availableServices.map(service => `
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2" name="service" value="${service.id}">
-                                    <span>${service.clientName} - ${service.address}</span>
-                                </label>
-                            `).join('')}
+                    ${availableServices.length ? `
+                        <form id="add-collection-point-form">
+                            <div class="space-y-2 max-h-72 overflow-auto pr-1">
+                                ${availableServices.map(service => `
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="mr-2" name="service" value="${service.id}">
+                                        <span>${service.clientName} — ${service.address} <span class="text-xs text-gray-500">(${service.wasteType}, ${service.estimatedVolume} ${service.volumeUnit || 'm³'})</span></span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <div class="flex justify-end space-x-4 mt-6">
+                                <button type="button" onclick="document.getElementById('add-collection-point-modal').remove()" class="px-4 py-2 border rounded-lg">Cancelar</button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Añadir Puntos</button>
+                            </div>
+                        </form>
+                    ` : `
+                        <div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                            No hay solicitudes <strong>aprobadas</strong> disponibles para asignar.
                         </div>
-                        <div class="flex justify-end space-x-4 mt-6">
-                            <button type="button" onclick="document.getElementById('add-collection-point-modal').remove()" class="px-4 py-2 border rounded-lg">Cancelar</button>
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Añadir Puntos</button>
+                        <div class="flex justify-end mt-6">
+                            <button type="button" onclick="document.getElementById('add-collection-point-modal').remove()" class="px-4 py-2 border rounded-lg">Cerrar</button>
                         </div>
-                    </form>
+                    `}
                 </div>
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         const form = document.getElementById('add-collection-point-form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveCollectionPoints(routeId);
-            document.getElementById('add-collection-point-modal').remove();
-        });
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveCollectionPoints(routeId);
+                document.getElementById('add-collection-point-modal').remove();
+            });
+        }
     },
 
     saveCollectionPoints(routeId) {
@@ -882,78 +1283,14 @@ window.routesModule = {
                     address: service.address,
                     client: service.clientName,
                     wasteType: service.wasteType,
-                    estimated: service.estimatedVolume
+                    estimated: `${service.estimatedVolume} ${service.volumeUnit || 'm³'}`
                 };
                 route.collectionPoints.push(newCollectionPoint);
             }
         });
 
-        this.loadRoutesTab(document.getElementById('tab-content'));
+        this.saveAll();
+        this.renderRoutesList();
         authSystem.showNotification('Puntos de recolección añadidos exitosamente', 'success');
-    },
-
-    showNewRouteModal() {
-        const availableVehicles = this.vehicles.filter(v => v.status === 'Disponible');
-        const availableDrivers = this.drivers.filter(d => d.status === 'Disponible');
-
-        const modalHTML = `
-            <div id="new-route-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-6 w-full max-w-lg">
-                    <h3 class="text-lg font-semibold mb-4">Nueva Ruta</h3>
-                    <form id="new-route-form">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Nombre de la Ruta</label>
-                                <input type="text" id="route-name" class="w-full px-3 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Código de Ruta</label>
-                                <input type="text" id="route-code" class="w-full px-3 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Vehículo</label>
-                                <select id="route-vehicle" class="w-full px-3 py-2 border rounded-lg" required>
-                                    ${availableVehicles.map(v => `<option value="${v.code}">${v.brand} ${v.model} (${v.code})</option>`).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Conductor</label>
-                                <select id="route-driver" class="w-full px-3 py-2 border rounded-lg" required>
-                                    ${availableDrivers.map(d => `<option value="${d.name}">${d.name}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Ayudante</label>
-                                <input type="text" id="route-helper" class="w-full px-3 py-2 border rounded-lg">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Fecha</label>
-                                <input type="date" id="route-date" class="w-full px-3 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Hora de Inicio</label>
-                                <input type="time" id="route-start-time" class="w-full px-3 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Duración Estimada</label>
-                                <input type="text" id="route-estimated-duration" class="w-full px-3 py-2 border rounded-lg" required>
-                            </div>
-                        </div>
-                        <div class="flex justify-end space-x-4 mt-6">
-                            <button type="button" onclick="document.getElementById('new-route-modal').remove()" class="px-4 py-2 border rounded-lg">Cancelar</button>
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Crear Ruta</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-        const form = document.getElementById('new-route-form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveNewRoute();
-            document.getElementById('new-route-modal').remove();
-        });
     }
 };
