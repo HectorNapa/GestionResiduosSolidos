@@ -20,20 +20,25 @@ window.collectionModule = {
         }
     ],
 
+    // --- Main loader based on user role ---
     load() {
+        const user = app.currentUser;
+        if (!user) {
+            document.getElementById('content-area').innerHTML = '<p>Error: No se pudo identificar al usuario.</p>';
+            return;
+        }
+
         const contentArea = document.getElementById('content-area');
+        // Render common header and stats for both roles
         contentArea.innerHTML = `
             <div class="mb-6">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-bold text-gray-800">Registro de Recolección</h1>
-                    <button onclick="collectionModule.showNewCollectionModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                        <i class="fas fa-plus mr-2"></i>Nueva Recolección
-                    </button>
+                <div class="flex flex-col items-start gap-1">
+                    <h1 class="text-3xl font-bold text-gray-800">Recolección y Progreso</h1>
+                    <p class="text-gray-600">${user.type === 'admin' ? 'Supervisión de progreso de rutas' : 'Registro de recolecciones en campo'}</p>
                 </div>
-                <p class="text-gray-600">Registra y gestiona las recolecciones realizadas en campo</p>
             </div>
 
-            <!-- Quick Stats -->
+            <!-- Quick Stats (visible for both roles) -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
                     <div class="flex items-center justify-between">
@@ -44,7 +49,6 @@ window.collectionModule = {
                         <i class="fas fa-clipboard-check text-4xl text-blue-200"></i>
                     </div>
                 </div>
-
                 <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
                     <div class="flex items-center justify-between">
                         <div>
@@ -54,7 +58,6 @@ window.collectionModule = {
                         <i class="fas fa-cubes text-4xl text-green-200"></i>
                     </div>
                 </div>
-
                 <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-lg text-white">
                     <div class="flex items-center justify-between">
                         <div>
@@ -64,7 +67,6 @@ window.collectionModule = {
                         <i class="fas fa-weight text-4xl text-yellow-200"></i>
                     </div>
                 </div>
-
                 <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
                     <div class="flex items-center justify-between">
                         <div>
@@ -76,7 +78,90 @@ window.collectionModule = {
                 </div>
             </div>
 
-            <!-- Main Content Area -->
+            <!-- Role-specific content will be injected here -->
+            <div id="role-specific-content"></div>
+        `;
+
+        const roleSpecificContent = document.getElementById('role-specific-content');
+        if (user.type === 'admin') {
+            this.renderAdminView(roleSpecificContent);
+        } else { // 'operator' and any other role
+            this.renderOperatorView(roleSpecificContent);
+        }
+    },
+
+    // --- Admin View: Route Progress Table ---
+    renderAdminView(container) {
+        // Check if routesModule is available
+        if (typeof window.routesModule === 'undefined' || typeof window.routesModule.getFilteredRoutes === 'undefined') {
+            container.innerHTML = `<div class="p-4 text-center text-red-500 bg-red-50 rounded-lg border border-red-200">Error: El módulo de rutas no está cargado.</div>`;
+            return;
+        }
+
+        const routes = window.routesModule.routes || [];
+        
+        if (routes.length === 0) {
+            container.innerHTML = `<div class="p-6 text-center text-gray-500 bg-white rounded-lg border">No hay rutas creadas en el sistema.</div>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold">Progreso de Rutas en Tiempo Real</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruta</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehículo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Conductor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progreso</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${routes.map(route => {
+                                const completedPoints = this.collections.filter(c => c.routeId === route.id && c.status === 'Completado').length;
+                                const totalPoints = route.collectionPoints.length;
+                                const progress = totalPoints > 0 ? Math.round((completedPoints / totalPoints) * 100) : 0;
+
+                                return `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="font-medium">${route.name}</div>
+                                            <div class="text-sm text-gray-500">${route.code}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${window.routesModule.getVehicleLabelByCode(route.vehicle)}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${route.driver}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${progress}%"></div>
+                                                </div>
+                                                <span class="text-sm font-medium">${progress}%</span>
+                                            </div>
+                                            <div class="text-xs text-gray-500">${completedPoints} de ${totalPoints} puntos completados</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full ${window.routesModule.getStatusClass(route.status)}">
+                                                ${route.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    },
+
+    // --- Operator View: Collection Form ---
+    renderOperatorView(container) {
+        container.innerHTML = `
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Collection Form -->
                 <div class="lg:col-span-2">
@@ -86,7 +171,7 @@ window.collectionModule = {
                         </div>
                         <div class="p-6">
                             <form id="collection-form" class="space-y-4">
-                                <!-- Client Information -->
+                                <!-- Form content is the same as before -->
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
@@ -106,8 +191,6 @@ window.collectionModule = {
                                         </select>
                                     </div>
                                 </div>
-
-                                <!-- Waste Information -->
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Residuo *</label>
@@ -121,31 +204,23 @@ window.collectionModule = {
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Volumen Real (m³) *</label>
-                                        <input type="number" id="actual-volume" required step="0.1" min="0" 
-                                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                        <input type="number" id="actual-volume" required step="0.1" min="0" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Peso (Ton) *</label>
-                                        <input type="number" id="weight" required step="0.1" min="0" 
-                                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                        <input type="number" id="weight" required step="0.1" min="0" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
                                     </div>
                                 </div>
-
-                                <!-- Collection Details -->
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Recolección *</label>
-                                        <input type="date" id="collection-date" required 
-                                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                        <input type="date" id="collection-date" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Hora de Recolección *</label>
-                                        <input type="time" id="collection-time" required 
-                                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                        <input type="time" id="collection-time" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
                                     </div>
                                 </div>
-
-                                <!-- Evidence Upload -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Evidencia Fotográfica</label>
                                     <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
@@ -155,40 +230,23 @@ window.collectionModule = {
                                     </div>
                                     <div id="photo-preview" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 hidden"></div>
                                 </div>
-
-                                <!-- Notes -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-                                    <textarea id="collection-notes" rows="3" 
-                                              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                                              placeholder="Observaciones adicionales sobre la recolección..."></textarea>
+                                    <textarea id="collection-notes" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="Observaciones adicionales sobre la recolección..."></textarea>
                                 </div>
-
-                                <!-- Digital Signature -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Firma Digital del Cliente</label>
                                     <div class="border rounded-lg p-4 bg-gray-50">
                                         <canvas id="signature-pad" width="400" height="150" class="border bg-white rounded"></canvas>
                                         <div class="mt-2 flex space-x-2">
-                                            <button type="button" onclick="collectionModule.clearSignature()" 
-                                                    class="px-3 py-1 bg-gray-600 text-white rounded text-sm">
-                                                Limpiar
-                                            </button>
+                                            <button type="button" onclick="collectionModule.clearSignature()" class="px-3 py-1 bg-gray-600 text-white rounded text-sm">Limpiar</button>
                                             <span class="text-sm text-gray-600">El cliente debe firmar para confirmar la recolección</span>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Form Actions -->
                                 <div class="flex justify-end space-x-4 pt-4 border-t">
-                                    <button type="button" onclick="collectionModule.saveDraft()" 
-                                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                                        Guardar Borrador
-                                    </button>
-                                    <button type="submit" 
-                                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                        <i class="fas fa-save mr-2"></i>Completar Recolección
-                                    </button>
+                                    <button type="button" onclick="collectionModule.saveDraft()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Guardar Borrador</button>
+                                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="fas fa-save mr-2"></i>Completar Recolección</button>
                                 </div>
                             </form>
                         </div>
@@ -197,7 +255,6 @@ window.collectionModule = {
 
                 <!-- Sidebar with Recent Collections -->
                 <div class="space-y-6">
-                    <!-- Today's Collections -->
                     <div class="bg-white rounded-lg shadow">
                         <div class="p-4 border-b">
                             <h3 class="font-semibold">Recolecciones de Hoy</h3>
@@ -226,54 +283,27 @@ window.collectionModule = {
                             `).join('')}
                         </div>
                     </div>
-
-                    <!-- Quick Actions -->
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-4 border-b">
-                            <h3 class="font-semibold">Acciones Rápidas</h3>
-                        </div>
-                        <div class="p-4 space-y-2">
-                            <button onclick="collectionModule.generateWorkOrder()" 
-                                    class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-sm">
-                                <i class="fas fa-file-alt mr-2"></i>Generar Orden de Trabajo
-                            </button>
-                            <button onclick="collectionModule.generateManifest()" 
-                                    class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 text-sm">
-                                <i class="fas fa-file-invoice mr-2"></i>Generar Manifiesto
-                            </button>
-                            <button onclick="collectionModule.viewRoute()" 
-                                    class="w-full bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700 text-sm">
-                                <i class="fas fa-route mr-2"></i>Ver Ruta Actual
-                            </button>
-                            <button onclick="collectionModule.reportIssue()" 
-                                    class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 text-sm">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>Reportar Incidencia
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         `;
-
+        // Initialize form-specific JS
         this.initCollectionForm();
     },
 
+    // --- Form and Actions Logic (mostly unchanged) ---
     initCollectionForm() {
         const form = document.getElementById('collection-form');
+        if (!form) return; // Don't run if form is not on the page
+
         const today = new Date().toISOString().split('T')[0];
         const now = new Date().toTimeString().slice(0, 5);
 
-        // Set default values
         document.getElementById('collection-date').value = today;
         document.getElementById('collection-time').value = now;
 
-        // Initialize signature pad
         this.initSignaturePad();
-
-        // Handle file upload
         this.initFileUpload();
 
-        // Handle form submission
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveCollection();
@@ -282,54 +312,22 @@ window.collectionModule = {
 
     initSignaturePad() {
         const canvas = document.getElementById('signature-pad');
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
 
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            ctx.beginPath();
-            ctx.moveTo(e.offsetX, e.offsetY);
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                ctx.lineTo(e.offsetX, e.offsetY);
-                ctx.stroke();
-            }
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
-
-        // Touch events for mobile
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            isDrawing = true;
-            ctx.beginPath();
-            ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
-        });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (isDrawing) {
-                const touch = e.touches[0];
-                const rect = canvas.getBoundingClientRect();
-                ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
-                ctx.stroke();
-            }
-        });
-
-        canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            isDrawing = false;
-        });
+        // (Signature pad logic remains the same)
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
+        canvas.addEventListener('mousemove', (e) => { if (isDrawing) { ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); } });
+        canvas.addEventListener('mouseup', () => { isDrawing = false; });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const touch = e.touches[0]; const rect = canvas.getBoundingClientRect(); isDrawing = true; ctx.beginPath(); ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (isDrawing) { const touch = e.touches[0]; const rect = canvas.getBoundingClientRect(); ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top); ctx.stroke(); } });
+        canvas.addEventListener('touchend', (e) => { e.preventDefault(); isDrawing = false; });
     },
 
     clearSignature() {
         const canvas = document.getElementById('signature-pad');
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     },
@@ -337,6 +335,7 @@ window.collectionModule = {
     initFileUpload() {
         const fileInput = document.getElementById('evidence-photos');
         const photoPreview = document.getElementById('photo-preview');
+        if (!fileInput) return;
 
         fileInput.addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
@@ -348,14 +347,7 @@ window.collectionModule = {
                 reader.onload = (e) => {
                     const img = document.createElement('div');
                     img.className = 'relative';
-                    img.innerHTML = `
-                        <img src="${e.target.result}" alt="Evidencia ${index + 1}" 
-                             class="w-full h-24 object-cover rounded border">
-                        <button type="button" onclick="this.parentElement.remove()" 
-                                class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                            ×
-                        </button>
-                    `;
+                    img.innerHTML = `<img src="${e.target.result}" alt="Evidencia ${index + 1}" class="w-full h-24 object-cover rounded border"><button type="button" onclick="this.parentElement.remove()" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>`;
                     photoPreview.appendChild(img);
                 };
                 reader.readAsDataURL(file);
@@ -378,16 +370,13 @@ window.collectionModule = {
             timestamp: new Date().toISOString()
         };
 
-        // Validate required fields
         if (!formData.client || !formData.wasteType || !formData.actualVolume || !formData.weight) {
             authSystem.showNotification('Por favor completa todos los campos requeridos', 'error');
             return;
         }
 
-        // Check for signature
         const canvas = document.getElementById('signature-pad');
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
         const hasSignature = imageData.data.some(channel => channel !== 0);
 
         if (!hasSignature) {
@@ -395,25 +384,21 @@ window.collectionModule = {
             return;
         }
 
-        // Save collection record
         const newCollection = {
             id: this.collections.length + 1,
             ...formData,
             signature: canvas.toDataURL(),
-            photos: [] // In real implementation, upload files to server
+            photos: []
         };
 
         this.collections.push(newCollection);
-
         authSystem.showNotification('Recolección registrada exitosamente', 'success');
         
-        // Reset form
         document.getElementById('collection-form').reset();
         this.clearSignature();
         document.getElementById('photo-preview').classList.add('hidden');
 
-        // Update display
-        this.load();
+        this.load(); // Reload the whole view
     },
 
     saveDraft() {
@@ -428,33 +413,5 @@ window.collectionModule = {
             'Cancelado': 'bg-red-100 text-red-800'
         };
         return classes[status] || 'bg-gray-100 text-gray-800';
-    },
-
-    generateWorkOrder() {
-        authSystem.showNotification('Generando orden de trabajo...', 'info');
-        setTimeout(() => {
-            authSystem.showNotification('Orden de trabajo generada', 'success');
-        }, 1500);
-    },
-
-    generateManifest() {
-        authSystem.showNotification('Generando manifiesto de transporte...', 'info');
-        setTimeout(() => {
-            authSystem.showNotification('Manifiesto generado', 'success');
-        }, 1500);
-    },
-
-    viewRoute() {
-        app.loadModule('routes');
-    },
-
-    reportIssue() {
-        authSystem.showNotification('Función de reporte de incidencias en desarrollo', 'info');
-    },
-
-    showNewCollectionModal() {
-        // Scroll to form
-        document.getElementById('collection-form').scrollIntoView({ behavior: 'smooth' });
-        authSystem.showNotification('Complete el formulario para registrar una nueva recolección', 'info');
     }
 };
