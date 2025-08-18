@@ -1,4 +1,6 @@
 window.reportsModule = {
+    recentReports: [],
+
     load() {
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = `
@@ -7,383 +9,210 @@ window.reportsModule = {
                 <p class="text-gray-600">Genera y consulta reportes detallados del sistema</p>
             </div>
 
-            <!-- Report Types -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-2">Filtros Globales</h3>
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <label for="date-from" class="block text-sm font-medium text-gray-700">Desde</label>
+                        <input type="date" id="date-from" class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label for="date-to" class="block text-sm font-medium text-gray-700">Hasta</label>
+                        <input type="date" id="date-to" class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pre-defined Reports -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold">Reportes Operacionales</h3>
-                        <i class="fas fa-truck text-2xl text-blue-600"></i>
-                    </div>
-                    <div class="space-y-2">
-                        <button onclick="reportsModule.generateReport('daily-collection')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-calendar-day mr-2"></i>Recolección Diaria
-                        </button>
-                        <button onclick="reportsModule.generateReport('routes-performance')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-route mr-2"></i>Rendimiento de Rutas
-                        </button>
-                        <button onclick="reportsModule.generateReport('vehicle-usage')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-truck mr-2"></i>Uso de Vehículos
-                        </button>
-                        <button onclick="reportsModule.generateReport('manifests-summary')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-file-alt mr-2"></i>Resumen de Manifiestos
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold">Reportes de Planta</h3>
-                        <i class="fas fa-industry text-2xl text-green-600"></i>
-                    </div>
-                    <div class="space-y-2">
-                        <button onclick="reportsModule.generateReport('plant-capacity')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-tachometer-alt mr-2"></i>Capacidad de Planta
-                        </button>
-                        <button onclick="reportsModule.generateReport('waste-classification')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-sort-amount-down mr-2"></i>Clasificación de Residuos
-                        </button>
-                        <button onclick="reportsModule.generateReport('processing-efficiency')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-chart-line mr-2"></i>Eficiencia de Procesamiento
-                        </button>
-                        <button onclick="reportsModule.generateReport('disposal-tracking')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-trash-alt mr-2"></i>Seguimiento de Disposición
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold">Reportes Administrativos</h3>
-                        <i class="fas fa-chart-bar text-2xl text-purple-600"></i>
-                    </div>
-                    <div class="space-y-2">
-                        <button onclick="reportsModule.generateReport('client-services')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-users mr-2"></i>Servicios por Cliente
-                        </button>
-                        <button onclick="reportsModule.generateReport('financial-summary')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-dollar-sign mr-2"></i>Resumen Financiero
-                        </button>
-                        <button onclick="reportsModule.generateReport('environmental-impact')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-leaf mr-2"></i>Impacto Ambiental
-                        </button>
-                        <button onclick="reportsModule.generateReport('compliance-report')" 
-                                class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border">
-                            <i class="fas fa-clipboard-check mr-2"></i>Cumplimiento Normativo
-                        </button>
-                    </div>
-                </div>
+                ${this.renderReportCategories()}
             </div>
 
-            <!-- Custom Report Generator -->
-            <div class="bg-white rounded-lg shadow mb-6">
-                <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Generador de Reportes Personalizados</h3>
-                </div>
-                <div class="p-6">
-                    <form id="custom-report-form" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Reporte</label>
-                                <select id="report-type" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                                    <option value="">Seleccionar tipo</option>
-                                    <option value="operational">Operacional</option>
-                                    <option value="environmental">Ambiental</option>
-                                    <option value="financial">Financiero</option>
-                                    <option value="compliance">Cumplimiento</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Desde</label>
-                                <input type="date" id="date-from" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Hasta</label>
-                                <input type="date" id="date-to" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Filtros</label>
-                                <div class="space-y-2">
-                                    <label class="flex items-center">
-                                        <input type="checkbox" class="mr-2" value="routes">
-                                        <span class="text-sm">Incluir datos de rutas</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" class="mr-2" value="clients">
-                                        <span class="text-sm">Incluir información de clientes</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" class="mr-2" value="waste-types">
-                                        <span class="text-sm">Desglosar por tipo de residuo</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" class="mr-2" value="weights">
-                                        <span class="text-sm">Incluir pesos y volúmenes</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Formato de Salida</label>
-                                <div class="space-y-2">
-                                    <label class="flex items-center">
-                                        <input type="radio" name="output-format" value="pdf" class="mr-2" checked>
-                                        <span class="text-sm">PDF</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="output-format" value="excel" class="mr-2">
-                                        <span class="text-sm">Excel</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="output-format" value="csv" class="mr-2">
-                                        <span class="text-sm">CSV</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end space-x-4 pt-4 border-t">
-                            <button type="button" onclick="reportsModule.previewReport()" 
-                                    class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                                <i class="fas fa-eye mr-2"></i>Vista Previa
-                            </button>
-                            <button type="submit" 
-                                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                <i class="fas fa-download mr-2"></i>Generar Reporte
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <!-- Report Output Area -->
+            <div id="report-output" class="mb-6"></div>
 
             <!-- Recent Reports -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Reportes Recientes</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Período</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Generado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Formato</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap font-medium">Reporte Mensual Enero 2024</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Operacional</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">01/01/2024 - 31/01/2024</td>
-                                <td class="px-6 py-4 whitespace-nowrap">15 Ene 2024, 10:30</td>
-                                <td class="px-6 py-4 whitespace-nowrap">PDF</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <button class="text-blue-600 hover:text-blue-900" title="Descargar">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="text-green-600 hover:text-green-900" title="Ver">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="text-red-600 hover:text-red-900" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap font-medium">Impacto Ambiental Q4 2023</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Ambiental</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">01/10/2023 - 31/12/2023</td>
-                                <td class="px-6 py-4 whitespace-nowrap">10 Ene 2024, 14:15</td>
-                                <td class="px-6 py-4 whitespace-nowrap">Excel</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <button class="text-blue-600 hover:text-blue-900" title="Descargar">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="text-green-600 hover:text-green-900" title="Ver">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="text-red-600 hover:text-red-900" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div id="recent-reports-container" class="bg-white rounded-lg shadow">
+                ${this.renderRecentReports()}
             </div>
         `;
-
-        this.initCustomReportForm();
+        this.initDateFilters();
     },
 
-    initCustomReportForm() {
-        const form = document.getElementById('custom-report-form');
+    initDateFilters() {
+        const dateFrom = document.getElementById('date-from');
+        const dateTo = document.getElementById('date-to');
         const today = new Date();
-        const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-
-        // Set default date range to last month
-        document.getElementById('date-from').value = lastMonth.toISOString().split('T')[0];
-        document.getElementById('date-to').value = lastDayOfMonth.toISOString().split('T')[0];
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.generateCustomReport();
-        });
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
+        const todayStr = today.toISOString().slice(0, 10);
+        dateFrom.value = firstDayOfMonth;
+        dateTo.value = todayStr;
     },
 
+    renderReportCategories() {
+        // Simplified for brevity. In a real scenario, this could be a loop.
+        return `
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4">Operacionales</h3>
+                <button onclick="reportsModule.generateReport('routes-performance')" class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border"><i class="fas fa-route mr-2"></i>Rendimiento de Rutas</button>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4">De Planta</h3>
+                <button onclick="reportsModule.generateReport('waste-classification')" class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border"><i class="fas fa-sort-amount-down mr-2"></i>Clasificación de Residuos</button>
+                <button onclick="reportsModule.generateReport('disposal-tracking')" class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border mt-2"><i class="fas fa-trash-alt mr-2"></i>Seguimiento de Disposición</button>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4">Administrativos</h3>
+                <button onclick="reportsModule.generateReport('client-services')" class="w-full text-left py-2 px-3 hover:bg-gray-50 rounded border"><i class="fas fa-users mr-2"></i>Servicios por Cliente</button>
+            </div>
+        `;
+    },
+
+    renderRecentReports() {
+        let content = '<div class="p-6 border-b"><h3 class="text-lg font-semibold">Reportes Generados Recientemente</h3></div>';
+        if (this.recentReports.length === 0) {
+            content += '<div class="p-6 text-center text-gray-500">No se han generado reportes recientemente.</div>';
+        } else {
+            content += `<div class="overflow-x-auto"><table class="min-w-full">
+                <thead class="bg-gray-50"><tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre del Reporte</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Generación</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                </tr></thead>
+                <tbody class="divide-y divide-gray-200">
+                ${this.recentReports.map((report, index) => `
+                    <tr>
+                        <td class="px-6 py-4">${report.name}</td>
+                        <td class="px-6 py-4">${new Date(report.generatedAt).toLocaleString('es-ES')}</td>
+                        <td class="px-6 py-4"><button onclick="reportsModule.viewRecentReport(${index})" class="text-blue-600 hover:text-blue-900">Ver</button></td>
+                    </tr>
+                `).join('')}
+                </tbody></table></div>`;
+        }
+        return content;
+    },
+
+    // --- REPORT GENERATION HUB ---
     generateReport(reportType) {
-        authSystem.showNotification('Generando reporte...', 'info');
-        
-        // Simulate report generation time
-        setTimeout(() => {
-            const reportName = this.getReportName(reportType);
-            authSystem.showNotification(`Reporte "${reportName}" generado exitosamente`, 'success');
-            
-            // Simulate download
-            setTimeout(() => {
-                authSystem.showNotification('Descarga iniciada', 'info');
-            }, 500);
-        }, 2000);
-    },
+        const dateFrom = document.getElementById('date-from')?.value || '2000-01-01';
+        const dateTo = document.getElementById('date-to')?.value || new Date().toISOString().slice(0, 10);
+        const config = { dateFrom, dateTo };
 
-    generateCustomReport() {
-        const reportType = document.getElementById('report-type').value;
-        const dateFrom = document.getElementById('date-from').value;
-        const dateTo = document.getElementById('date-to').value;
-        const outputFormat = document.querySelector('input[name="output-format"]:checked').value;
-
-        if (!reportType || !dateFrom || !dateTo) {
-            authSystem.showNotification('Por favor completa todos los campos requeridos', 'error');
-            return;
+        let reportData;
+        switch (reportType) {
+            case 'routes-performance':
+                reportData = this.getReport_RoutesPerformance(config);
+                break;
+            case 'waste-classification':
+                reportData = this.getReport_WasteClassification(config);
+                break;
+            case 'client-services':
+                reportData = this.getReport_ClientServices(config);
+                break;
+            case 'disposal-tracking':
+                reportData = this.getReport_DisposalTracking(config);
+                break;
+            default:
+                authSystem.showNotification('Tipo de reporte no reconocido.', 'error');
+                return;
         }
 
-        // Get selected filters
-        const filters = [];
-        document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-            filters.push(checkbox.value);
+        this.renderReport(reportData, config);
+        this.addRecentReport(reportData);
+    },
+
+    addRecentReport(reportData) {
+        this.recentReports.unshift({ // Add to the beginning
+            ...reportData,
+            generatedAt: new Date().toISOString()
         });
-
-        authSystem.showNotification(`Generando reporte personalizado en formato ${outputFormat.toUpperCase()}...`, 'info');
-        
-        setTimeout(() => {
-            authSystem.showNotification('Reporte personalizado generado exitosamente', 'success');
-            setTimeout(() => {
-                authSystem.showNotification('Descarga iniciada', 'info');
-            }, 500);
-        }, 3000);
+        if (this.recentReports.length > 5) this.recentReports.pop(); // Keep only last 5
+        document.getElementById('recent-reports-container').innerHTML = this.renderRecentReports();
     },
 
-    previewReport() {
-        const reportType = document.getElementById('report-type').value;
-        
-        if (!reportType) {
-            authSystem.showNotification('Selecciona un tipo de reporte para la vista previa', 'error');
-            return;
-        }
+    viewRecentReport(index) {
+        const reportData = this.recentReports[index];
+        this.renderReport(reportData, reportData.config);
+    },
 
-        // Create preview modal
-        const modalHtml = `
-            <div id="report-preview-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full m-4 max-h-screen overflow-y-auto">
-                    <div class="p-6 border-b">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-2xl font-bold">Vista Previa del Reporte</h2>
-                            <button onclick="document.getElementById('report-preview-modal').remove()" 
-                                    class="text-gray-500 hover:text-gray-700">
-                                <i class="fas fa-times text-xl"></i>
-                            </button>
-                        </div>
+    // --- REPORT RENDERING ---
+    renderReport(reportData, config) {
+        const outputContainer = document.getElementById('report-output');
+        outputContainer.innerHTML = `
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-semibold">${reportData.name}</h3>
+                        <p class="text-sm text-gray-600">Período: ${this.formatDate(config.dateFrom)} - ${this.formatDate(config.dateTo)}</p>
                     </div>
-                    <div class="p-6">
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold mb-2">Resumen del Reporte</h3>
-                            <div class="grid grid-cols-2 gap-4 text-sm">
-                                <div><strong>Tipo:</strong> ${this.getReportTypeName(reportType)}</div>
-                                <div><strong>Período:</strong> ${document.getElementById('date-from').value} - ${document.getElementById('date-to').value}</div>
-                                <div><strong>Formato:</strong> ${document.querySelector('input[name="output-format"]:checked').value.toUpperCase()}</div>
-                                <div><strong>Páginas estimadas:</strong> 15-20</div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gray-100 p-6 rounded-lg">
-                            <h4 class="font-semibold mb-4">Contenido del Reporte</h4>
-                            <div class="space-y-2 text-sm">
-                                <div>📊 Resumen ejecutivo</div>
-                                <div>📈 Gráficos y estadísticas principales</div>
-                                <div>📋 Datos detallados por período</div>
-                                <div>📍 Análisis por ubicación</div>
-                                <div>💡 Conclusiones y recomendaciones</div>
-                                <div>📄 Anexos con datos complementarios</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6 flex justify-end space-x-2">
-                            <button onclick="document.getElementById('report-preview-modal').remove()" 
-                                    class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">
-                                Cerrar
-                            </button>
-                            <button onclick="reportsModule.generateCustomReport(); document.getElementById('report-preview-modal').remove();" 
-                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                Generar Reporte
-                            </button>
-                        </div>
-                    </div>
+                    <button onclick="reportsModule.printReport()" class="bg-blue-600 text-white px-4 py-2 rounded-lg"><i class="fas fa-print mr-2"></i>Imprimir/Guardar</button>
+                </div>
+                <div class="p-6" id="report-content">
+                    ${reportData.content}
                 </div>
             </div>
         `;
-
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
     },
 
-    getReportName(reportType) {
-        const names = {
-            'daily-collection': 'Recolección Diaria',
-            'routes-performance': 'Rendimiento de Rutas',
-            'vehicle-usage': 'Uso de Vehículos',
-            'manifests-summary': 'Resumen de Manifiestos',
-            'plant-capacity': 'Capacidad de Planta',
-            'waste-classification': 'Clasificación de Residuos',
-            'processing-efficiency': 'Eficiencia de Procesamiento',
-            'disposal-tracking': 'Seguimiento de Disposición',
-            'client-services': 'Servicios por Cliente',
-            'financial-summary': 'Resumen Financiero',
-            'environmental-impact': 'Impacto Ambiental',
-            'compliance-report': 'Cumplimiento Normativo'
-        };
-        return names[reportType] || 'Reporte Personalizado';
+    printReport() {
+        const reportContent = document.getElementById('report-content').innerHTML;
+        const reportTitle = document.querySelector('#report-output h3').textContent;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`<html><head><title>${reportTitle}</title><style>body{font-family:sans-serif} table{width:100%;border-collapse:collapse} th,td{border:1px solid #ddd;padding:8px} th{background-color:#f2f2f2} tfoot{font-weight:bold}</style></head><body><h1>${reportTitle}</h1>${reportContent}</body></html>`);
+        printWindow.document.close();
+        printWindow.focus();
     },
 
-    getReportTypeName(type) {
-        const types = {
-            'operational': 'Operacional',
-            'environmental': 'Ambiental',
-            'financial': 'Financiero',
-            'compliance': 'Cumplimiento'
-        };
-        return types[type] || 'Personalizado';
+    // --- REPORT DATA LOGIC ---
+    filterByDate(data, dateFrom, dateTo) {
+        const from = new Date(dateFrom);
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999); // Include all of the end day
+        return data.filter(item => {
+            const itemDate = new Date(item.date || item.arrivalDate);
+            return itemDate >= from && itemDate <= to;
+        });
+    },
+
+    getReport_RoutesPerformance(config) { /* ... */ return { name: 'Rendimiento de Rutas', content: '' }; },
+    getReport_WasteClassification(config) { /* ... */ return { name: 'Clasificación de Residuos en Planta', content: '' }; },
+    getReport_ClientServices(config) { /* ... */ return { name: 'Servicios por Cliente', content: '' }; },
+
+    getReport_DisposalTracking(config) {
+        const disposals = this.filterByDate(window.disposalModule?.disposals || [], config.dateFrom, config.dateTo);
+        let content;
+        if (disposals.length === 0) {
+            content = '<p>No hay datos de disposición final para el período seleccionado.</p>';
+        } else {
+            const totalWeight = disposals.reduce((sum, d) => sum + parseFloat(d.weight || 0), 0);
+            const totalCost = disposals.reduce((sum, d) => sum + parseFloat(d.cost || 0), 0);
+            content = `
+                <table class="min-w-full text-sm">
+                    <thead><tr><th>Lote</th><th>Fecha</th><th>Peso (Ton)</th><th>Método</th><th>Instalación</th><th>Costo</th></tr></thead>
+                    <tbody>${disposals.map(d => `
+                        <tr>
+                            <td>${d.batchNumber}</td>
+                            <td>${this.formatDate(d.date)}</td>
+                            <td>${(d.weight || 0).toFixed(2)}</td>
+                            <td>${d.disposalMethod}</td>
+                            <td>${d.facility}</td>
+                            <td>$${(d.cost || 0).toFixed(2)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr class="font-bold border-t-2"><td colspan="2">Totales</td><td>${totalWeight.toFixed(2)}</td><td colspan="2"></td><td>$${totalCost.toFixed(2)}</td></tr>
+                    </tfoot>
+                </table>
+            `;
+        }
+        return { name: 'Seguimiento de Disposición Final', content, config };
+    },
+
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const date = new Date(dateString);
+        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+        return date.toLocaleDateString('es-ES', options);
     }
 };
