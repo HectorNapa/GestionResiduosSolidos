@@ -142,8 +142,8 @@ class WasteManagementApp {
 
         menuItems.innerHTML = menuConfig.map(item => `
             <li>
-                <a href="#" onclick="app.loadModule('${item.module}')"
-                   class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded transition-colors">
+                <a href="#" id="nav-${item.module}" onclick="app.loadModule('${item.module}')"
+                   class="nav-link flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded transition-colors duration-200">
                     <i class="${item.icon} mr-3"></i>${item.label}
                 </a>
             </li>
@@ -152,6 +152,21 @@ class WasteManagementApp {
 
     loadModule(moduleName) {
         if (!this.requireAuth()) return;
+
+        // --- START: HIGHLIGHTING LOGIC ---
+        // Remove active class from all nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('bg-gray-700', 'text-white');
+            link.classList.add('text-gray-300');
+        });
+
+        // Add active class to the current link
+        const activeLink = document.getElementById(`nav-${moduleName}`);
+        if (activeLink) {
+            activeLink.classList.add('bg-gray-700', 'text-white');
+            activeLink.classList.remove('text-gray-300');
+        }
+        // --- END: HIGHLIGHTING LOGIC ---
 
         this.currentModule = moduleName;
         const contentArea = document.getElementById('content-area');
