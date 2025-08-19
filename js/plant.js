@@ -8,6 +8,7 @@ window.plantModule = {
             vehicle: 'C-001',
             driver: 'Carlos Rodríguez',
             totalWeight: 15.6,
+            declaredWeight: 15.6,
             status: 'Procesado',
             classifications: [
                 { type: 'Orgánico', weight: 12.3, destination: 'Compostaje' },
@@ -15,6 +16,83 @@ window.plantModule = {
             ],
             operator: 'María González',
             notes: 'Material en buenas condiciones'
+        },
+        {
+            id: 2,
+            manifestNumber: 'M-2024-002',
+            arrivalDate: new Date().toISOString().slice(0, 10),
+            arrivalTime: '10:15',
+            vehicle: 'C-002',
+            driver: 'Luis Martínez',
+            totalWeight: 8.7,
+            declaredWeight: 8.5,
+            status: 'Procesado',
+            classifications: [
+                { type: 'Reciclable', weight: 8.7, destination: 'Centro de Reciclaje' }
+            ],
+            operator: 'Carlos Rodríguez',
+            notes: 'Peso verificado superior al declarado por +200kg. Material en excelente estado.'
+        },
+        {
+            id: 3,
+            manifestNumber: 'M-2024-005',
+            arrivalDate: (() => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                return yesterday.toISOString().slice(0, 10);
+            })(),
+            arrivalTime: '16:45',
+            vehicle: 'C-001',
+            driver: 'Miguel López',
+            totalWeight: 19.8,
+            declaredWeight: 19.8,
+            status: 'Procesado',
+            classifications: [
+                { type: 'Orgánico', weight: 14.5, destination: 'Compostaje' },
+                { type: 'Reciclable', weight: 3.8, destination: 'Centro de Reciclaje' },
+                { type: 'No Reciclable', weight: 1.5, destination: 'Relleno Sanitario' }
+            ],
+            operator: 'Carlos Rodríguez',
+            notes: 'Carga mixta bien separada en origen. Excelente trabajo de recolección.'
+        },
+        {
+            id: 4,
+            manifestNumber: 'M-2024-006',
+            arrivalDate: (() => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                return yesterday.toISOString().slice(0, 10);
+            })(),
+            arrivalTime: '09:20',
+            vehicle: 'C-002',
+            driver: 'Carlos Rodríguez',
+            totalWeight: 11.2,
+            declaredWeight: 11.2,
+            status: 'Procesado',
+            classifications: [
+                { type: 'Orgánico', weight: 9.8, destination: 'Compostaje' },
+                { type: 'Reciclable', weight: 1.4, destination: 'Centro de Reciclaje' }
+            ],
+            operator: 'María González',
+            notes: 'Alto porcentaje de materia orgánica, ideal para compostaje industrial.'
+        },
+        {
+            id: 5,
+            manifestNumber: 'M-2024-007',
+            arrivalDate: new Date().toISOString().slice(0, 10),
+            arrivalTime: '08:00',
+            vehicle: 'V-001',
+            driver: 'Ana García',
+            totalWeight: 25.4,
+            declaredWeight: 25.0,
+            status: 'En Proceso',
+            classifications: [
+                { type: 'Orgánico', weight: 18.2, destination: 'Compostaje' },
+                { type: 'Reciclable', weight: 5.1, destination: 'Centro de Reciclaje' },
+                { type: 'No Reciclable', weight: 2.1, destination: 'Relleno Sanitario' }
+            ],
+            operator: 'Carlos Rodríguez',
+            notes: 'Carga de gran volumen en proceso de clasificación final.'
         }
     ],
 
@@ -124,17 +202,111 @@ window.plantModule = {
 
     // --- OPERATOR VIEW ---
     renderOperatorView(container) {
-        // Operator view remains the same: just the form.
+        const currentUser = app?.currentUser;
+        const operatorReceptions = this.getOperatorReceptions(currentUser);
+        
         container.innerHTML = `
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Registro de Recepción</h3>
+            <!-- KPIs del operador -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-truck text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Recepciones Hoy</h3>
+                            <p class="text-2xl font-bold text-gray-900">${this.getOperatorReceptionsToday(currentUser)}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <form id="reception-form" class="space-y-4"></form>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-weight-hanging text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Peso Total Hoy</h3>
+                            <p class="text-2xl font-bold text-gray-900">${this.getOperatorWeightToday(currentUser)} T</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Pendientes</h3>
+                            <p class="text-2xl font-bold text-gray-900">${this.getPendingManifests()}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-chart-line text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Capacidad Usada</h3>
+                            <p class="text-2xl font-bold text-gray-900">${this.processingCapacity.current}%</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Acciones principales -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Formulario de nueva recepción -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6 border-b">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold">Nueva Recepción de Residuos</h3>
+                                <button onclick="plantModule.showQuickReceptionForm()" 
+                                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                    <i class="fas fa-plus mr-2"></i>Recepción Rápida
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <form id="reception-form" class="space-y-4"></form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de manifiestos pendientes -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b">
+                        <h3 class="text-lg font-semibold">Manifiestos Pendientes</h3>
+                    </div>
+                    <div class="p-6">
+                        ${this.renderPendingManifests()}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recepciones recientes -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Recepciones Recientes</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="plantModule.filterReceptions('today')" 
+                                    class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Hoy</button>
+                            <button onclick="plantModule.filterReceptions('week')" 
+                                    class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Esta Semana</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="operator-receptions-list">
+                    ${this.renderOperatorReceptionsList(operatorReceptions)}
+                </div>
+            </div>
+
+            <!-- Modal containers -->
+            <div id="plant-modal-container"></div>
         `;
+        
         this.renderReceptionForm(document.getElementById('reception-form'));
         this.initReceptionForm();
     },
@@ -214,9 +386,246 @@ window.plantModule = {
     },
 
     // --- FORM & HELPER FUNCTIONS (mostly unchanged) ---
-    renderReceptionForm(formElement) { /* ... form HTML ... */ },
-    initReceptionForm() { /* ... form init logic ... */ },
-    saveReception() { /* ... save logic ... */ this.load(); },
+    renderReceptionForm(formElement) {
+        if (!formElement) return;
+        
+        formElement.innerHTML = `
+            <!-- Información del Manifiesto -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-700 mb-4">Información del Manifiesto</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de Manifiesto</label>
+                        <input type="text" id="reception-manifest" 
+                               placeholder="M-2024-001" 
+                               required
+                               class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha y Hora de Llegada</label>
+                        <input type="datetime-local" id="reception-datetime" 
+                               value="${new Date().toISOString().slice(0, 16)}" 
+                               required
+                               class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Vehículo -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-700 mb-4">Información del Transporte</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Vehículo</label>
+                        <input type="text" id="reception-vehicle" 
+                               placeholder="C-001" 
+                               required
+                               class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Conductor</label>
+                        <input type="text" id="reception-driver" 
+                               placeholder="Nombre del conductor" 
+                               required
+                               class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pesaje y Clasificación -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-700 mb-4">Pesaje y Clasificación</h4>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Peso Total Declarado (Ton)</label>
+                            <input type="number" step="0.1" min="0" id="reception-declared-weight" 
+                                   placeholder="15.6" 
+                                   required
+                                   class="w-full p-3 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Peso Total Verificado (Ton)</label>
+                            <input type="number" step="0.1" min="0" id="reception-verified-weight" 
+                                   placeholder="15.8" 
+                                   required
+                                   class="w-full p-3 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+
+                    <!-- Clasificaciones -->
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-3">Clasificación por Tipo de Residuo</h5>
+                        <div id="classifications-container">
+                            <div class="classification-row grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Residuo</label>
+                                    <select class="classification-type w-full p-3 border border-gray-300 rounded-lg" required>
+                                        <option value="">Seleccionar tipo...</option>
+                                        <option value="Orgánico">Orgánico</option>
+                                        <option value="Reciclable">Reciclable</option>
+                                        <option value="No Reciclable">No Reciclable</option>
+                                        <option value="Peligroso">Peligroso</option>
+                                        <option value="Electrónico">Electrónico</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Peso (Ton)</label>
+                                    <input type="number" step="0.1" min="0" class="classification-weight w-full p-3 border border-gray-300 rounded-lg" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Destino Final</label>
+                                    <select class="classification-destination w-full p-3 border border-gray-300 rounded-lg" required>
+                                        <option value="">Seleccionar destino...</option>
+                                        <option value="Compostaje">Compostaje</option>
+                                        <option value="Centro de Reciclaje">Centro de Reciclaje</option>
+                                        <option value="Relleno Sanitario">Relleno Sanitario</option>
+                                        <option value="Tratamiento Especial">Tratamiento Especial</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="button" onclick="plantModule.removeClassification(this)" 
+                                            class="w-full p-3 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="plantModule.addClassification()" 
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-plus mr-2"></i>Agregar Clasificación
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado y Observaciones -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-700 mb-4">Estado y Observaciones</h4>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estado de la Recepción</label>
+                            <select id="reception-status" required class="w-full p-3 border border-gray-300 rounded-lg">
+                                <option value="">Seleccionar estado...</option>
+                                <option value="Recibido">Recibido</option>
+                                <option value="En Proceso">En Proceso</option>
+                                <option value="Procesado">Procesado</option>
+                                <option value="Rechazado">Rechazado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Operador Responsable</label>
+                            <input type="text" id="reception-operator" 
+                                   value="${app.currentUser?.name || 'Operador de Planta'}" 
+                                   required readonly
+                                   class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
+                        <textarea id="reception-notes" 
+                                  placeholder="Condiciones del material, incidencias, observaciones generales..."
+                                  class="w-full p-3 border border-gray-300 rounded-lg h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <button type="button" onclick="plantModule.clearForm()" 
+                        class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    Limpiar Formulario
+                </button>
+                <button type="submit" 
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-save mr-2"></i>Registrar Recepción
+                </button>
+            </div>
+        `;
+    },
+
+    initReceptionForm() {
+        const form = document.getElementById('reception-form');
+        if (!form) return;
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveReception();
+        });
+
+        // Auto-completar información del manifiesto si se ingresa el número
+        const manifestInput = document.getElementById('reception-manifest');
+        if (manifestInput) {
+            manifestInput.addEventListener('blur', () => {
+                this.autoFillManifestInfo(manifestInput.value);
+            });
+        }
+    },
+
+    saveReception() {
+        try {
+            // Recopilar datos del formulario
+            const receptionData = {
+                id: this.receptions.length + 1,
+                manifestNumber: document.getElementById('reception-manifest').value,
+                arrivalDate: document.getElementById('reception-datetime').value.split('T')[0],
+                arrivalTime: document.getElementById('reception-datetime').value.split('T')[1],
+                vehicle: document.getElementById('reception-vehicle').value,
+                driver: document.getElementById('reception-driver').value,
+                declaredWeight: parseFloat(document.getElementById('reception-declared-weight').value) || 0,
+                totalWeight: parseFloat(document.getElementById('reception-verified-weight').value) || 0,
+                status: document.getElementById('reception-status').value,
+                operator: document.getElementById('reception-operator').value,
+                notes: document.getElementById('reception-notes').value,
+                classifications: []
+            };
+
+            // Recopilar clasificaciones
+            const classRows = document.querySelectorAll('.classification-row');
+            classRows.forEach(row => {
+                const type = row.querySelector('.classification-type').value;
+                const weight = parseFloat(row.querySelector('.classification-weight').value) || 0;
+                const destination = row.querySelector('.classification-destination').value;
+                
+                if (type && weight > 0 && destination) {
+                    receptionData.classifications.push({ type, weight, destination });
+                }
+            });
+
+            // Validar que hay al menos una clasificación
+            if (receptionData.classifications.length === 0) {
+                authSystem.showNotification('Debe agregar al menos una clasificación válida', 'error');
+                return;
+            }
+
+            // Validar que el peso total coincide con las clasificaciones
+            const totalClassifiedWeight = receptionData.classifications.reduce((sum, c) => sum + c.weight, 0);
+            const tolerance = 0.1; // 100kg de tolerancia
+            if (Math.abs(totalClassifiedWeight - receptionData.totalWeight) > tolerance) {
+                authSystem.showNotification(`El peso total (${receptionData.totalWeight}T) no coincide con las clasificaciones (${totalClassifiedWeight.toFixed(1)}T)`, 'warning');
+            }
+
+            // Agregar al array de recepciones
+            this.receptions.push(receptionData);
+
+            // Actualizar capacidad de la planta
+            this.calculateInitialCapacity();
+
+            // Mostrar notificación de éxito
+            authSystem.showNotification(`Recepción ${receptionData.manifestNumber} registrada exitosamente`, 'success');
+
+            // Limpiar formulario
+            this.clearForm();
+
+            // Recargar la vista
+            this.load();
+
+        } catch (error) {
+            console.error('Error al guardar recepción:', error);
+            authSystem.showNotification('Error al registrar la recepción', 'error');
+        }
+    },
     // ... other helpers ...
     getStatusClass(status) {
         const classes = {
@@ -233,5 +642,223 @@ window.plantModule = {
         const date = new Date(dateString);
         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
         return date.toLocaleDateString('es-ES', options);
+    },
+
+    // ========= FUNCIONES AUXILIARES PARA OPERADORES =========
+
+    // Agregar nueva clasificación al formulario
+    addClassification() {
+        const container = document.getElementById('classifications-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'classification-row grid grid-cols-1 md:grid-cols-4 gap-4 mb-4';
+        newRow.innerHTML = `
+            <div>
+                <select class="classification-type w-full p-3 border border-gray-300 rounded-lg" required>
+                    <option value="">Seleccionar tipo...</option>
+                    <option value="Orgánico">Orgánico</option>
+                    <option value="Reciclable">Reciclable</option>
+                    <option value="No Reciclable">No Reciclable</option>
+                    <option value="Peligroso">Peligroso</option>
+                    <option value="Electrónico">Electrónico</option>
+                </select>
+            </div>
+            <div>
+                <input type="number" step="0.1" min="0" class="classification-weight w-full p-3 border border-gray-300 rounded-lg" required>
+            </div>
+            <div>
+                <select class="classification-destination w-full p-3 border border-gray-300 rounded-lg" required>
+                    <option value="">Seleccionar destino...</option>
+                    <option value="Compostaje">Compostaje</option>
+                    <option value="Centro de Reciclaje">Centro de Reciclaje</option>
+                    <option value="Relleno Sanitario">Relleno Sanitario</option>
+                    <option value="Tratamiento Especial">Tratamiento Especial</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="button" onclick="plantModule.removeClassification(this)" 
+                        class="w-full p-3 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(newRow);
+    },
+
+    // Remover clasificación del formulario
+    removeClassification(button) {
+        const container = document.getElementById('classifications-container');
+        if (container.children.length > 1) {
+            button.closest('.classification-row').remove();
+        } else {
+            authSystem.showNotification('Debe mantener al menos una clasificación', 'warning');
+        }
+    },
+
+    // Limpiar formulario
+    clearForm() {
+        const form = document.getElementById('reception-form');
+        if (form) {
+            form.reset();
+            // Restaurar valor por defecto de fecha y hora
+            document.getElementById('reception-datetime').value = new Date().toISOString().slice(0, 16);
+            document.getElementById('reception-operator').value = app.currentUser?.name || 'Operador de Planta';
+            
+            // Mantener solo una clasificación
+            const container = document.getElementById('classifications-container');
+            while (container.children.length > 1) {
+                container.removeChild(container.lastChild);
+            }
+        }
+    },
+
+    // Auto-completar información del manifiesto
+    autoFillManifestInfo(manifestNumber) {
+        if (!manifestNumber) return;
+        
+        // Buscar el manifiesto en el módulo de manifiestos
+        const manifest = window.manifestsModule?.manifests?.find(m => 
+            m.manifestNumber === manifestNumber
+        );
+        
+        if (manifest) {
+            document.getElementById('reception-vehicle').value = manifest.vehicle || '';
+            document.getElementById('reception-driver').value = manifest.driver || '';
+            document.getElementById('reception-declared-weight').value = manifest.totalWeight || '';
+            document.getElementById('reception-verified-weight').value = manifest.totalWeight || '';
+            
+            authSystem.showNotification('Información del manifiesto completada automáticamente', 'info');
+        }
+    },
+
+    // Funciones para mostrar estadísticas del operador
+    getOperatorReceptions(user) {
+        if (!user) return [];
+        return this.receptions.filter(r => 
+            r.operator === user.name || 
+            r.operator.includes('Operador')
+        );
+    },
+
+    getOperatorReceptionsToday(user) {
+        const today = new Date().toISOString().slice(0, 10);
+        return this.getOperatorReceptions(user).filter(r => r.arrivalDate === today).length;
+    },
+
+    getOperatorWeightToday(user) {
+        const today = new Date().toISOString().slice(0, 10);
+        const total = this.getOperatorReceptions(user)
+            .filter(r => r.arrivalDate === today)
+            .reduce((sum, r) => sum + (r.totalWeight || 0), 0);
+        return total.toFixed(1);
+    },
+
+    getPendingManifests() {
+        // Simulamos manifiestos pendientes
+        return window.manifestsModule?.manifests?.filter(m => 
+            m.status === 'En Tránsito'
+        )?.length || 2;
+    },
+
+    renderPendingManifests() {
+        const pendingManifests = window.manifestsModule?.manifests?.filter(m => 
+            m.status === 'En Tránsito'
+        ) || [
+            { manifestNumber: 'M-2024-003', route: 'R-003', totalWeight: 12.5, driver: 'Ana García' },
+            { manifestNumber: 'M-2024-004', route: 'R-001', totalWeight: 8.2, driver: 'Miguel López' }
+        ];
+
+        if (pendingManifests.length === 0) {
+            return `
+                <div class="text-center py-6">
+                    <i class="fas fa-check-circle text-green-400 text-3xl mb-2"></i>
+                    <p class="text-gray-500">No hay manifiestos pendientes</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="space-y-3">
+                ${pendingManifests.map(manifest => `
+                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h5 class="font-medium">${manifest.manifestNumber}</h5>
+                                <p class="text-sm text-gray-600">${manifest.route} • ${manifest.totalWeight} Ton</p>
+                                <p class="text-sm text-gray-600">Conductor: ${manifest.driver}</p>
+                            </div>
+                            <button onclick="plantModule.quickReception('${manifest.manifestNumber}')" 
+                                    class="text-blue-600 hover:text-blue-800 text-sm">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+
+    renderOperatorReceptionsList(receptions) {
+        if (!receptions || receptions.length === 0) {
+            return `
+                <div class="p-6 text-center">
+                    <i class="fas fa-truck text-gray-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500">No hay recepciones registradas</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="divide-y divide-gray-200">
+                ${receptions.map(reception => `
+                    <div class="p-6 hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-4">
+                                    <div class="p-2 rounded-full ${reception.status === 'Procesado' ? 'bg-green-100' : reception.status === 'En Proceso' ? 'bg-yellow-100' : 'bg-blue-100'}">
+                                        <i class="fas ${reception.status === 'Procesado' ? 'fa-check-circle text-green-600' : reception.status === 'En Proceso' ? 'fa-clock text-yellow-600' : 'fa-truck text-blue-600'}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold">${reception.manifestNumber}</h4>
+                                        <p class="text-sm text-gray-600">${reception.vehicle} • ${this.formatDate(reception.arrivalDate)} ${reception.arrivalTime}</p>
+                                        <p class="text-sm text-gray-600">${reception.totalWeight} Ton • Conductor: ${reception.driver}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(reception.status)}">
+                                    ${reception.status}
+                                </span>
+                                <div class="flex space-x-2">
+                                    <button onclick="plantModule.viewReception(${reception.id})" 
+                                            class="text-blue-600 hover:text-blue-800 p-2" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="plantModule.generateReport(${reception.id})" 
+                                            class="text-green-600 hover:text-green-800 p-2" title="Generar reporte">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+
+    // Funciones de acción adicionales
+    showQuickReceptionForm() {
+        authSystem.showNotification('Función de recepción rápida en desarrollo', 'info');
+    },
+
+    quickReception(manifestNumber) {
+        document.getElementById('reception-manifest').value = manifestNumber;
+        this.autoFillManifestInfo(manifestNumber);
+        authSystem.showNotification(`Información de ${manifestNumber} cargada en el formulario`, 'info');
+    },
+
+    filterReceptions(filter) {
+        authSystem.showNotification(`Filtro "${filter}" aplicado`, 'info');
+        // Aquí se implementaría la lógica de filtrado
     }
 };

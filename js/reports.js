@@ -1,5 +1,39 @@
 window.reportsModule = {
     recentReports: [],
+    
+    // Datos de ejemplo que se pueden cargar con un botón
+    sampleReports: [
+        {
+            id: 'RPT-001',
+            name: 'Rendimiento de Rutas - Agosto 2024',
+            type: 'routes-performance',
+            generatedAt: '2024-08-19T10:30:00Z',
+            generatedBy: 'Admin',
+            config: { dateFrom: '2024-08-01', dateTo: '2024-08-19' },
+            status: 'Completado',
+            size: '245 KB'
+        },
+        {
+            id: 'RPT-002',
+            name: 'Clasificación de Residuos - Semana 33',
+            type: 'waste-classification',
+            generatedAt: '2024-08-18T14:15:00Z',
+            generatedBy: 'Admin',
+            config: { dateFrom: '2024-08-12', dateTo: '2024-08-18' },
+            status: 'Completado',
+            size: '189 KB'
+        },
+        {
+            id: 'RPT-003',
+            name: 'Servicios por Cliente - Q2 2024',
+            type: 'client-services',
+            generatedAt: '2024-08-17T16:45:00Z',
+            generatedBy: 'Admin',
+            config: { dateFrom: '2024-04-01', dateTo: '2024-06-30' },
+            status: 'Completado',
+            size: '312 KB'
+        }
+    ],
 
     load() {
         const currentUser = app?.currentUser;
@@ -232,25 +266,116 @@ window.reportsModule = {
     },
 
     renderRecentReports() {
-        let content = '<div class="p-6 border-b"><h3 class="text-lg font-semibold">Reportes Generados Recientemente</h3></div>';
+        let content = `
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">Reportes Generados Recientemente</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="reportsModule.refreshReports()" 
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                            <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                        </button>
+                        <button onclick="reportsModule.exportAllReports()" 
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+                            <i class="fas fa-download mr-2"></i>Exportar Todo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
         if (this.recentReports.length === 0) {
-            content += '<div class="p-6 text-center text-gray-500">No se han generado reportes recientemente.</div>';
+            content += `
+                <div class="p-12 text-center">
+                    <i class="fas fa-chart-bar text-gray-300 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">No hay reportes disponibles</h3>
+                    <p class="text-gray-500 mb-6">Comienza generando tu primer reporte utilizando las opciones de arriba o carga algunos reportes de ejemplo</p>
+                    <div class="flex justify-center space-x-4">
+                        <button onclick="reportsModule.generateReport('routes-performance')" 
+                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Generar Primer Reporte
+                        </button>
+                        <button onclick="reportsModule.loadSampleReports()" 
+                                class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700">
+                            <i class="fas fa-file-import mr-2"></i>Cargar Reportes de Ejemplo
+                        </button>
+                    </div>
+                </div>
+            `;
         } else {
-            content += `<div class="overflow-x-auto"><table class="min-w-full">
-                <thead class="bg-gray-50"><tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre del Reporte</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Generación</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                </tr></thead>
-                <tbody class="divide-y divide-gray-200">
-                ${this.recentReports.map((report, index) => `
-                    <tr>
-                        <td class="px-6 py-4">${report.name}</td>
-                        <td class="px-6 py-4">${new Date(report.generatedAt).toLocaleString('es-ES')}</td>
-                        <td class="px-6 py-4"><button onclick="reportsModule.viewRecentReport(${index})" class="text-blue-600 hover:text-blue-900">Ver</button></td>
-                    </tr>
-                `).join('')}
-                </tbody></table></div>`;
+            content += `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reporte</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Período</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Generado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${this.recentReports.map((report, index) => `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <div class="h-10 w-10 rounded-lg ${this.getReportTypeColor(report.type)} flex items-center justify-center">
+                                                    <i class="${this.getReportTypeIcon(report.type)} text-white"></i>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">${report.name}</div>
+                                                <div class="text-sm text-gray-500">ID: ${report.id} • ${report.size}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${this.getReportTypeBadge(report.type)}">
+                                            ${this.getReportTypeLabel(report.type)}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div>${this.formatDate(report.config.dateFrom)}</div>
+                                        <div class="text-gray-500">al ${this.formatDate(report.config.dateTo)}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div>${this.formatDateTime(report.generatedAt)}</div>
+                                        <div class="text-gray-500">por ${report.generatedBy}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${this.getStatusBadge(report.status)}">
+                                            <i class="fas fa-check-circle mr-1"></i>${report.status}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <button onclick="reportsModule.viewRecentReport(${index})" 
+                                                    class="text-blue-600 hover:text-blue-900" title="Ver reporte">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button onclick="reportsModule.downloadReport('${report.id}')" 
+                                                    class="text-green-600 hover:text-green-900" title="Descargar">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button onclick="reportsModule.shareReport('${report.id}')" 
+                                                    class="text-purple-600 hover:text-purple-900" title="Compartir">
+                                                <i class="fas fa-share-alt"></i>
+                                            </button>
+                                            <button onclick="reportsModule.deleteReport(${index})" 
+                                                    class="text-red-600 hover:text-red-900" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
         return content;
     },
@@ -296,6 +421,158 @@ window.reportsModule = {
     viewRecentReport(index) {
         const reportData = this.recentReports[index];
         this.renderReport(reportData, reportData.config);
+    },
+
+    // ========== FUNCIONES AUXILIARES PARA REPORTES ==========
+
+    getReportTypeColor(type) {
+        const colors = {
+            'routes-performance': 'bg-blue-500',
+            'waste-classification': 'bg-green-500',
+            'client-services': 'bg-purple-500',
+            'disposal-tracking': 'bg-orange-500'
+        };
+        return colors[type] || 'bg-gray-500';
+    },
+
+    getReportTypeIcon(type) {
+        const icons = {
+            'routes-performance': 'fas fa-route',
+            'waste-classification': 'fas fa-recycle',
+            'client-services': 'fas fa-users',
+            'disposal-tracking': 'fas fa-trash-alt'
+        };
+        return icons[type] || 'fas fa-chart-bar';
+    },
+
+    getReportTypeBadge(type) {
+        const badges = {
+            'routes-performance': 'bg-blue-100 text-blue-800',
+            'waste-classification': 'bg-green-100 text-green-800',
+            'client-services': 'bg-purple-100 text-purple-800',
+            'disposal-tracking': 'bg-orange-100 text-orange-800'
+        };
+        return badges[type] || 'bg-gray-100 text-gray-800';
+    },
+
+    getReportTypeLabel(type) {
+        const labels = {
+            'routes-performance': 'Operacional',
+            'waste-classification': 'Clasificación',
+            'client-services': 'Clientes',
+            'disposal-tracking': 'Disposición'
+        };
+        return labels[type] || 'General';
+    },
+
+    getStatusBadge(status) {
+        const badges = {
+            'Completado': 'bg-green-100 text-green-800',
+            'En proceso': 'bg-yellow-100 text-yellow-800',
+            'Error': 'bg-red-100 text-red-800',
+            'Pendiente': 'bg-gray-100 text-gray-800'
+        };
+        return badges[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    },
+
+    formatDateTime(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    },
+
+    // ========== FUNCIONES DE ACCIÓN ==========
+
+    refreshReports() {
+        authSystem?.showNotification?.('Actualizando lista de reportes...', 'info');
+        setTimeout(() => {
+            // Simular actualización agregando un nuevo reporte
+            const newReport = {
+                id: `RPT-${String(this.recentReports.length + 1).padStart(3, '0')}`,
+                name: `Reporte Actualizado - ${new Date().toLocaleDateString('es-ES')}`,
+                type: 'routes-performance',
+                generatedAt: new Date().toISOString(),
+                generatedBy: 'Admin',
+                config: { 
+                    dateFrom: new Date().toISOString().slice(0, 10), 
+                    dateTo: new Date().toISOString().slice(0, 10)
+                },
+                status: 'Completado',
+                size: `${Math.floor(Math.random() * 300) + 100} KB`
+            };
+            
+            this.recentReports.unshift(newReport);
+            if (this.recentReports.length > 5) this.recentReports.pop();
+            
+            document.getElementById('recent-reports-container').innerHTML = this.renderRecentReports();
+            authSystem?.showNotification?.('Lista de reportes actualizada', 'success');
+        }, 1500);
+    },
+
+    exportAllReports() {
+        if (this.recentReports.length === 0) {
+            authSystem?.showNotification?.('No hay reportes para exportar', 'warning');
+            return;
+        }
+        
+        authSystem?.showNotification?.(`Exportando ${this.recentReports.length} reportes...`, 'info');
+        setTimeout(() => {
+            authSystem?.showNotification?.('Todos los reportes exportados exitosamente', 'success');
+        }, 2000);
+    },
+
+    downloadReport(reportId) {
+        const report = this.recentReports.find(r => r.id === reportId);
+        if (report) {
+            authSystem?.showNotification?.(`Descargando ${report.name}...`, 'info');
+            setTimeout(() => {
+                authSystem?.showNotification?.('Reporte descargado exitosamente', 'success');
+            }, 1000);
+        }
+    },
+
+    shareReport(reportId) {
+        const report = this.recentReports.find(r => r.id === reportId);
+        if (report) {
+            const shareUrl = `${window.location.origin}/reports/${reportId}`;
+            if (navigator.share) {
+                navigator.share({
+                    title: report.name,
+                    text: `Compartiendo reporte: ${report.name}`,
+                    url: shareUrl
+                });
+            } else {
+                // Fallback para navegadores que no soportan Web Share API
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    authSystem?.showNotification?.('Enlace copiado al portapapeles', 'success');
+                });
+            }
+        }
+    },
+
+    deleteReport(index) {
+        const report = this.recentReports[index];
+        if (confirm(`¿Está seguro de eliminar el reporte "${report.name}"?`)) {
+            this.recentReports.splice(index, 1);
+            document.getElementById('recent-reports-container').innerHTML = this.renderRecentReports();
+            authSystem?.showNotification?.('Reporte eliminado', 'success');
+        }
     },
 
     // --- REPORT RENDERING ---
@@ -964,5 +1241,24 @@ window.reportsModule = {
         const date = new Date(dateString);
         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
         return date.toLocaleDateString('es-ES', options);
+    },
+
+    // Cargar reportes de ejemplo en la lista de reportes recientes
+    loadSampleReports() {
+        if (this.sampleReports.length > 0) {
+            // Copiar los reportes de ejemplo a la lista de reportes recientes
+            this.recentReports = [...this.sampleReports];
+            
+            // Actualizar la visualización
+            const recentReportsContainer = document.getElementById('recent-reports-container');
+            if (recentReportsContainer) {
+                recentReportsContainer.innerHTML = this.renderRecentReports();
+            }
+            
+            // Mostrar notificación de éxito
+            authSystem?.showNotification?.(`${this.sampleReports.length} reportes de ejemplo cargados exitosamente`, 'success');
+        } else {
+            authSystem?.showNotification?.('No hay reportes de ejemplo disponibles', 'warning');
+        }
     }
 };

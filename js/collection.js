@@ -8,7 +8,7 @@ window.collectionModule = {
             wasteType: 'Orgánico',
             estimatedVolume: '2.5',
             actualVolume: '2.8',
-            collectionDate: '2024-01-15',
+            collectionDate: new Date().toISOString().slice(0, 10),
             collectionTime: '09:30',
             status: 'Completado',
             operator: 'Carlos Rodríguez',
@@ -17,6 +17,140 @@ window.collectionModule = {
             photos: ['evidence1.jpg', 'evidence2.jpg'],
             clientSignature: true,
             notes: 'Recolección sin inconvenientes'
+        },
+        {
+            id: 2,
+            routeId: 2,
+            clientName: 'Restaurante El Buen Sabor',
+            address: 'Calle 45 #23-15',
+            wasteType: 'Orgánico',
+            estimatedVolume: '1.8',
+            actualVolume: '2.1',
+            collectionDate: new Date().toISOString().slice(0, 10),
+            collectionTime: '11:15',
+            status: 'Completado',
+            operator: 'Carlos Rodríguez',
+            vehicle: 'C-003',
+            weight: '0.9',
+            photos: ['rest_evidence1.jpg'],
+            clientSignature: true,
+            notes: 'Recolección de residuos orgánicos post almuerzo'
+        },
+        {
+            id: 3,
+            routeId: 1,
+            clientName: 'Centro Comercial Plaza Norte',
+            address: 'Autopista Norte Km 15',
+            wasteType: 'Mixto',
+            estimatedVolume: '8.5',
+            actualVolume: '8.2',
+            collectionDate: new Date().toISOString().slice(0, 10),
+            collectionTime: '14:30',
+            status: 'Completado',
+            operator: 'Carlos Rodríguez',
+            vehicle: 'C-001',
+            weight: '4.5',
+            photos: ['plaza_evidence1.jpg', 'plaza_evidence2.jpg', 'plaza_evidence3.jpg'],
+            clientSignature: true,
+            notes: 'Separación adecuada en origen. Contenedores en buen estado.'
+        },
+        {
+            id: 4,
+            routeId: 3,
+            clientName: 'Industrias del Norte S.A.S.',
+            address: 'Zona Industrial Manzana 7',
+            wasteType: 'Reciclable',
+            estimatedVolume: '3.2',
+            actualVolume: '3.8',
+            collectionDate: new Date().toISOString().slice(0, 10),
+            collectionTime: '08:45',
+            status: 'Completado',
+            operator: 'Luis Martínez',
+            vehicle: 'C-002',
+            weight: '2.1',
+            photos: ['industrial_evidence1.jpg'],
+            clientSignature: true,
+            notes: 'Volumen superior al estimado. Material bien clasificado.'
+        },
+        {
+            id: 5,
+            routeId: 2,
+            clientName: 'Oficinas Torres Empresariales',
+            address: 'Torre A, Piso 15',
+            wasteType: 'Papel',
+            estimatedVolume: '1.5',
+            actualVolume: '1.3',
+            collectionDate: new Date().toISOString().slice(0, 10),
+            collectionTime: '16:00',
+            status: 'En Progreso',
+            operator: 'Carlos Rodríguez',
+            vehicle: 'C-001',
+            weight: '0.7',
+            photos: [],
+            clientSignature: false,
+            notes: 'En proceso de recolección'
+        },
+        {
+            id: 6,
+            routeId: 1,
+            clientName: 'Supermercado La Economía',
+            address: 'Carrera 50 #120-30',
+            wasteType: 'Mixto',
+            estimatedVolume: '5.0',
+            actualVolume: '5.3',
+            collectionDate: (() => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                return yesterday.toISOString().slice(0, 10);
+            })(),
+            collectionTime: '07:30',
+            status: 'Completado',
+            operator: 'Carlos Rodríguez',
+            vehicle: 'C-001',
+            weight: '3.2',
+            photos: ['super_evidence1.jpg', 'super_evidence2.jpg'],
+            clientSignature: true,
+            notes: 'Recolección matutina. Contenedores orgánicos con mayor volumen.'
+        },
+        {
+            id: 7,
+            routeId: 2,
+            clientName: 'Hospital San José',
+            address: 'Calle 80 #45-20',
+            wasteType: 'Peligroso',
+            estimatedVolume: '0.8',
+            actualVolume: '0.9',
+            collectionDate: (() => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                return yesterday.toISOString().slice(0, 10);
+            })(),
+            collectionTime: '15:45',
+            status: 'Completado',
+            operator: 'Miguel López',
+            vehicle: 'V-001',
+            weight: '0.4',
+            photos: ['hospital_evidence1.jpg'],
+            clientSignature: true,
+            notes: 'Residuos peligrosos hospitalarios. Protocolo especial aplicado.'
+        },
+        {
+            id: 8,
+            routeId: 4,
+            clientName: 'Universidad Tecnológica',
+            address: 'Campus Norte, Bloque C',
+            wasteType: 'Electrónico',
+            estimatedVolume: '2.0',
+            actualVolume: '',
+            collectionDate: new Date().toISOString().slice(0, 10),
+            collectionTime: '17:30',
+            status: 'Programado',
+            operator: 'Ana García',
+            vehicle: 'V-001',
+            weight: '',
+            photos: [],
+            clientSignature: false,
+            notes: 'Pendiente: recolección de equipos electrónicos obsoletos'
         }
     ],
 
@@ -137,48 +271,145 @@ window.collectionModule = {
         }
 
         container.innerHTML = `
-            <div class="bg-white rounded-lg shadow">
+            <!-- Panel de Supervisión Avanzado -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Resumen de Operaciones -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-800">Resumen de Operaciones</h3>
+                    <div class="space-y-4">
+                        ${this.renderOperationalSummary(routes)}
+                    </div>
+                </div>
+
+                <!-- Alertas y Notificaciones -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-800">Alertas del Sistema</h3>
+                    <div class="space-y-3">
+                        ${this.renderSystemAlerts(routes)}
+                    </div>
+                </div>
+
+                <!-- Métricas de Rendimiento -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-800">Rendimiento Hoy</h3>
+                    <div class="space-y-4">
+                        ${this.renderPerformanceMetrics(routes)}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla Principal de Rutas -->
+            <div class="bg-white rounded-lg shadow mb-6">
                 <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Progreso de Rutas en Tiempo Real</h3>
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Progreso de Rutas en Tiempo Real</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="collectionModule.refreshRoutes()" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                                <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                            </button>
+                            <button onclick="collectionModule.exportReport()" 
+                                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+                                <i class="fas fa-download mr-2"></i>Exportar
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruta</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operador</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehículo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Conductor</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progreso</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiempo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peso/Vol</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             ${routes.map(route => {
-                                const completedPoints = this.collections.filter(c => c.routeId === route.id && c.status === 'Completado').length;
-                                const totalPoints = route.collectionPoints.length;
+                                // Calcular progreso basado en los puntos de la ruta, no en las colecciones separadas
+                                const totalPoints = route.collectionPoints?.length || 0;
+                                const completedPoints = route.collectionPoints?.filter(p => p.status === 'Completado').length || 0;
                                 const progress = totalPoints > 0 ? Math.round((completedPoints / totalPoints) * 100) : 0;
+                                
+                                // Sincronizar estado de la ruta con el progreso real
+                                let routeStatus = route.status;
+                                if (progress === 100 && totalPoints > 0) {
+                                    routeStatus = 'Completada';
+                                } else if (progress > 0 && progress < 100) {
+                                    routeStatus = 'En Progreso';
+                                } else if (progress === 0) {
+                                    routeStatus = route.status === 'Completada' ? 'Programada' : route.status;
+                                }
+                                
+                                const estimatedWeight = this.calculateRouteWeight(route);
+                                const estimatedVolume = this.calculateRouteVolume(route);
+                                const timeStatus = this.getTimeStatus(route);
 
                                 return `
-                                    <tr>
+                                    <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="font-medium">${route.name}</div>
+                                            <div class="font-medium text-gray-900">${route.name}</div>
                                             <div class="text-sm text-gray-500">${route.code}</div>
+                                            <div class="text-xs text-gray-400">${route.date}</div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${window.routesModule.getVehicleLabelByCode(route.vehicle)}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${route.driver}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <div class="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${progress}%"></div>
+                                                <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs mr-2">
+                                                    ${route.driver ? route.driver.charAt(0).toUpperCase() : 'N'}
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">${route.driver}</div>
+                                                    <div class="text-xs text-gray-500">${route.helper || 'Sin ayudante'}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">${route.vehicle}</div>
+                                            <div class="text-xs text-gray-500">
+                                                <i class="fas fa-gas-pump mr-1"></i>85% combustible
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                                         style="width: ${progress}%"></div>
                                                 </div>
                                                 <span class="text-sm font-medium">${progress}%</span>
                                             </div>
-                                            <div class="text-xs text-gray-500">${completedPoints} de ${totalPoints} puntos completados</div>
+                                            <div class="text-xs text-gray-500 mt-1">
+                                                ${completedPoints}/${totalPoints} puntos
+                                                ${this.getNextPointInfo(route)}
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-1 text-xs rounded-full ${window.routesModule.getStatusClass(route.status)}">
-                                                ${route.status}
+                                            <div class="text-sm text-gray-900">
+                                                <i class="fas fa-clock text-gray-400 mr-1"></i>
+                                                ${route.startTime || '--:--'}
+                                            </div>
+                                            <div class="text-xs ${timeStatus.class}">
+                                                ${timeStatus.text}
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">
+                                                <i class="fas fa-weight text-gray-400 mr-1"></i>
+                                                ${estimatedWeight} kg
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                <i class="fas fa-cubes text-gray-400 mr-1"></i>
+                                                ${estimatedVolume} m³
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full ${this.getRouteStatusClass(routeStatus)}">
+                                                ${routeStatus}
                                             </span>
+                                            ${this.getRouteStatusIcon(routeStatus)}
                                         </td>
                                     </tr>
                                 `;
@@ -187,6 +418,7 @@ window.collectionModule = {
                     </table>
                 </div>
             </div>
+
         `;
     },
 
@@ -396,25 +628,85 @@ window.collectionModule = {
                     </div>
                 `}
                 
-                <div class="space-y-2">
-                    <h5 class="font-medium">Información de la ruta</h5>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-500">Código:</span>
-                            <span class="ml-2 font-medium">${route.code}</span>
+                <!-- Información detallada de la ruta -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h5 class="font-medium text-gray-800 mb-3">Información de la Ruta</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Código:</span>
+                            <span class="font-medium">${route.code}</span>
                         </div>
-                        <div>
-                            <span class="text-gray-500">Vehículo:</span>
-                            <span class="ml-2 font-medium">${route.vehicle}</span>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Vehículo:</span>
+                            <span class="font-medium">${route.vehicle}</span>
                         </div>
-                        <div>
-                            <span class="text-gray-500">Ayudante:</span>
-                            <span class="ml-2 font-medium">${route.helper}</span>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Ayudante:</span>
+                            <span class="font-medium">${route.helper || 'No asignado'}</span>
                         </div>
-                        <div>
-                            <span class="text-gray-500">Fecha:</span>
-                            <span class="ml-2 font-medium">${route.date}</span>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Fecha:</span>
+                            <span class="font-medium">${this.formatDate(route.date)}</span>
                         </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Hora inicio:</span>
+                            <span class="font-medium">${route.startTime || 'No iniciada'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Duración estimada:</span>
+                            <span class="font-medium">${route.estimatedDuration || 'N/A'} horas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas de progreso -->
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h5 class="font-medium text-blue-800 mb-3">Progreso de Recolección</h5>
+                    <div class="space-y-3">
+                        ${this.renderRouteProgress(route)}
+                        
+                        <!-- Información adicional -->
+                        <div class="grid grid-cols-2 gap-4 text-sm pt-3 border-t border-blue-200">
+                            <div class="flex justify-between">
+                                <span class="text-blue-600">Peso total estimado:</span>
+                                <span class="font-medium">${this.calculateEstimatedWeight(route)} kg</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-600">Peso recolectado:</span>
+                                <span class="font-medium">${this.calculateCollectedWeight(route)} kg</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-600">Tiempo transcurrido:</span>
+                                <span class="font-medium">${this.calculateElapsedTime(route)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-600">Estado del vehículo:</span>
+                                <span class="font-medium text-green-600">Operativo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones de emergencia -->
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h5 class="font-medium text-yellow-800 mb-3">Acciones de Emergencia</h5>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="collectionModule.reportIncident()" 
+                                class="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Reportar Incidencia
+                        </button>
+                        <button onclick="collectionModule.requestSupport()" 
+                                class="bg-orange-600 text-white px-3 py-2 rounded text-sm hover:bg-orange-700">
+                            <i class="fas fa-life-ring mr-2"></i>Solicitar Apoyo
+                        </button>
+                        <button onclick="collectionModule.contactDispatch()" 
+                                class="bg-purple-600 text-white px-3 py-2 rounded text-sm hover:bg-purple-700">
+                            <i class="fas fa-headset mr-2"></i>Contactar Despacho
+                        </button>
+                        <button onclick="collectionModule.pauseRoute()" 
+                                class="bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">
+                            <i class="fas fa-pause mr-2"></i>Pausar Ruta
+                        </button>
                     </div>
                 </div>
             </div>
@@ -691,18 +983,46 @@ window.collectionModule = {
         const activeRoutes = this.getOperatorActiveRoutes(currentUser);
         
         if (activeRoutes.length > 0 && activeRoutes[0].collectionPoints) {
-            const point = activeRoutes[0].collectionPoints[pointIndex];
+            const route = activeRoutes[0];
+            const point = route.collectionPoints[pointIndex];
+            
             if (point) {
+                // Actualizar el punto específico
                 point.status = 'Completado';
                 point.completedTime = new Date().toLocaleTimeString('es-ES', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
                 });
                 
+                // Verificar si todos los puntos están completados
+                const allCompleted = route.collectionPoints.every(p => p.status === 'Completado');
+                
+                if (allCompleted) {
+                    // Actualizar el estado de la ruta
+                    route.status = 'Completada';
+                    route.endTime = new Date().toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    
+                    // Actualizar también las recolecciones individuales
+                    this.collections.forEach(collection => {
+                        if (collection.routeId === route.id && collection.status === 'En Progreso') {
+                            collection.status = 'Completado';
+                        }
+                    });
+                    
+                    // Mostrar notificación de ruta completada
+                    authSystem?.showNotification?.(`¡Ruta ${route.name} completada exitosamente!`, 'success');
+                }
+                
                 // Guardar en routesModule si está disponible
                 if (window.routesModule && typeof window.routesModule.saveAll === 'function') {
                     window.routesModule.saveAll();
                 }
+                
+                // Recargar la vista para reflejar los cambios
+                this.load();
             }
         }
     },
@@ -720,9 +1040,535 @@ window.collectionModule = {
             'Reciclable': 'bg-blue-100 text-blue-800',
             'No Reciclable': 'bg-gray-100 text-gray-800',
             'Peligroso': 'bg-red-100 text-red-800',
-            'Mixtos': 'bg-purple-100 text-purple-800'
+            'Mixtos': 'bg-purple-100 text-purple-800',
+            'Mixto': 'bg-purple-100 text-purple-800',
+            'Papel': 'bg-cyan-100 text-cyan-800',
+            'Electrónico': 'bg-indigo-100 text-indigo-800'
         };
         return classes[wasteType] || 'bg-gray-100 text-gray-800';
+    },
+
+    // Funciones auxiliares para información adicional
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', { 
+            weekday: 'short', 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    },
+
+    renderRouteProgress(route) {
+        const completedPoints = route.collectionPoints?.filter(p => p.status === 'Completado').length || 0;
+        const totalPoints = route.collectionPoints?.length || 0;
+        const progressPercentage = totalPoints > 0 ? Math.round((completedPoints / totalPoints) * 100) : 0;
+
+        return `
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span>Puntos completados</span>
+                    <span class="font-medium">${completedPoints}/${totalPoints}</span>
+                </div>
+                <div class="w-full bg-blue-200 rounded-full h-3">
+                    <div class="bg-blue-600 h-3 rounded-full transition-all duration-300" 
+                         style="width: ${progressPercentage}%"></div>
+                </div>
+                <div class="text-center">
+                    <span class="text-lg font-bold text-blue-700">${progressPercentage}%</span>
+                    <span class="text-sm text-blue-600 ml-1">completado</span>
+                </div>
+            </div>
+        `;
+    },
+
+    calculateEstimatedWeight(route) {
+        const estimated = route.collectionPoints?.reduce((total, point) => {
+            // Estimamos peso basado en el volumen (1 m³ ≈ 150-300 kg dependiendo del tipo)
+            const volume = parseFloat(point.estimated) || 0;
+            let factor = 200; // kg por m³ por defecto
+            
+            switch(point.wasteType) {
+                case 'Orgánico': factor = 400; break;
+                case 'Papel': factor = 150; break;
+                case 'Reciclable': factor = 200; break;
+                case 'Peligroso': factor = 300; break;
+                default: factor = 250;
+            }
+            
+            return total + (volume * factor);
+        }, 0) || 0;
+        
+        return Math.round(estimated);
+    },
+
+    calculateCollectedWeight(route) {
+        const collected = route.collectionPoints?.reduce((total, point) => {
+            if (point.status === 'Completado') {
+                const volume = parseFloat(point.collected || point.estimated) || 0;
+                let factor = 200;
+                
+                switch(point.wasteType) {
+                    case 'Orgánico': factor = 400; break;
+                    case 'Papel': factor = 150; break;
+                    case 'Reciclable': factor = 200; break;
+                    case 'Peligroso': factor = 300; break;
+                    default: factor = 250;
+                }
+                
+                return total + (volume * factor);
+            }
+            return total;
+        }, 0) || 0;
+        
+        return Math.round(collected);
+    },
+
+    calculateElapsedTime(route) {
+        if (!route.startTime) return 'No iniciada';
+        
+        const now = new Date();
+        const [hours, minutes] = route.startTime.split(':');
+        const startTime = new Date();
+        startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        const elapsed = Math.max(0, now - startTime);
+        const elapsedHours = Math.floor(elapsed / (1000 * 60 * 60));
+        const elapsedMinutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (elapsedHours > 0) {
+            return `${elapsedHours}h ${elapsedMinutes}m`;
+        }
+        return `${elapsedMinutes}m`;
+    },
+
+    // Funciones para acciones de emergencia
+    reportIncident() {
+        const incident = {
+            type: prompt('Tipo de incidencia (vehículo, accidente, cliente, otro):') || 'Otro',
+            description: prompt('Descripción de la incidencia:') || '',
+            timestamp: new Date().toISOString(),
+            operator: app.currentUser?.name || 'Operador',
+            location: 'Ubicación GPS pendiente'
+        };
+        
+        if (incident.description) {
+            authSystem?.showNotification?.('Incidencia reportada. ID: INC-' + Date.now(), 'warning');
+            // Aquí se enviaría al servidor
+        }
+    },
+
+    requestSupport() {
+        const supportType = prompt('Tipo de apoyo requerido (mecánico, médico, logístico, otro):') || 'Logístico';
+        authSystem?.showNotification?.(`Solicitud de apoyo ${supportType} enviada al despacho`, 'info');
+        // Aquí se activaría la solicitud de apoyo
+    },
+
+    contactDispatch() {
+        authSystem?.showNotification?.('Conectando con despacho...', 'info');
+        setTimeout(() => {
+            const call = confirm('¿Desea iniciar llamada con el despacho?');
+            if (call) {
+                window.open('tel:+573001234567');
+            }
+        }, 1000);
+    },
+
+    pauseRoute() {
+        const reason = prompt('Motivo de la pausa:') || 'Pausa no especificada';
+        authSystem?.showNotification?.(`Ruta pausada: ${reason}`, 'warning');
+        // Aquí se marcaría la ruta como pausada
+    },
+
+    // ========== FUNCIONES AUXILIARES PARA VISTA DE ADMINISTRADOR ==========
+
+    renderOperationalSummary(routes) {
+        const today = new Date().toISOString().slice(0, 10);
+        const todayRoutes = routes.filter(r => r.date === today);
+        const activeRoutes = todayRoutes.filter(r => r.status === 'En Progreso');
+        const completedRoutes = todayRoutes.filter(r => r.status === 'Completada');
+        const totalOperators = new Set(routes.map(r => r.driver)).size;
+
+        return `
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Rutas activas:</span>
+                    <span class="font-semibold text-blue-600">${activeRoutes.length}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Rutas completadas:</span>
+                    <span class="font-semibold text-green-600">${completedRoutes.length}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Operadores en campo:</span>
+                    <span class="font-semibold text-purple-600">${totalOperators}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Promedio de progreso:</span>
+                    <span class="font-semibold text-orange-600">${this.getAverageProgress(todayRoutes)}%</span>
+                </div>
+                <div class="pt-3 border-t">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Eficiencia operacional:</span>
+                        <span class="font-semibold text-indigo-600">${this.calculateOperationalEfficiency(todayRoutes)}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    renderSystemAlerts(routes) {
+        const alerts = [
+            {
+                type: 'warning',
+                icon: 'fas fa-exclamation-triangle',
+                message: 'Ruta R-003 con retraso de 45 minutos',
+                time: '10 min',
+                color: 'text-yellow-600 bg-yellow-50'
+            },
+            {
+                type: 'info',
+                icon: 'fas fa-info-circle',
+                message: 'Vehículo C-002 necesita mantenimiento pronto',
+                time: '25 min',
+                color: 'text-blue-600 bg-blue-50'
+            },
+            {
+                type: 'success',
+                icon: 'fas fa-check-circle',
+                message: 'Todas las rutas matutinas completadas',
+                time: '1h',
+                color: 'text-green-600 bg-green-50'
+            },
+            {
+                type: 'error',
+                icon: 'fas fa-times-circle',
+                message: 'Incidencia reportada en zona norte',
+                time: '5 min',
+                color: 'text-red-600 bg-red-50'
+            }
+        ];
+
+        return alerts.map(alert => `
+            <div class="flex items-start space-x-3 p-3 rounded-lg ${alert.color}">
+                <i class="${alert.icon} text-sm mt-0.5"></i>
+                <div class="flex-1">
+                    <p class="text-sm font-medium">${alert.message}</p>
+                    <p class="text-xs opacity-75">Hace ${alert.time}</p>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    renderPerformanceMetrics(routes) {
+        const metrics = this.calculateDayMetrics(routes);
+        
+        return `
+            <div class="space-y-4">
+                <div class="bg-gradient-to-r from-green-400 to-green-500 p-4 rounded-lg text-white">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-green-100 text-sm">Peso Total Recolectado</p>
+                            <p class="text-2xl font-bold">${metrics.totalWeight}</p>
+                        </div>
+                        <i class="fas fa-weight-hanging text-2xl text-green-200"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-blue-400 to-blue-500 p-4 rounded-lg text-white">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-blue-100 text-sm">Volumen Total</p>
+                            <p class="text-2xl font-bold">${metrics.totalVolume}</p>
+                        </div>
+                        <i class="fas fa-cubes text-2xl text-blue-200"></i>
+                    </div>
+                </div>
+
+                <div class="bg-orange-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-orange-600 text-sm">Tiempo Promedio por Ruta</p>
+                            <p class="text-2xl font-bold text-orange-800">${metrics.avgTime}</p>
+                        </div>
+                        <i class="fas fa-clock text-2xl text-orange-300"></i>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    renderWasteTypeAnalysis() {
+        const wasteTypes = ['Orgánico', 'Reciclable', 'No Reciclable', 'Peligroso', 'Papel', 'Electrónico'];
+        const data = wasteTypes.map(type => ({
+            type,
+            volume: Math.floor(Math.random() * 15) + 5,
+            percentage: Math.floor(Math.random() * 30) + 10
+        }));
+
+        return `
+            <div class="space-y-3">
+                ${data.map(item => `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 rounded ${this.getWasteTypeColorClass(item.type).replace('text-', 'bg-').replace('-800', '-500')}"></div>
+                            <span class="text-sm font-medium">${item.type}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-semibold">${item.volume} m³</div>
+                            <div class="text-xs text-gray-500">${item.percentage}%</div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="${this.getWasteTypeColorClass(item.type).replace('text-', 'bg-').replace('-800', '-500')} h-2 rounded-full" 
+                             style="width: ${item.percentage}%"></div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+
+    renderIncidentReports() {
+        const incidents = [
+            {
+                id: 'INC-001',
+                type: 'Vehículo',
+                description: 'Falla mecánica menor en compactador',
+                severity: 'media',
+                time: '08:30',
+                status: 'Resuelto'
+            },
+            {
+                id: 'INC-002',
+                type: 'Cliente',
+                description: 'Cliente no disponible en dirección',
+                severity: 'baja',
+                time: '10:15',
+                status: 'Pendiente'
+            },
+            {
+                id: 'INC-003',
+                type: 'Ruta',
+                description: 'Bloqueo de vía por construcción',
+                severity: 'alta',
+                time: '11:45',
+                status: 'En proceso'
+            }
+        ];
+
+        return `
+            <div class="space-y-3">
+                ${incidents.map(incident => `
+                    <div class="border border-gray-200 rounded-lg p-3">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-mono text-gray-500">${incident.id}</span>
+                                <span class="px-2 py-1 text-xs rounded ${this.getIncidentSeverityClass(incident.severity)}">
+                                    ${incident.type}
+                                </span>
+                            </div>
+                            <span class="text-xs text-gray-500">${incident.time}</span>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-2">${incident.description}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="px-2 py-1 text-xs rounded-full ${this.getIncidentStatusClass(incident.status)}">
+                                ${incident.status}
+                            </span>
+                            <button class="text-blue-600 hover:text-blue-800 text-xs" onclick="collectionModule.viewIncident('${incident.id}')">
+                                Ver detalles
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+                
+                <div class="text-center pt-3">
+                    <button onclick="collectionModule.viewAllIncidents()" 
+                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        Ver todas las incidencias
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    // Funciones auxiliares para cálculos
+    calculateRouteWeight(route) {
+        const totalWeight = route.collectionPoints?.reduce((sum, point) => {
+            const volume = parseFloat(point.estimated) || 0;
+            let factor = 250; // kg por m³ por defecto
+            
+            switch(point.wasteType) {
+                case 'Orgánico': factor = 400; break;
+                case 'Papel': factor = 150; break;
+                case 'Reciclable': factor = 200; break;
+                case 'Peligroso': factor = 300; break;
+                default: factor = 250;
+            }
+            
+            return sum + (volume * factor);
+        }, 0) || 0;
+        
+        return Math.round(totalWeight);
+    },
+
+    calculateRouteVolume(route) {
+        const totalVolume = route.collectionPoints?.reduce((sum, point) => {
+            return sum + (parseFloat(point.estimated) || 0);
+        }, 0) || 0;
+        
+        return totalVolume.toFixed(1);
+    },
+
+    getTimeStatus(route) {
+        if (!route.startTime) {
+            return { text: 'No iniciada', class: 'text-gray-500' };
+        }
+        
+        const now = new Date();
+        const [hours, minutes] = route.startTime.split(':');
+        const startTime = new Date();
+        startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        const elapsed = now - startTime;
+        const elapsedHours = elapsed / (1000 * 60 * 60);
+        
+        const estimatedDuration = parseFloat(route.estimatedDuration) || 8;
+        
+        if (elapsedHours > estimatedDuration * 1.2) {
+            return { text: 'Con retraso', class: 'text-red-600' };
+        } else if (elapsedHours > estimatedDuration) {
+            return { text: 'Tiempo límite', class: 'text-yellow-600' };
+        } else {
+            return { text: 'En tiempo', class: 'text-green-600' };
+        }
+    },
+
+    getNextPointInfo(route) {
+        const nextPoint = route.collectionPoints?.find(p => p.status !== 'Completado');
+        return nextPoint ? `\n• ${nextPoint.client}` : '\n• Ruta completa';
+    },
+
+    getRouteStatusClass(status) {
+        const classes = {
+            'Programada': 'bg-gray-100 text-gray-800',
+            'En Progreso': 'bg-blue-100 text-blue-800',
+            'Completada': 'bg-green-100 text-green-800',
+            'Pausada': 'bg-yellow-100 text-yellow-800',
+            'Cancelada': 'bg-red-100 text-red-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    getRouteStatusIcon(status) {
+        const icons = {
+            'Programada': '<i class="fas fa-clock text-gray-400 text-xs ml-1"></i>',
+            'En Progreso': '<i class="fas fa-truck text-blue-400 text-xs ml-1"></i>',
+            'Completada': '<i class="fas fa-check-circle text-green-400 text-xs ml-1"></i>',
+            'Pausada': '<i class="fas fa-pause text-yellow-400 text-xs ml-1"></i>',
+            'Cancelada': '<i class="fas fa-times-circle text-red-400 text-xs ml-1"></i>'
+        };
+        return icons[status] || '';
+    },
+
+    getIncidentSeverityClass(severity) {
+        const classes = {
+            'baja': 'bg-green-100 text-green-800',
+            'media': 'bg-yellow-100 text-yellow-800',
+            'alta': 'bg-red-100 text-red-800'
+        };
+        return classes[severity] || 'bg-gray-100 text-gray-800';
+    },
+
+    getIncidentStatusClass(status) {
+        const classes = {
+            'Pendiente': 'bg-yellow-100 text-yellow-800',
+            'En proceso': 'bg-blue-100 text-blue-800',
+            'Resuelto': 'bg-green-100 text-green-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    getAverageProgress(routes) {
+        if (routes.length === 0) return 0;
+        
+        const totalProgress = routes.reduce((sum, route) => {
+            const completedPoints = this.collections.filter(c => c.routeId === route.id && c.status === 'Completado').length;
+            const totalPoints = route.collectionPoints?.length || 0;
+            const progress = totalPoints > 0 ? (completedPoints / totalPoints) * 100 : 0;
+            return sum + progress;
+        }, 0);
+        
+        return Math.round(totalProgress / routes.length);
+    },
+
+    calculateOperationalEfficiency(routes) {
+        // Simulamos un cálculo de eficiencia basado en tiempo y progreso
+        const efficiency = routes.reduce((sum, route) => {
+            const completedPoints = this.collections.filter(c => c.routeId === route.id && c.status === 'Completado').length;
+            const totalPoints = route.collectionPoints?.length || 0;
+            const progress = totalPoints > 0 ? completedPoints / totalPoints : 0;
+            
+            // Factor de tiempo (si está en tiempo = 1, si tiene retraso = 0.5)
+            const timeStatus = this.getTimeStatus(route);
+            const timeFactor = timeStatus.class === 'text-green-600' ? 1 : 0.7;
+            
+            return sum + (progress * timeFactor * 100);
+        }, 0);
+        
+        return routes.length > 0 ? Math.round(efficiency / routes.length) : 0;
+    },
+
+    calculateDayMetrics(routes) {
+        const totalWeight = routes.reduce((sum, route) => sum + this.calculateRouteWeight(route), 0);
+        const totalVolume = routes.reduce((sum, route) => sum + parseFloat(this.calculateRouteVolume(route)), 0);
+        const completedPoints = this.collections.filter(c => c.status === 'Completado').length;
+        
+        return {
+            totalWeight: `${Math.round(totalWeight / 1000)} T`,
+            totalVolume: `${totalVolume.toFixed(1)} m³`,
+            completedPoints,
+            avgTime: '2.3h'
+        };
+    },
+
+    // Funciones de acción para administrador
+    refreshRoutes() {
+        authSystem?.showNotification?.('Actualizando datos en tiempo real...', 'info');
+        setTimeout(() => {
+            this.load();
+            authSystem?.showNotification?.('Datos actualizados', 'success');
+        }, 1000);
+    },
+
+    exportReport() {
+        authSystem?.showNotification?.('Generando reporte de recolección...', 'info');
+        setTimeout(() => {
+            authSystem?.showNotification?.('Reporte exportado exitosamente', 'success');
+        }, 2000);
+    },
+
+    viewRouteDetails(routeId) {
+        authSystem?.showNotification?.(`Mostrando detalles de la ruta ${routeId}`, 'info');
+    },
+
+    trackRoute(routeId) {
+        authSystem?.showNotification?.(`Rastreando ruta ${routeId} en tiempo real`, 'info');
+    },
+
+    contactOperator(driverName) {
+        const call = confirm(`¿Desea contactar a ${driverName}?`);
+        if (call) {
+            authSystem?.showNotification?.(`Conectando con ${driverName}...`, 'info');
+        }
+    },
+
+    viewIncident(incidentId) {
+        authSystem?.showNotification?.(`Mostrando detalles de incidencia ${incidentId}`, 'info');
+    },
+
+    viewAllIncidents() {
+        authSystem?.showNotification?.('Cargando todas las incidencias...', 'info');
     },
 
     // ========== GESTIÓN AVANZADA DE TURNO ==========

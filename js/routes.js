@@ -365,10 +365,6 @@ window.routesModule = {
                        class="tab-link text-gray-500 hover:text-gray-700 py-2 px-1 font-medium">
                         Vehículos
                     </a>
-                    <a href="#" onclick="routesModule.showTab('optimization')" id="optimization-tab"
-                       class="tab-link text-gray-500 hover:text-gray-700 py-2 px-1 font-medium">
-                        Optimización
-                    </a>
                 </nav>
             </div>
 
@@ -1466,9 +1462,6 @@ formatDate(value) {
             case 'vehicles':
                 this.loadVehiclesTab(tabContent);
                 break;
-            case 'optimization':
-                this.loadOptimizationTab(tabContent);
-                break;
         }
     },
 
@@ -1608,12 +1601,6 @@ formatDate(value) {
                                 </select>
                             </div>
                             <div class="flex items-end">
-                                <button onclick="routesModule.optimizeRoutes()" class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700">
-                                    <i class="fas fa-magic mr-1"></i>Optimizar
-                                </button>
-                                <button onclick="routesModule.exportRoutes()" class="ml-2 bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">
-                                    <i class="fas fa-download mr-1"></i>Exportar
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1722,84 +1709,6 @@ formatDate(value) {
         `;
     },
 
-    loadOptimizationTab(container) {
-        container.innerHTML = `
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-semibold mb-4">Optimización de Rutas</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Criterio de Optimización</label>
-                            <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                                <option>Distancia Mínima</option>
-                                <option>Tiempo Mínimo</option>
-                                <option>Combustible Mínimo</option>
-                                <option>Capacidad Máxima</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Restricciones</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2" checked>
-                                    <span class="text-sm">Respetar horarios de clientes</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2" checked>
-                                    <span class="text-sm">Considerar capacidad de vehículos</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2">
-                                    <span class="text-sm">Evitar tráfico pesado</span>
-                                </label>
-                            </div>
-                        </div>
-                        <button onclick="routesModule.runOptimization()" 
-                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
-                            <i class="fas fa-magic mr-2"></i>Ejecutar Optimización
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-semibold mb-4">Métricas de Rendimiento</h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Distancia Total Planificada:</span>
-                            <span class="font-medium">245 km</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Tiempo Estimado Total:</span>
-                            <span class="font-medium">12.5 horas</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Combustible Estimado:</span>
-                            <span class="font-medium">98 litros</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Eficiencia de Carga:</span>
-                            <span class="font-medium text-green-600">87%</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Costo Operacional:</span>
-                            <span class="font-medium">$450</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-semibold mb-4">Mapa de Rutas</h3>
-                    <div class="bg-gray-200 h-96 rounded-lg flex items-center justify-center">
-                        <div class="text-center text-gray-500">
-                            <i class="fas fa-map text-4xl mb-2"></i>
-                            <p>Mapa interactivo de rutas optimizadas</p>
-                            <p class="text-sm">Integración con Google Maps o similar</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    },
 
     // ====== Métricas / estilos ======
     getTodayRoutesCount() {
@@ -2182,73 +2091,7 @@ formatDate(value) {
         }, 2000);
     },
 
-    exportRoutes() {
-        const routesToExport = this.getFilteredRoutes();
 
-        if (routesToExport.length === 0) {
-            authSystem.showNotification('No hay rutas para exportar con los filtros actuales.', 'warning');
-            return;
-        }
-
-        // Definir las cabeceras del CSV
-        const headers = [
-            'ID', 'Nombre', 'Codigo', 'Vehiculo', 'Conductor', 'Ayudante',
-            'Fecha', 'Hora de Inicio', 'Duracion Estimada (h)', 'Estado',
-            'Puntos de Recoleccion'
-        ];
-
-        // Convertir cada ruta a una fila de CSV
-        const csvRows = routesToExport.map(route => {
-            // Convertir los puntos de recolección en un solo string
-            const collectionPointsStr = route.collectionPoints
-                .map(p => `[${p.client} en ${p.address} - ${p.estimated} ${p.wasteType}]`)
-                .join('; ');
-
-            const row = [
-                route.id,
-                `"${(route.name || '').replace(/"/g, '"')}"`,
-                `"${(route.code || '').replace(/"/g, '"')}"`,
-                `"${(route.vehicle || '').replace(/"/g, '"')}"`,
-                `"${(route.driver || '').replace(/"/g, '"')}"`,
-                `"${(route.helper || '').replace(/"/g, '"')}"`,
-                route.date,
-                route.startTime,
-                route.estimatedDuration,
-                route.status,
-                `"${collectionPointsStr.replace(/"/g, '"')}"` // Escapar comillas dobles
-            ];
-            return row.join(',');
-        });
-
-        // Unir cabeceras y filas
-        const csvContent = [headers.join(','), ...csvRows].join('\n');
-
-        // Crear un Blob y simular el clic para descargar
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            const today = new Date().toISOString().slice(0, 10);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `export_rutas_${today}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            authSystem.showNotification('Rutas exportadas exitosamente.', 'success');
-        } else {
-            authSystem.showNotification('La exportación automática no es compatible con este navegador.', 'error');
-        }
-    },
-
-    runOptimization() {
-        authSystem.showNotification('Ejecutando optimización...', 'info');
-        setTimeout(() => {
-            authSystem.showNotification('Optimización completada', 'success');
-        }, 3000);
-    },
 
     // ====== Vehículos ======
     viewVehicle(id) {

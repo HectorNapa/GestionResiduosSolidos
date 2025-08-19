@@ -36,6 +36,91 @@ window.manifestsModule = {
             status: 'Recibido', // Estado para la tarjeta
             notes: 'Carga completa de reciclables.',
             generatedBy: 'admin'
+        },
+        {
+            id: 3,
+            manifestNumber: 'M-2024-003',
+            date: new Date().toISOString().slice(0, 10),
+            route: 'R-003',
+            vehicle: 'C-003',
+            driver: 'Carlos Rodríguez',
+            origin: 'Zona Sur - Sector Residencial',
+            destination: 'Planta de Tratamiento EcoGestión',
+            totalWeight: 22.3,
+            totalVolume: 35.8,
+            wasteTypes: [
+                { type: 'Orgánico', weight: 18.1, volume: 28.5 },
+                { type: 'No Reciclable', weight: 4.2, volume: 7.3 }
+            ],
+            status: 'En Tránsito',
+            notes: 'Recolección de sector residencial de alta densidad.',
+            generatedBy: 'Carlos Rodríguez'
+        },
+        {
+            id: 4,
+            manifestNumber: 'M-2024-004',
+            date: new Date().toISOString().slice(0, 10),
+            route: 'R-004',
+            vehicle: 'V-001',
+            driver: 'Ana García',
+            origin: 'Zona Industrial - Polígono Norte',
+            destination: 'Centro de Reciclaje Municipal',
+            totalWeight: 14.7,
+            totalVolume: 18.2,
+            wasteTypes: [
+                { type: 'Reciclable', weight: 12.3, volume: 15.1 },
+                { type: 'Electrónico', weight: 2.4, volume: 3.1 }
+            ],
+            status: 'Generado',
+            notes: 'Residuos industriales separados en origen.',
+            generatedBy: 'Carlos Rodríguez'
+        },
+        {
+            id: 5,
+            manifestNumber: 'M-2024-005',
+            date: (() => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                return yesterday.toISOString().slice(0, 10);
+            })(),
+            route: 'R-001',
+            vehicle: 'C-001',
+            driver: 'Miguel López',
+            origin: 'Zona Norte - Múltiples puntos comerciales',
+            destination: 'Planta de Tratamiento EcoGestión',
+            totalWeight: 19.8,
+            totalVolume: 32.1,
+            wasteTypes: [
+                { type: 'Orgánico', weight: 14.5, volume: 23.2 },
+                { type: 'Reciclable', weight: 3.8, volume: 6.4 },
+                { type: 'No Reciclable', weight: 1.5, volume: 2.5 }
+            ],
+            status: 'Recibido',
+            notes: 'Recolección de establecimientos comerciales.',
+            generatedBy: 'Carlos Rodríguez'
+        },
+        {
+            id: 6,
+            manifestNumber: 'M-2024-006',
+            date: (() => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                return yesterday.toISOString().slice(0, 10);
+            })(),
+            route: 'R-002',
+            vehicle: 'C-002',
+            driver: 'Carlos Rodríguez',
+            origin: 'Zona Centro - Oficinas y restaurantes',
+            destination: 'Centro de Compostaje',
+            totalWeight: 11.2,
+            totalVolume: 18.7,
+            wasteTypes: [
+                { type: 'Orgánico', weight: 9.8, volume: 16.2 },
+                { type: 'Reciclable', weight: 1.4, volume: 2.5 }
+            ],
+            status: 'Procesado',
+            notes: 'Alto contenido orgánico, ideal para compostaje.',
+            generatedBy: 'Carlos Rodríguez'
         }
     ],
 
@@ -221,10 +306,6 @@ window.manifestsModule = {
                             <button onclick="manifestsModule.showQuickWasteCapture()" 
                                     class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 flex items-center justify-center">
                                 <i class="fas fa-camera mr-2"></i>Captura Rápida de Residuos
-                            </button>
-                            <button onclick="manifestsModule.scanQRCode()" 
-                                    class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 flex items-center justify-center">
-                                <i class="fas fa-qrcode mr-2"></i>Escanear QR de Punto
                             </button>
                         </div>
                     </div>
@@ -421,5 +502,432 @@ window.manifestsModule = {
         // Adjust for timezone issues if date is parsed as UTC
         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
         return date.toLocaleDateString('es-ES', options);
+    },
+
+    // ========= FUNCIONES PARA OPERADORES =========
+
+    // Mostrar formulario para crear nuevo manifiesto
+    showNewManifestForm() {
+        const modalHTML = `
+        <div id="new-manifest-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold">Crear Nuevo Manifiesto de Transporte</h3>
+                    <button onclick="manifestsModule.closeModal('new-manifest-modal')" 
+                            class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="new-manifest-form" class="space-y-6">
+                    <!-- Información General -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-4">Información General</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Número de Manifiesto</label>
+                                <input type="text" id="manifest-number" 
+                                       value="${this.generateManifestNumber()}" 
+                                       readonly
+                                       class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Generación</label>
+                                <input type="date" id="manifest-date" 
+                                       value="${new Date().toISOString().slice(0, 10)}" 
+                                       required
+                                       class="w-full p-3 border border-gray-300 rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Transporte -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-4">Información de Transporte</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ruta</label>
+                                <select id="manifest-route" required class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="">Seleccionar ruta...</option>
+                                    <option value="R-001">R-001 - Zona Norte</option>
+                                    <option value="R-002">R-002 - Zona Centro</option>
+                                    <option value="R-003">R-003 - Zona Sur</option>
+                                    <option value="R-004">R-004 - Zona Industrial</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vehículo</label>
+                                <select id="manifest-vehicle" required class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="">Seleccionar vehículo...</option>
+                                    <option value="C-001">C-001 - Compactador Grande</option>
+                                    <option value="C-002">C-002 - Compactador Mediano</option>
+                                    <option value="C-003">C-003 - Compactador Pequeño</option>
+                                    <option value="V-001">V-001 - Camión Volqueta</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Conductor</label>
+                                <input type="text" id="manifest-driver" 
+                                       value="${app.currentUser?.name || 'Carlos Rodríguez'}" 
+                                       required
+                                       class="w-full p-3 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Operador Responsable</label>
+                                <input type="text" id="manifest-operator" 
+                                       value="${app.currentUser?.name || 'Carlos Rodríguez'}" 
+                                       readonly
+                                       class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Origen y Destino -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-4">Origen y Destino</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Punto de Origen</label>
+                                <textarea id="manifest-origin" required
+                                          placeholder="Describir punto(s) de recolección..."
+                                          class="w-full p-3 border border-gray-300 rounded-lg h-24"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Destino</label>
+                                <select id="manifest-destination" required class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="">Seleccionar destino...</option>
+                                    <option value="Planta de Tratamiento EcoGestión">Planta de Tratamiento EcoGestión</option>
+                                    <option value="Centro de Reciclaje Municipal">Centro de Reciclaje Municipal</option>
+                                    <option value="Relleno Sanitario Norte">Relleno Sanitario Norte</option>
+                                    <option value="Centro de Compostaje">Centro de Compostaje</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tipos de Residuos -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-4">Tipos de Residuos</h4>
+                        <div id="waste-types-container">
+                            <div class="waste-type-row grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Residuo</label>
+                                    <select class="waste-type w-full p-3 border border-gray-300 rounded-lg" required>
+                                        <option value="">Seleccionar tipo...</option>
+                                        <option value="Orgánico">Orgánico</option>
+                                        <option value="Reciclable">Reciclable</option>
+                                        <option value="No Reciclable">No Reciclable</option>
+                                        <option value="Peligroso">Peligroso</option>
+                                        <option value="Electrónico">Electrónico</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Peso (Ton)</label>
+                                    <input type="number" step="0.1" min="0" class="waste-weight w-full p-3 border border-gray-300 rounded-lg" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Volumen (m³)</label>
+                                    <input type="number" step="0.1" min="0" class="waste-volume w-full p-3 border border-gray-300 rounded-lg" required>
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="button" onclick="manifestsModule.removeWasteType(this)" 
+                                            class="w-full p-3 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="manifestsModule.addWasteType()" 
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-plus mr-2"></i>Agregar Tipo de Residuo
+                        </button>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-4">Observaciones</h4>
+                        <textarea id="manifest-notes" 
+                                  placeholder="Observaciones adicionales del transporte..."
+                                  class="w-full p-3 border border-gray-300 rounded-lg h-24"></textarea>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t">
+                        <button type="button" onclick="manifestsModule.closeModal('new-manifest-modal')" 
+                                class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-save mr-2"></i>Generar Manifiesto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>`;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Añadir event listener al formulario
+        document.getElementById('new-manifest-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.createNewManifest();
+        });
+    },
+
+    // Agregar nuevo tipo de residuo al formulario
+    addWasteType() {
+        const container = document.getElementById('waste-types-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'waste-type-row grid grid-cols-1 md:grid-cols-4 gap-4 mb-4';
+        newRow.innerHTML = `
+            <div>
+                <select class="waste-type w-full p-3 border border-gray-300 rounded-lg" required>
+                    <option value="">Seleccionar tipo...</option>
+                    <option value="Orgánico">Orgánico</option>
+                    <option value="Reciclable">Reciclable</option>
+                    <option value="No Reciclable">No Reciclable</option>
+                    <option value="Peligroso">Peligroso</option>
+                    <option value="Electrónico">Electrónico</option>
+                </select>
+            </div>
+            <div>
+                <input type="number" step="0.1" min="0" class="waste-weight w-full p-3 border border-gray-300 rounded-lg" required>
+            </div>
+            <div>
+                <input type="number" step="0.1" min="0" class="waste-volume w-full p-3 border border-gray-300 rounded-lg" required>
+            </div>
+            <div class="flex items-end">
+                <button type="button" onclick="manifestsModule.removeWasteType(this)" 
+                        class="w-full p-3 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(newRow);
+    },
+
+    // Remover tipo de residuo del formulario
+    removeWasteType(button) {
+        const container = document.getElementById('waste-types-container');
+        if (container.children.length > 1) {
+            button.closest('.waste-type-row').remove();
+        } else {
+            authSystem.showNotification('Debe mantener al menos un tipo de residuo', 'warning');
+        }
+    },
+
+    // Crear nuevo manifiesto
+    createNewManifest() {
+        try {
+            // Recopilar datos del formulario
+            const manifestData = {
+                id: this.manifests.length + 1,
+                manifestNumber: document.getElementById('manifest-number').value,
+                date: document.getElementById('manifest-date').value,
+                route: document.getElementById('manifest-route').value,
+                vehicle: document.getElementById('manifest-vehicle').value,
+                driver: document.getElementById('manifest-driver').value,
+                origin: document.getElementById('manifest-origin').value,
+                destination: document.getElementById('manifest-destination').value,
+                notes: document.getElementById('manifest-notes').value,
+                status: 'Generado',
+                generatedBy: app.currentUser?.name || 'Operador',
+                wasteTypes: [],
+                totalWeight: 0,
+                totalVolume: 0
+            };
+
+            // Recopilar tipos de residuos
+            const wasteRows = document.querySelectorAll('.waste-type-row');
+            wasteRows.forEach(row => {
+                const type = row.querySelector('.waste-type').value;
+                const weight = parseFloat(row.querySelector('.waste-weight').value) || 0;
+                const volume = parseFloat(row.querySelector('.waste-volume').value) || 0;
+                
+                if (type && weight > 0 && volume > 0) {
+                    manifestData.wasteTypes.push({ type, weight, volume });
+                    manifestData.totalWeight += weight;
+                    manifestData.totalVolume += volume;
+                }
+            });
+
+            // Validar que hay al menos un tipo de residuo
+            if (manifestData.wasteTypes.length === 0) {
+                authSystem.showNotification('Debe agregar al menos un tipo de residuo válido', 'error');
+                return;
+            }
+
+            // Redondear totales
+            manifestData.totalWeight = Math.round(manifestData.totalWeight * 10) / 10;
+            manifestData.totalVolume = Math.round(manifestData.totalVolume * 10) / 10;
+
+            // Agregar al array de manifiestos
+            this.manifests.push(manifestData);
+
+            // Cerrar modal
+            this.closeModal('new-manifest-modal');
+
+            // Mostrar notificación de éxito
+            authSystem.showNotification(`Manifiesto ${manifestData.manifestNumber} creado exitosamente`, 'success');
+
+            // Recargar la vista del operador
+            this.renderOperatorView(document.getElementById('role-specific-content'));
+
+        } catch (error) {
+            console.error('Error al crear manifiesto:', error);
+            authSystem.showNotification('Error al crear el manifiesto', 'error');
+        }
+    },
+
+    // Cerrar modal
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.remove();
+        }
+    },
+
+    // Funciones auxiliares para operadores
+    getOperatorManifests(user) {
+        if (!user) return [];
+        return this.manifests.filter(m => 
+            m.driver === user.name || 
+            m.generatedBy === user.name ||
+            m.generatedBy === 'Sistema'
+        );
+    },
+
+    getOperatorInTransit(user) {
+        return this.getOperatorManifests(user).filter(m => m.status === 'En Tránsito').length;
+    },
+
+    getOperatorCompletedToday(user) {
+        const today = new Date().toISOString().slice(0, 10);
+        return this.getOperatorManifests(user).filter(m => 
+            m.date === today && m.status === 'Recibido'
+        ).length;
+    },
+
+    getOperatorWeightToday(user) {
+        const today = new Date().toISOString().slice(0, 10);
+        const total = this.getOperatorManifests(user)
+            .filter(m => m.date === today)
+            .reduce((sum, m) => sum + (m.totalWeight || 0), 0);
+        return total.toFixed(1);
+    },
+
+    renderCurrentRouteStatus(user) {
+        // Simulamos información de ruta actual
+        const activeRoute = {
+            id: 'R-2024-015',
+            name: 'Ruta Norte - Zona Industrial',
+            status: 'En Progreso',
+            progress: 60,
+            nextStop: 'Industrias ABC',
+            estimatedCompletion: '16:30'
+        };
+
+        return `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-semibold">${activeRoute.name}</h4>
+                        <p class="text-sm text-gray-600">ID: ${activeRoute.id}</p>
+                    </div>
+                    <span class="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                        ${activeRoute.status}
+                    </span>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span>Progreso</span>
+                        <span>${activeRoute.progress}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: ${activeRoute.progress}%"></div>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <p><strong>Próxima parada:</strong> ${activeRoute.nextStop}</p>
+                    <p><strong>Finalización estimada:</strong> ${activeRoute.estimatedCompletion}</p>
+                </div>
+                <button onclick="app.loadModule('routes')" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                    Ver Detalles de Ruta
+                </button>
+            </div>
+        `;
+    },
+
+    renderOperatorManifestsList(manifests) {
+        if (!manifests || manifests.length === 0) {
+            return `
+                <div class="p-6 text-center">
+                    <i class="fas fa-file-alt text-gray-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500">No hay manifiestos disponibles</p>
+                    <button onclick="manifestsModule.showNewManifestForm()" 
+                            class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        Crear Primer Manifiesto
+                    </button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="divide-y divide-gray-200">
+                ${manifests.map(manifest => `
+                    <div class="p-6 hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-4">
+                                    <div class="p-2 rounded-full ${manifest.status === 'En Tránsito' ? 'bg-yellow-100' : manifest.status === 'Recibido' ? 'bg-green-100' : 'bg-blue-100'}">
+                                        <i class="fas ${manifest.status === 'En Tránsito' ? 'fa-truck text-yellow-600' : manifest.status === 'Recibido' ? 'fa-check-circle text-green-600' : 'fa-file-alt text-blue-600'}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold">${manifest.manifestNumber}</h4>
+                                        <p class="text-sm text-gray-600">${manifest.route} • ${this.formatDate(manifest.date)}</p>
+                                        <p class="text-sm text-gray-600">${manifest.totalWeight} Ton • ${manifest.destination}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(manifest.status)}">
+                                    ${manifest.status}
+                                </span>
+                                <div class="flex space-x-2">
+                                    <button onclick="manifestsModule.viewManifest(${manifest.id})" 
+                                            class="text-blue-600 hover:text-blue-800 p-2" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="manifestsModule.downloadManifest(${manifest.id})" 
+                                            class="text-green-600 hover:text-green-800 p-2" title="Descargar">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+
+    // Funciones placeholder para otras acciones
+    showQuickWasteCapture() {
+        authSystem.showNotification('Función de captura rápida en desarrollo', 'info');
+    },
+
+    scanQRCode() {
+        authSystem.showNotification('Función de escaneo QR en desarrollo', 'info');
+    },
+
+    filterOperatorManifests(filter) {
+        authSystem.showNotification(`Filtro "${filter}" aplicado`, 'info');
+        // Aquí se implementaría la lógica de filtrado
+    },
+
+    initOperatorEventListeners() {
+        // Aquí se pueden agregar listeners adicionales específicos para operadores
     }
 };

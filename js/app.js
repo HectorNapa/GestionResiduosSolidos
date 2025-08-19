@@ -130,11 +130,10 @@ class WasteManagementApp {
             ];
         } else { // client
             menuConfig = [
-                {icon: 'fas fa-tachometer-alt', label: 'Inicio', module: 'dashboard'},
-                {icon: 'fas fa-plus-circle', label: 'Nueva Solicitud', module: 'new-service'},
-                {icon: 'fas fa-history', label: 'Mis Servicios', module: 'my-services'},
-                {icon: 'fas fa-file-invoice', label: 'Facturas', module: 'invoices'},
-                {icon: 'fas fa-map-marker-alt', label: 'Seguimiento', module: 'tracking'}
+                {icon: 'fas fa-home', label: 'Inicio', module: 'dashboard'},
+                {icon: 'fas fa-plus-circle', label: 'Solicitar Servicio', module: 'new-service'},
+                {icon: 'fas fa-truck', label: 'Mis Recolecciones', module: 'my-services'},
+                {icon: 'fas fa-file-invoice-dollar', label: 'Facturación', module: 'invoices'}
             ];
         }
 
@@ -561,45 +560,262 @@ class WasteManagementApp {
         const contentArea = document.getElementById('content-area');
         if (!contentArea) return;
 
+        const users = authSystem.getAllUsers();
+        const userStats = this.calculateUserStats(users);
+
         contentArea.innerHTML = `
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold">Gestión de Usuarios</h2>
-                    <button onclick="app.showNewUserModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <i class="fas fa-plus mr-2"></i>Nuevo Usuario
-                    </button>
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">Gestión de Usuarios</h1>
+                        <p class="text-gray-600">Administra usuarios del sistema y controla accesos</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="app.showBulkUserModal()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-200">
+                            <i class="fas fa-upload mr-2"></i>Importar Usuarios
+                        </button>
+                        <button onclick="app.showNewUserModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                            <i class="fas fa-plus mr-2"></i>Nuevo Usuario
+                        </button>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teléfono</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200" id="users-table-body"></tbody>
-                    </table>
+            </div>
+
+            <!-- Estadísticas de usuarios -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-blue-100 text-sm">Total Usuarios</p>
+                            <p class="text-3xl font-bold">${userStats.total}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                            <i class="fas fa-user-check text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-green-100 text-sm">Usuarios Activos</p>
+                            <p class="text-3xl font-bold">${userStats.active}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                            <i class="fas fa-user-shield text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-purple-100 text-sm">Administradores</p>
+                            <p class="text-3xl font-bold">${userStats.admins}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-lg text-white">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-orange-100 text-orange-600 mr-4">
+                            <i class="fas fa-hard-hat text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-orange-100 text-sm">Operadores</p>
+                            <p class="text-3xl font-bold">${userStats.operators}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros y búsqueda -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="flex flex-col md:flex-row md:items-center gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="user-search" placeholder="Buscar por nombre, email o teléfono..." 
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="user-type-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todos los tipos</option>
+                            <option value="admin">Administradores</option>
+                            <option value="operator">Operadores</option>
+                            <option value="client">Clientes</option>
+                        </select>
+                        <select id="user-status-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todos los estados</option>
+                            <option value="Activo">Activos</option>
+                            <option value="Inactivo">Inactivos</option>
+                        </select>
+                        <button onclick="app.clearUserFilters()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                            <i class="fas fa-times mr-2"></i>Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de usuarios -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Lista de Usuarios</h3>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-500" id="users-count">Mostrando ${users.length} usuarios</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="app.toggleUserView('grid')" id="grid-view-btn" class="p-2 rounded-lg bg-blue-100 text-blue-600">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button onclick="app.toggleUserView('list')" id="list-view-btn" class="p-2 rounded-lg text-gray-400 hover:bg-gray-100">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="users-container">
+                    <div id="users-grid-view" class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="users-grid"></div>
+                    </div>
+                    <div id="users-list-view" class="hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Acceso</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="users-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
+        
+        this.initializeUserManagement();
         this.loadUsersData();
     }
 
     loadUsersData() {
-        // garantizar que tenemos usuarios
         const users = authSystem.getAllUsers();
+        const filteredUsers = this.getFilteredUsers(users);
+        
+        this.renderUsersGrid(filteredUsers);
+        this.renderUsersTable(filteredUsers);
+        this.updateUsersCount(filteredUsers.length, users.length);
+    }
+
+    getFilteredUsers(users) {
+        const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
+        const typeFilter = document.getElementById('user-type-filter')?.value || '';
+        const statusFilter = document.getElementById('user-status-filter')?.value || '';
+
+        return users.filter(user => {
+            const matchesSearch = !searchTerm || 
+                user.name.toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm) ||
+                (user.phone && user.phone.includes(searchTerm));
+            
+            const matchesType = !typeFilter || user.type === typeFilter;
+            const matchesStatus = !statusFilter || (user.status || 'Activo') === statusFilter;
+            
+            return matchesSearch && matchesType && matchesStatus;
+        });
+    }
+
+    renderUsersGrid(users) {
+        const grid = document.getElementById('users-grid');
+        if (!grid) return;
+
+        grid.innerHTML = users.map(user => `
+            <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 ${user.status === 'Inactivo' ? 'opacity-75' : ''}">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-r ${this.getUserTypeGradient(user.type)} rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                            ${this.getUserInitials(user.name)}
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900">${user.name}</h4>
+                            <p class="text-sm text-gray-500">${user.email}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs rounded-full ${this.getUserTypeClass(user.type)}">
+                            ${this.getUserTypeLabel(user.type)}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-phone w-4 mr-2"></i>
+                        <span>${user.phone || 'No registrado'}</span>
+                    </div>
+                    ${user.address ? `
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-map-marker-alt w-4 mr-2"></i>
+                            <span class="truncate">${user.address}</span>
+                        </div>
+                    ` : ''}
+                    <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-clock w-4 mr-2"></i>
+                        <span>Último acceso: ${this.getLastAccess(user)}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <span class="px-3 py-1 text-xs rounded-full ${user.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        <i class="fas ${user.status === 'Activo' ? 'fa-check-circle' : 'fa-times-circle'} mr-1"></i>
+                        ${user.status || 'Activo'}
+                    </span>
+                    <div class="flex gap-2">
+                        <button onclick="app.viewUserDetails(${user.id})" class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="app.editUser(${user.id})" class="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="app.deactivateUser(${user.id})" class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="${user.status === 'Activo' ? 'Desactivar' : 'Activar'}">
+                            <i class="fas ${user.status === 'Activo' ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    renderUsersTable(users) {
         const tbody = document.getElementById('users-table-body');
         if (!tbody) return;
 
         tbody.innerHTML = users.map(user => `
-            <tr data-user-id="${user.id}" class="${user.status === 'Inactivo' ? 'bg-gray-50 opacity-75' : ''}">
-                <td class="px-6 py-4 whitespace-nowrap" ${user.address ? `title="Dirección: ${user.address}"` : ''}>${user.name}${user.status === 'Inactivo' ? ' <span class="text-gray-500 text-xs">(Desactivado)</span>' : ''}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${user.phone || '<span class="text-gray-400">No registrado</span>'}</td>
+            <tr data-user-id="${user.id}" class="hover:bg-gray-50 ${user.status === 'Inactivo' ? 'opacity-75' : ''}">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r ${this.getUserTypeGradient(user.type)} rounded-full flex items-center justify-center text-white font-bold text-sm mr-4">
+                            ${this.getUserInitials(user.name)}
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                            <div class="text-sm text-gray-500">${user.email}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${user.phone || '-'}</div>
+                    ${user.address ? `<div class="text-sm text-gray-500 truncate max-w-xs">${user.address}</div>` : ''}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 py-1 text-xs rounded-full ${this.getUserTypeClass(user.type)}">
                         ${this.getUserTypeLabel(user.type)}
@@ -607,16 +823,25 @@ class WasteManagementApp {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 py-1 text-xs rounded-full ${user.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        <i class="fas ${user.status === 'Activo' ? 'fa-check-circle' : 'fa-times-circle'} mr-1"></i>
                         ${user.status || 'Activo'}
                     </span>
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${this.getLastAccess(user)}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onclick="app.editUser(${user.id})" class="text-blue-600 hover:text-blue-900 mr-2">
-                        <i class="fas fa-edit mr-1"></i>Editar
-                    </button>
-                    <button onclick="app.deactivateUser(${user.id})" class="${user.status === 'Activo' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}">
-                        <i class="fas ${user.status === 'Activo' ? 'fa-user-slash' : 'fa-user-check'} mr-1"></i>${user.status === 'Activo' ? 'Desactivar' : 'Activar'}
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="app.viewUserDetails(${user.id})" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="app.editUser(${user.id})" class="text-green-600 hover:text-green-900" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="app.deactivateUser(${user.id})" class="${user.status === 'Activo' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}" title="${user.status === 'Activo' ? 'Desactivar' : 'Activar'}">
+                            <i class="fas ${user.status === 'Activo' ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -665,6 +890,248 @@ class WasteManagementApp {
             'client': 'Cliente'
         };
         return labels[type] || 'Desconocido';
+    }
+
+    // Funciones auxiliares para la gestión de usuarios
+    calculateUserStats(users) {
+        return {
+            total: users.length,
+            active: users.filter(u => (u.status || 'Activo') === 'Activo').length,
+            admins: users.filter(u => u.type === 'admin').length,
+            operators: users.filter(u => u.type === 'operator').length,
+            clients: users.filter(u => u.type === 'client').length
+        };
+    }
+
+    getUserTypeGradient(type) {
+        const gradients = {
+            'admin': 'from-purple-500 to-purple-600',
+            'operator': 'from-blue-500 to-blue-600',
+            'client': 'from-gray-500 to-gray-600'
+        };
+        return gradients[type] || 'from-gray-500 to-gray-600';
+    }
+
+    getUserInitials(name) {
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    }
+
+    getLastAccess(user) {
+        // Simular último acceso
+        const accessDates = ['Hoy', 'Ayer', 'Hace 2 días', 'Hace 1 semana', 'Hace 1 mes'];
+        return accessDates[Math.floor(Math.random() * accessDates.length)];
+    }
+
+    updateUsersCount(filtered, total) {
+        const countElement = document.getElementById('users-count');
+        if (countElement) {
+            countElement.textContent = filtered === total ? 
+                `Mostrando ${total} usuarios` : 
+                `Mostrando ${filtered} de ${total} usuarios`;
+        }
+    }
+
+    // Inicializar eventos de gestión de usuarios
+    initializeUserManagement() {
+        // Eventos de búsqueda y filtros
+        const searchInput = document.getElementById('user-search');
+        const typeFilter = document.getElementById('user-type-filter');
+        const statusFilter = document.getElementById('user-status-filter');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => this.loadUsersData());
+        }
+        if (typeFilter) {
+            typeFilter.addEventListener('change', () => this.loadUsersData());
+        }
+        if (statusFilter) {
+            statusFilter.addEventListener('change', () => this.loadUsersData());
+        }
+    }
+
+    // Cambiar vista entre grid y lista
+    toggleUserView(viewType) {
+        const gridView = document.getElementById('users-grid-view');
+        const listView = document.getElementById('users-list-view');
+        const gridBtn = document.getElementById('grid-view-btn');
+        const listBtn = document.getElementById('list-view-btn');
+
+        if (viewType === 'grid') {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridBtn.classList.add('bg-blue-100', 'text-blue-600');
+            gridBtn.classList.remove('text-gray-400', 'hover:bg-gray-100');
+            listBtn.classList.remove('bg-blue-100', 'text-blue-600');
+            listBtn.classList.add('text-gray-400', 'hover:bg-gray-100');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listBtn.classList.add('bg-blue-100', 'text-blue-600');
+            listBtn.classList.remove('text-gray-400', 'hover:bg-gray-100');
+            gridBtn.classList.remove('bg-blue-100', 'text-blue-600');
+            gridBtn.classList.add('text-gray-400', 'hover:bg-gray-100');
+        }
+    }
+
+    // Limpiar filtros
+    clearUserFilters() {
+        document.getElementById('user-search').value = '';
+        document.getElementById('user-type-filter').value = '';
+        document.getElementById('user-status-filter').value = '';
+        this.loadUsersData();
+    }
+
+    // Ver detalles del usuario
+    viewUserDetails(userId) {
+        const user = authSystem.getUserById(userId);
+        if (!user) return;
+
+        const modalHTML = `
+            <div id="user-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold">Detalles del Usuario</h3>
+                        <button onclick="document.getElementById('user-details-modal').remove()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-r ${this.getUserTypeGradient(user.type)} rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
+                            ${this.getUserInitials(user.name)}
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-semibold text-gray-900">${user.name}</h4>
+                            <p class="text-gray-600">${user.email}</p>
+                            <span class="px-2 py-1 text-xs rounded-full ${this.getUserTypeClass(user.type)} mt-1 inline-block">
+                                ${this.getUserTypeLabel(user.type)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Información de Contacto</label>
+                                <div class="bg-gray-50 p-3 rounded-lg space-y-2">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-envelope w-4 mr-2 text-gray-500"></i>
+                                        <span>${user.email}</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-phone w-4 mr-2 text-gray-500"></i>
+                                        <span>${user.phone || 'No registrado'}</span>
+                                    </div>
+                                    ${user.address ? `
+                                        <div class="flex items-center text-sm">
+                                            <i class="fas fa-map-marker-alt w-4 mr-2 text-gray-500"></i>
+                                            <span>${user.address}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Estado de la Cuenta</label>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <span class="px-3 py-1 text-sm rounded-full ${user.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        <i class="fas ${user.status === 'Activo' ? 'fa-check-circle' : 'fa-times-circle'} mr-1"></i>
+                                        ${user.status || 'Activo'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Información del Sistema</label>
+                                <div class="bg-gray-50 p-3 rounded-lg space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">ID Usuario:</span>
+                                        <span class="font-medium">#${user.id}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Tipo de Usuario:</span>
+                                        <span class="font-medium">${this.getUserTypeLabel(user.type)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Último Acceso:</span>
+                                        <span class="font-medium">${this.getLastAccess(user)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Fecha Registro:</span>
+                                        <span class="font-medium">${new Date().toLocaleDateString('es-ES')}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${user.type === 'client' ? `
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Servicios</label>
+                                    <div class="bg-gray-50 p-3 rounded-lg space-y-2">
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-600">Servicios Activos:</span>
+                                            <span class="font-medium text-blue-600">3</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-600">Total Servicios:</span>
+                                            <span class="font-medium">12</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-6 pt-4 border-t">
+                        <button onclick="app.editUser(${user.id}); document.getElementById('user-details-modal').remove()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-edit mr-2"></i>Editar Usuario
+                        </button>
+                        <button onclick="document.getElementById('user-details-modal').remove()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    // Modal para importación masiva de usuarios
+    showBulkUserModal() {
+        const modalHTML = `
+            <div id="bulk-user-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+                    <h3 class="text-lg font-semibold mb-4">Importar Usuarios</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Archivo CSV</label>
+                            <input type="file" accept=".csv" class="w-full px-3 py-2 border rounded-lg">
+                            <p class="text-xs text-gray-500 mt-1">Formato: nombre,email,telefono,tipo,direccion</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <h4 class="text-sm font-medium text-blue-900 mb-2">Ejemplo de formato CSV:</h4>
+                            <code class="text-xs text-blue-800">
+                                Juan Pérez,juan@email.com,3001234567,client,Calle 123<br>
+                                María García,maria@email.com,3009876543,operator,
+                            </code>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button onclick="document.getElementById('bulk-user-modal').remove()" class="px-4 py-2 border rounded-lg">Cancelar</button>
+                        <button onclick="app.processBulkImport()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Importar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    // Procesar importación masiva
+    processBulkImport() {
+        // Simulación de importación
+        authSystem?.showNotification?.('Función de importación en desarrollo', 'info');
+        document.getElementById('bulk-user-modal').remove();
     }
 
     // ========= CREACIÓN DE USUARIO (modal) =========

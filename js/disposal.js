@@ -14,6 +14,66 @@ window.disposalModule = {
             environmentalPermit: 'ENV-2024-RS-001',
             cost: 1270.00,
             notes: 'Disposición conforme a normativa ambiental'
+        },
+        {
+            id: 2,
+            batchNumber: 'D-2024-002',
+            date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+            wasteType: 'Peligroso',
+            weight: 5.8,
+            disposalMethod: 'Incineración',
+            facility: 'Planta de Incineración Industrial',
+            transportVehicle: 'T-HAZ-002',
+            status: 'Completado',
+            operator: 'Ana García',
+            environmentalPermit: 'ENV-2024-INC-003',
+            cost: 2340.00,
+            notes: 'Residuos químicos de laboratorio - seguimiento especial realizado'
+        },
+        {
+            id: 3,
+            batchNumber: 'D-2024-003',
+            date: new Date(Date.now() - 172800000).toISOString().slice(0, 10),
+            wasteType: 'Orgánico',
+            weight: 18.2,
+            disposalMethod: 'Compostaje',
+            facility: 'Centro de Compostaje Municipal',
+            transportVehicle: 'T-ORG-001',
+            status: 'Completado',
+            operator: 'Carlos Ruiz',
+            environmentalPermit: 'ENV-2024-COMP-002',
+            cost: 450.00,
+            notes: 'Residuos de mercados y restaurantes - proceso de valorización exitoso'
+        },
+        {
+            id: 4,
+            batchNumber: 'D-2024-004',
+            date: new Date(Date.now() - 259200000).toISOString().slice(0, 10),
+            wasteType: 'Peligroso',
+            weight: 3.1,
+            disposalMethod: 'Encapsulamiento',
+            facility: 'Centro de Tratamiento de Residuos Peligrosos',
+            transportVehicle: 'T-HAZ-003',
+            status: 'Completado',
+            operator: 'María López',
+            environmentalPermit: 'ENV-2024-ENC-001',
+            cost: 1850.00,
+            notes: 'Residuos con metales pesados - encapsulamiento en matriz cementizia'
+        },
+        {
+            id: 5,
+            batchNumber: 'D-2024-005',
+            date: new Date(Date.now() - 345600000).toISOString().slice(0, 10),
+            wasteType: 'Reciclable',
+            weight: 12.7,
+            disposalMethod: 'Reciclaje',
+            facility: 'Planta de Reciclaje Industrial',
+            transportVehicle: 'T-REC-001',
+            status: 'Completado',
+            operator: 'Pedro Morales',
+            environmentalPermit: 'ENV-2024-REC-004',
+            cost: 380.00,
+            notes: 'Materiales plásticos y metálicos - 98% de aprovechamiento logrado'
         }
     ],
 
@@ -144,10 +204,430 @@ window.disposalModule = {
     downloadCertificate(id) {
         const d = this.disposals.find(d => d.id === id);
         if (!d) return;
+        
+        const disposalDetails = this.getDisposalDetails(d.wasteType, d.disposalMethod);
+        const certificateHtml = this.generateCertificateHtml(d, disposalDetails);
+        
         const win = window.open('', '_blank');
-        win.document.write(`<html><head><title>Certificado de Disposición ${d.batchNumber}</title></head><body><h1>Certificado de Disposición Final</h1><h2>${d.batchNumber}</h2><p>Se certifica que la empresa EcoGestión ha realizado la disposición final de <strong>${d.weight} Ton</strong> de residuos de tipo <strong>${d.wasteType}</strong>.</p><p><strong>Método:</strong> ${d.disposalMethod}</p><p><strong>Instalación:</strong> ${d.facility}</p><p><strong>Fecha:</strong> ${this.formatDate(d.date)}</p></body></html>`);
+        win.document.write(certificateHtml);
         win.document.close();
         win.focus();
+        win.print();
+    },
+
+    // Obtener detalles específicos del método de disposición según el tipo de residuo
+    getDisposalDetails(wasteType, disposalMethod) {
+        const disposalMatrix = {
+            'No Reciclable': {
+                'Relleno Sanitario': {
+                    process: 'Disposición en Relleno Sanitario Controlado',
+                    description: 'Los residuos no reciclables fueron dispuestos en relleno sanitario autorizado, siguiendo protocolos de compactación, cobertura diaria y control de lixiviados.',
+                    environmentalControls: [
+                        'Control de lixiviados mediante sistema de drenaje',
+                        'Cobertura diaria con material inerte',
+                        'Compactación mecánica para optimización del espacio',
+                        'Monitoreo de gases de descomposición'
+                    ],
+                    regulations: ['Decreto 2981 de 2013', 'Resolución 0754 de 2014'],
+                    validityYears: 30
+                },
+                'Incineración': {
+                    process: 'Incineración Controlada con Recuperación Energética',
+                    description: 'Los residuos fueron sometidos a proceso de incineración a alta temperatura con sistemas de control de emisiones y recuperación energética.',
+                    environmentalControls: [
+                        'Tratamiento de gases con filtros de mangas',
+                        'Control de dioxinas y furanos',
+                        'Recuperación energética mediante calderas',
+                        'Monitoreo continuo de emisiones'
+                    ],
+                    regulations: ['Resolución 0909 de 2008', 'Decreto 4741 de 2005'],
+                    validityYears: 'Indefinido'
+                }
+            },
+            'Peligroso': {
+                'Incineración': {
+                    process: 'Incineración de Residuos Peligrosos en Horno Especializado',
+                    description: 'Los residuos peligrosos fueron tratados mediante incineración a alta temperatura (>1100°C) en horno rotatorio especializado con sistemas avanzados de control de emisiones.',
+                    environmentalControls: [
+                        'Incineración a temperatura >1100°C',
+                        'Sistema de lavado de gases ácidos',
+                        'Filtración con carbón activado',
+                        'Neutralización de cenizas resultantes',
+                        'Monitoreo continuo de metales pesados'
+                    ],
+                    regulations: ['Decreto 4741 de 2005', 'Resolución 1402 de 2006'],
+                    validityYears: 'Indefinido'
+                },
+                'Tratamiento Fisicoquímico': {
+                    process: 'Tratamiento Fisicoquímico Especializado',
+                    description: 'Los residuos peligrosos fueron sometidos a procesos de neutralización, precipitación y estabilización química para reducir su peligrosidad.',
+                    environmentalControls: [
+                        'Neutralización de pH mediante reactivos químicos',
+                        'Precipitación de metales pesados',
+                        'Estabilización química de contaminantes',
+                        'Análisis de lixiviación TCLP',
+                        'Disposición final de lodos estabilizados'
+                    ],
+                    regulations: ['Decreto 4741 de 2005', 'Resolución 1402 de 2006'],
+                    validityYears: 'Indefinido'
+                },
+                'Encapsulamiento': {
+                    process: 'Encapsulamiento en Matriz Cementizia',
+                    description: 'Los residuos peligrosos fueron inmovilizados mediante encapsulamiento en matriz cementizia, creando una barrera física que impide la migración de contaminantes.',
+                    environmentalControls: [
+                        'Mezcla con cemento Portland tipo I',
+                        'Pruebas de integridad estructural',
+                        'Análisis de lixiviación post-encapsulamiento',
+                        'Disposición en celda de seguridad',
+                        'Monitoreo a largo plazo'
+                    ],
+                    regulations: ['Decreto 4741 de 2005', 'Resolución 1402 de 2006'],
+                    validityYears: 'Indefinido'
+                }
+            },
+            'Orgánico': {
+                'Compostaje': {
+                    process: 'Compostaje Aeróbico Controlado',
+                    description: 'Los residuos orgánicos fueron procesados mediante compostaje aeróbico, transformándolos en abono orgánico aprovechable.',
+                    environmentalControls: [
+                        'Control de temperatura (55-65°C)',
+                        'Volteo periódico para aireación',
+                        'Control de humedad (50-60%)',
+                        'Monitoreo de pH y nutrientes',
+                        'Cribado y maduración del compost'
+                    ],
+                    regulations: ['Decreto 2981 de 2013', 'NTC 5167'],
+                    validityYears: 'N/A - Valorización'
+                },
+                'Biodigestión': {
+                    process: 'Digestión Anaeróbica con Recuperación de Biogás',
+                    description: 'Los residuos orgánicos fueron procesados mediante digestión anaeróbica, generando biogás aprovechable y digestato estabilizado.',
+                    environmentalControls: [
+                        'Control de temperatura mesofílica (35-40°C)',
+                        'Monitoreo de pH y alcalinidad',
+                        'Captura y aprovechamiento de biogás',
+                        'Tratamiento del digestato líquido',
+                        'Control de olores'
+                    ],
+                    regulations: ['Decreto 2981 de 2013', 'Resolución 0754 de 2014'],
+                    validityYears: 'N/A - Valorización'
+                }
+            },
+            'Reciclable': {
+                'Reciclaje': {
+                    process: 'Procesamiento para Reciclaje',
+                    description: 'Los materiales reciclables fueron clasificados, procesados y reintegrados a la cadena productiva como materia prima secundaria.',
+                    environmentalControls: [
+                        'Clasificación por tipo de material',
+                        'Limpieza y acondicionamiento',
+                        'Trituración o compactación según material',
+                        'Control de calidad del material recuperado',
+                        'Trazabilidad del material reciclado'
+                    ],
+                    regulations: ['Decreto 2981 de 2013', 'Resolución 2184 de 2019'],
+                    validityYears: 'N/A - Valorización'
+                }
+            }
+        };
+
+        return disposalMatrix[wasteType]?.[disposalMethod] || {
+            process: 'Proceso de Disposición Especializado',
+            description: 'El residuo fue tratado mediante proceso especializado según su clasificación y características.',
+            environmentalControls: ['Cumplimiento de normativa ambiental vigente'],
+            regulations: ['Decreto 2981 de 2013'],
+            validityYears: 'Según normativa'
+        };
+    },
+
+    // Generar HTML completo del certificado
+    generateCertificateHtml(disposal, details) {
+        const currentDate = new Date().toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        const certNumber = `CERT-${disposal.batchNumber}-${new Date().getFullYear()}`;
+        
+        return `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Certificado de Disposición Final - ${disposal.batchNumber}</title>
+            <style>
+                body {
+                    font-family: 'Arial', sans-serif;
+                    line-height: 1.6;
+                    margin: 0;
+                    padding: 20px;
+                    background-color: #f8f9fa;
+                }
+                .certificate {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background: white;
+                    padding: 40px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    border: 3px solid #2563eb;
+                }
+                .header {
+                    text-align: center;
+                    border-bottom: 3px solid #2563eb;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }
+                .logo {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #2563eb;
+                    margin-bottom: 10px;
+                }
+                .cert-title {
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: #1f2937;
+                    margin: 10px 0;
+                }
+                .cert-number {
+                    background: #f3f4f6;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    display: inline-block;
+                    font-weight: bold;
+                    color: #6b7280;
+                    margin-top: 10px;
+                }
+                .main-content {
+                    margin: 30px 0;
+                }
+                .disposal-info {
+                    background: #f8fafc;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border-left: 4px solid #10b981;
+                    margin: 20px 0;
+                }
+                .info-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                    margin: 20px 0;
+                }
+                .info-item {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .info-label {
+                    font-weight: bold;
+                    color: #374151;
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                }
+                .info-value {
+                    color: #1f2937;
+                    font-size: 16px;
+                }
+                .process-section {
+                    background: #fef3c7;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border-left: 4px solid #f59e0b;
+                    margin: 20px 0;
+                }
+                .controls-section {
+                    background: #ecfdf5;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border-left: 4px solid #059669;
+                    margin: 20px 0;
+                }
+                .controls-list {
+                    list-style: none;
+                    padding: 0;
+                }
+                .controls-list li {
+                    padding: 5px 0;
+                    position: relative;
+                    padding-left: 20px;
+                }
+                .controls-list li:before {
+                    content: "✓";
+                    color: #059669;
+                    font-weight: bold;
+                    position: absolute;
+                    left: 0;
+                }
+                .regulations {
+                    background: #ede9fe;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border-left: 4px solid #7c3aed;
+                    margin: 20px 0;
+                }
+                .footer {
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 2px solid #e5e7eb;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 30px;
+                }
+                .signature-box {
+                    text-align: center;
+                    padding: 20px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 8px;
+                }
+                .validity {
+                    background: #fef2f2;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border-left: 4px solid #ef4444;
+                    margin: 20px 0;
+                    text-align: center;
+                }
+                .qr-placeholder {
+                    width: 80px;
+                    height: 80px;
+                    background: #f3f4f6;
+                    border: 2px dashed #9ca3af;
+                    margin: 10px auto;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    color: #6b7280;
+                }
+                @media print {
+                    body { background-color: white; }
+                    .certificate { box-shadow: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="certificate">
+                <div class="header">
+                    <div class="logo">🌱 EcoGestión - Sistema de Gestión de Residuos Sólidos</div>
+                    <div class="cert-title">CERTIFICADO DE DISPOSICIÓN FINAL</div>
+                    <div class="cert-number">Certificado N° ${certNumber}</div>
+                </div>
+
+                <div class="main-content">
+                    <p style="text-align: justify; font-size: 16px; margin-bottom: 25px;">
+                        Por medio del presente documento, <strong>EcoGestión S.A.S.</strong>, empresa debidamente 
+                        autorizada para el manejo integral de residuos sólidos, <strong>CERTIFICA</strong> que se ha 
+                        realizado la disposición final de los residuos descritos a continuación, cumpliendo con la 
+                        normatividad ambiental vigente y las mejores prácticas del sector.
+                    </p>
+
+                    <div class="disposal-info">
+                        <h3 style="margin-top: 0; color: #059669;">📋 Información de la Disposición</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Número de Lote:</span>
+                                <span class="info-value">${disposal.batchNumber}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Fecha de Disposición:</span>
+                                <span class="info-value">${this.formatDate(disposal.date)}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Tipo de Residuo:</span>
+                                <span class="info-value">${disposal.wasteType}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Peso Total:</span>
+                                <span class="info-value">${disposal.weight} Toneladas</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Instalación de Tratamiento:</span>
+                                <span class="info-value">${disposal.facility}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Vehículo de Transporte:</span>
+                                <span class="info-value">${disposal.transportVehicle}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Permiso Ambiental:</span>
+                                <span class="info-value">${disposal.environmentalPermit}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Operador Responsable:</span>
+                                <span class="info-value">${disposal.operator}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="process-section">
+                        <h3 style="margin-top: 0; color: #d97706;">⚙️ ${details.process}</h3>
+                        <p style="text-align: justify;">${details.description}</p>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 style="margin-top: 0; color: #059669;">🛡️ Controles Ambientales Aplicados</h3>
+                        <ul class="controls-list">
+                            ${details.environmentalControls.map(control => `<li>${control}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="regulations">
+                        <h3 style="margin-top: 0; color: #7c3aed;">📋 Marco Normativo</h3>
+                        <p><strong>Normativas aplicadas:</strong> ${details.regulations.join(', ')}</p>
+                    </div>
+
+                    <div class="validity">
+                        <h3 style="margin-top: 0; color: #dc2626;">⏰ Validez del Certificado</h3>
+                        <p><strong>Validez:</strong> ${details.validityYears === 'Indefinido' ? 'Indefinida - Disposición Permanente' : 
+                           details.validityYears === 'N/A - Valorización' ? 'No Aplica - Proceso de Valorización' : 
+                           `${details.validityYears} años desde la fecha de disposición`}</p>
+                    </div>
+
+                    ${disposal.notes ? `
+                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h4 style="margin-top: 0; color: #374151;">📝 Observaciones Adicionales</h4>
+                        <p>${disposal.notes}</p>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div class="footer">
+                    <div class="signature-box">
+                        <div class="qr-placeholder">Código QR<br>Verificación</div>
+                        <p style="margin: 15px 0 5px 0; font-weight: bold;">Ing. ${disposal.operator}</p>
+                        <p style="margin: 0; font-size: 14px; color: #6b7280;">Especialista en Disposición Final</p>
+                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #6b7280;">Registro Profesional: ENV-${disposal.id.toString().padStart(4, '0')}</p>
+                    </div>
+                    <div class="signature-box">
+                        <div class="qr-placeholder">Sello<br>Empresa</div>
+                        <p style="margin: 15px 0 5px 0; font-weight: bold;">EcoGestión S.A.S.</p>
+                        <p style="margin: 0; font-size: 14px; color: #6b7280;">Gestión Integral de Residuos</p>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">NIT: 900.123.456-7</p>
+                        <p style="margin: 0; font-size: 12px; color: #6b7280;">Licencia Ambiental: LA-2024-001</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; padding: 15px; background: #f9fafb; border-radius: 8px; text-align: center; font-size: 12px; color: #6b7280;">
+                    <p style="margin: 0;"><strong>Fecha de Emisión:</strong> ${currentDate}</p>
+                    <p style="margin: 5px 0 0 0;">Este certificado puede ser verificado en: www.ecogestion.com/verificar con el código ${certNumber}</p>
+                </div>
+            </div>
+
+            <script>
+                window.onload = function() {
+                    // Auto-print after a brief delay
+                    setTimeout(function() {
+                        if (confirm('¿Desea imprimir el certificado ahora?')) {
+                            window.print();
+                        }
+                    }, 1000);
+                };
+            </script>
+        </body>
+        </html>
+        `;
     },
 
     // --- FORM & HELPERS ---
