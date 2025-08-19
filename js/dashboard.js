@@ -39,8 +39,8 @@ window.dashboardModule = {
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">${this.renderKpiCards(data.kpis)}</div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow h-[350px] overflow-hidden"><h3 class="text-xl font-semibold mb-4">Recolecciones por Tipo de Residuo (Ton)</h3><div id="wasteTypeChartContainer"><canvas id="wasteTypeChart"></canvas></div></div>
-                    <div class="bg-white p-6 rounded-lg shadow h-[350px] overflow-hidden"><h3 class="text-xl font-semibold mb-4">Recolección de la Última Semana (Ton)</h3><div id="dailyTrendChartContainer"><canvas id="dailyTrendChart"></canvas></div></div>
+                    <div class="bg-white p-6 rounded-lg shadow h-96"><h3 class="text-lg font-semibold mb-4">Recolecciones por Tipo de Residuo (Ton)</h3><div id="wasteTypeChartContainer"><canvas id="wasteTypeChart"></canvas></div></div>
+                    <div class="bg-white p-6 rounded-lg shadow h-96"><h3 class="text-lg font-semibold mb-4">Recolección de la Última Semana (Ton)</h3><div id="dailyTrendChartContainer"><canvas id="dailyTrendChart"></canvas></div></div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-lg font-semibold mb-4">Actividades Recientes</h3>${this.renderActivityFeed(data.activity)}</div>

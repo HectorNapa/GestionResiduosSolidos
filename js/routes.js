@@ -14,9 +14,42 @@ window.routesModule = {
             estimatedDuration: 4, // horas (número)
             status: 'En Progreso',
             collectionPoints: [
-                { address: 'Av. Principal 123', client: 'Empresa ABC', wasteType: 'Orgánico', estimated: '2.5 m³' },
-                { address: 'Calle Norte 456',   client: 'Oficinas XYZ',  wasteType: 'Reciclable', estimated: '1.8 m³' },
-                { address: 'Av. Central 789',   client: 'Hotel Plaza',   wasteType: 'Orgánico', estimated: '3.2 m³' }
+                { 
+                    id: 1,
+                    address: 'Av. Principal 123', 
+                    client: 'Empresa ABC', 
+                    wasteType: 'Orgánico', 
+                    estimated: '2.5 m³',
+                    status: 'Pendiente',
+                    order: 1,
+                    estimatedTime: '08:30',
+                    phone: '300-123-4567',
+                    specialInstructions: 'Recolección en área de carga trasera'
+                },
+                { 
+                    id: 2,
+                    address: 'Calle Norte 456', 
+                    client: 'Oficinas XYZ', 
+                    wasteType: 'Reciclable', 
+                    estimated: '1.8 m³',
+                    status: 'Pendiente',
+                    order: 2,
+                    estimatedTime: '09:15',
+                    phone: '300-456-7890',
+                    specialInstructions: 'Contactar con recepción'
+                },
+                { 
+                    id: 3,
+                    address: 'Av. Central 789', 
+                    client: 'Hotel Plaza', 
+                    wasteType: 'Orgánico', 
+                    estimated: '3.2 m³',
+                    status: 'Pendiente',
+                    order: 3,
+                    estimatedTime: '10:00',
+                    phone: '300-789-0123',
+                    specialInstructions: 'Acceso por puerta lateral'
+                }
             ]
         },
         {
@@ -31,8 +64,30 @@ window.routesModule = {
             estimatedDuration: 3.5, // horas
             status: 'En Progreso',
             collectionPoints: [
-                { address: 'Plaza Mayor 100',   client: 'Restaurante Central', wasteType: 'Orgánico',   estimated: '4.1 m³' },
-                { address: 'Calle Comercio 250', client: 'Tienda Moderna',      wasteType: 'Reciclable', estimated: '0.8 m³' }
+                { 
+                    id: 4,
+                    address: 'Plaza Mayor 100', 
+                    client: 'Restaurante Central', 
+                    wasteType: 'Orgánico', 
+                    estimated: '4.1 m³',
+                    status: 'Pendiente',
+                    order: 1,
+                    estimatedTime: '13:30',
+                    phone: '300-234-5678',
+                    specialInstructions: 'Recolección después de hora almuerzo'
+                },
+                { 
+                    id: 5,
+                    address: 'Calle Comercio 250', 
+                    client: 'Tienda Moderna', 
+                    wasteType: 'Reciclable', 
+                    estimated: '0.8 m³',
+                    status: 'Pendiente',
+                    order: 2,
+                    estimatedTime: '14:15',
+                    phone: '300-345-6789',
+                    specialInstructions: 'Entrada por almacén'
+                }
             ]
         },
         {
@@ -47,9 +102,42 @@ window.routesModule = {
             estimatedDuration: 5,
             status: 'Programada',
             collectionPoints: [
-                { address: 'Zona Industrial 1 Lote 15', client: 'Industrias Metal', wasteType: 'Peligroso', estimated: '1.2 m³' },
-                { address: 'Zona Industrial 2 Lote 8', client: 'Fábrica Textil', wasteType: 'Reciclable', estimated: '3.5 m³' },
-                { address: 'Zona Industrial 3 Lote 22', client: 'Procesadora Alimentos', wasteType: 'Orgánico', estimated: '2.8 m³' }
+                { 
+                    id: 6,
+                    address: 'Zona Industrial 1 Lote 15', 
+                    client: 'Industrias Metal', 
+                    wasteType: 'Peligroso', 
+                    estimated: '1.2 m³',
+                    status: 'Pendiente',
+                    order: 1,
+                    estimatedTime: '08:00',
+                    phone: '300-456-7890',
+                    specialInstructions: 'Requiere EPP especial - Residuos peligrosos'
+                },
+                { 
+                    id: 7,
+                    address: 'Zona Industrial 2 Lote 8', 
+                    client: 'Fábrica Textil', 
+                    wasteType: 'Reciclable', 
+                    estimated: '3.5 m³',
+                    status: 'Pendiente',
+                    order: 2,
+                    estimatedTime: '09:30',
+                    phone: '300-567-8901',
+                    specialInstructions: 'Coordinación con supervisor de turno'
+                },
+                { 
+                    id: 8,
+                    address: 'Zona Industrial 3 Lote 22', 
+                    client: 'Procesadora Alimentos', 
+                    wasteType: 'Orgánico', 
+                    estimated: '2.8 m³',
+                    status: 'Pendiente',
+                    order: 3,
+                    estimatedTime: '11:00',
+                    phone: '300-678-9012',
+                    specialInstructions: 'Recolección en área de desperdicios'
+                }
             ]
         },
         {
@@ -64,8 +152,44 @@ window.routesModule = {
             estimatedDuration: 3,
             status: 'Completada',
             collectionPoints: [
-                { address: 'Centro Comercial Plaza', client: 'Mall Plaza', wasteType: 'Mixtos', estimated: '5.2 m³' },
-                { address: 'Oficinas Torre Norte', client: 'Corporativo ABC', wasteType: 'Papel', estimated: '1.5 m³' }
+                { 
+                    id: 9,
+                    address: 'Centro Comercial Plaza', 
+                    client: 'Mall Plaza', 
+                    wasteType: 'Mixtos', 
+                    estimated: '5.2 m³',
+                    status: 'Completado',
+                    order: 1,
+                    estimatedTime: '14:30',
+                    actualTime: '14:25',
+                    phone: '300-789-0123',
+                    specialInstructions: 'Recolección en área de servicios',
+                    collectionData: {
+                        actualVolume: '5.0',
+                        actualWeight: '2.8',
+                        operatorNotes: 'Recolección normal, cliente satisfecho',
+                        completedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+                    }
+                },
+                { 
+                    id: 10,
+                    address: 'Oficinas Torre Norte', 
+                    client: 'Corporativo ABC', 
+                    wasteType: 'Papel', 
+                    estimated: '1.5 m³',
+                    status: 'Completado',
+                    order: 2,
+                    estimatedTime: '15:15',
+                    actualTime: '15:10',
+                    phone: '300-890-1234',
+                    specialInstructions: 'Coordinar con administración',
+                    collectionData: {
+                        actualVolume: '1.3',
+                        actualWeight: '0.8',
+                        operatorNotes: 'Menos cantidad de lo estimado',
+                        completedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+                    }
+                }
             ]
         }
     ],
@@ -158,6 +282,10 @@ window.routesModule = {
     getVehicleLabelByCode(code) {
         const v = this.getVehicleByCode(code);
         return v ? `${v.brand} ${v.model} (${v.code})` : code || '—';
+    },
+
+    getVehicleDisplayName(code) {
+        return this.getVehicleLabelByCode(code);
     },
 
     // ====== UI principal ======
@@ -260,12 +388,19 @@ window.routesModule = {
         // Obtener rutas asignadas al operador
         const myRoutes = this.getOperatorRoutes(currentUser);
         
-        contentArea.innerHTML = `
+        if (!contentArea) {
+            console.error('Content area not found!');
+            return;
+        }
+        
+        try {
+            contentArea.innerHTML = `
             <div class="mb-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-800">Mis Rutas</h1>
-                        <p class="text-gray-600">Gestiona tus rutas asignadas - ${currentUser.name}</p>
+                        <p class="text-gray-600">Gestiona tus rutas asignadas - ${currentUser?.name || 'Operador'}</p>
+                        <p class="text-xs text-gray-500 mt-1">Rutas encontradas: ${myRoutes.length}</p>
                     </div>
                     <div class="mt-4 md:mt-0 flex items-center space-x-3">
                         <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
@@ -320,18 +455,39 @@ window.routesModule = {
                 </div>
             </div>
         `;
+        } catch (error) {
+            console.error('Error in loadOperatorView:', error);
+            contentArea.innerHTML = `
+                <div class="p-8 text-center">
+                    <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-medium text-red-900 mb-2">Error al cargar Mis Rutas</h3>
+                    <p class="text-red-500">Hubo un problema al cargar la vista. Por favor, actualiza la página.</p>
+                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Actualizar Página
+                    </button>
+                </div>
+            `;
+        }
     },
 
     // Obtener rutas asignadas al operador actual
     getOperatorRoutes(currentUser) {
-        if (!currentUser) return [];
+        if (!currentUser) {
+            return [];
+        }
         
-        // Filtrar rutas donde el operador aparece como driver
-        return this.routes.filter(route => 
-            route.driver === currentUser.name || 
-            route.driver === currentUser.id ||
-            route.assignedOperator === currentUser.id
-        );
+        // Asegurar que las rutas estén cargadas
+        this.ensureLoaded();
+        
+        // Filtrar rutas donde el operador aparece como driver (usar name para compatibilidad)
+        const filteredRoutes = this.routes.filter(route => {
+            return route.driver === currentUser.name || 
+                   route.driver === currentUser.id ||
+                   route.assignedOperator === currentUser.id ||
+                   route.assignedOperator === currentUser.name;
+        });
+        
+        return filteredRoutes;
     },
 
     renderOperatorRouteKpis(routes) {
@@ -339,6 +495,13 @@ window.routesModule = {
         const todayRoutes = routes.filter(r => r.date === today);
         const inProgress = routes.filter(r => r.status === 'En Progreso');
         const completed = routes.filter(r => r.status === 'Completada');
+
+        // Calcular progreso de puntos
+        const totalPoints = routes.reduce((sum, route) => sum + (route.collectionPoints?.length || 0), 0);
+        const completedPoints = routes.reduce((sum, route) => {
+            const completed = route.collectionPoints?.filter(p => p.status === 'Completado') || [];
+            return sum + completed.length;
+        }, 0);
 
         const kpis = [
             {
@@ -356,10 +519,10 @@ window.routesModule = {
                 color: 'yellow'
             },
             {
-                title: 'Completadas',
-                value: completed.length,
-                subtitle: 'Total histórico',
-                icon: 'fa-check-circle',
+                title: 'Puntos Completados',
+                value: `${completedPoints}/${totalPoints}`,
+                subtitle: `${totalPoints > 0 ? Math.round((completedPoints/totalPoints)*100) : 0}% progreso`,
+                icon: 'fa-map-marker-alt',
                 color: 'green'
             }
         ];
@@ -381,21 +544,51 @@ window.routesModule = {
     },
 
     renderOperatorRoutes(routes) {
-        if (routes.length === 0) {
+        if (!routes || routes.length === 0) {
             return `
                 <div class="p-8 text-center">
                     <i class="fas fa-route text-gray-300 text-6xl mb-4"></i>
                     <h3 class="text-xl font-medium text-gray-900 mb-2">No hay rutas asignadas</h3>
                     <p class="text-gray-500">No tienes rutas asignadas en este momento.</p>
+                    <p class="text-xs text-gray-400 mt-2">Si esto es incorrecto, contacta al administrador.</p>
                 </div>
             `;
         }
 
-        return `
-            <div class="divide-y divide-gray-200">
-                ${routes.map(route => this.renderOperatorRouteCard(route)).join('')}
-            </div>
-        `;
+        try {
+            // Renderizar cada ruta individualmente para identificar problemas
+            const routeCards = routes.map((route, index) => {
+                try {
+                    return this.renderOperatorRouteCard(route);
+                } catch (error) {
+                    console.error(`Error rendering route ${index}:`, route, error);
+                    return `
+                        <div class="p-6 bg-red-50 border border-red-200 rounded-lg">
+                            <h4 class="text-red-800 font-semibold">Error al cargar ruta: ${route.name || 'Sin nombre'}</h4>
+                            <p class="text-red-600 text-sm mt-1">Error: ${error.message}</p>
+                        </div>
+                    `;
+                }
+            });
+
+            return `
+                <div class="divide-y divide-gray-200">
+                    ${routeCards.join('')}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error rendering operator routes:', error);
+            return `
+                <div class="p-8 text-center">
+                    <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-medium text-red-900 mb-2">Error al cargar rutas</h3>
+                    <p class="text-red-500">Hubo un problema al cargar tus rutas. Error: ${error.message}</p>
+                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Actualizar Página
+                    </button>
+                </div>
+            `;
+        }
     },
 
     renderOperatorRouteCard(route) {
@@ -435,10 +628,15 @@ window.routesModule = {
                         </div>
 
                         <div class="mt-3">
-                            <div class="flex items-center text-sm text-gray-600">
-                                <i class="fas fa-map-marker-alt mr-2 text-red-500"></i>
-                                <strong>Puntos de recolección:</strong> 
-                                <span class="ml-2">${route.collectionPoints?.length || 0} paradas</span>
+                            <div class="flex items-center justify-between text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2 text-red-500"></i>
+                                    <strong>Puntos de recolección:</strong> 
+                                    <span class="ml-2">${route.collectionPoints?.length || 0} paradas</span>
+                                </div>
+                                <div class="text-right">
+                                    ${this.renderRouteProgress(route)}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -455,7 +653,7 @@ window.routesModule = {
                         <i class="fas fa-chevron-down mr-1"></i>Ver detalles de paradas
                     </button>
                     <div id="route-${route.id}-details" class="hidden mt-3 bg-gray-50 p-4 rounded-lg">
-                        ${this.renderCollectionPoints(route.collectionPoints)}
+                        ${this.renderCollectionPoints(route.collectionPoints, true)}
                     </div>
                 </div>
             </div>
@@ -509,32 +707,527 @@ window.routesModule = {
         return actions.join('');
     },
 
-    renderCollectionPoints(points) {
+    renderCollectionPoints(points, isOperatorView = false) {
         if (!points || points.length === 0) {
             return '<p class="text-gray-500">No hay puntos de recolección definidos.</p>';
         }
 
+        // Ordenar puntos por orden
+        const sortedPoints = [...points].sort((a, b) => (a.order || 0) - (b.order || 0));
+
         return `
-            <div class="space-y-2">
-                ${points.map((point, index) => `
-                    <div class="flex items-center justify-between p-3 bg-white rounded border">
-                        <div class="flex items-center space-x-3">
-                            <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                ${index + 1}
-                            </span>
-                            <div>
-                                <p class="font-medium">${point.client}</p>
-                                <p class="text-sm text-gray-600">${point.address}</p>
+            <div class="space-y-3">
+                ${sortedPoints.map((point, index) => `
+                    <div class="p-4 bg-white rounded-lg border ${point.status === 'Completado' ? 'border-green-200 bg-green-50' : point.status === 'En Progreso' ? 'border-yellow-200 bg-yellow-50' : 'border-gray-200'}">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex flex-col items-center">
+                                    <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${this.getPointStatusIcon(point.status)}">
+                                        ${point.order || index + 1}
+                                    </span>
+                                    <span class="text-xs mt-1 px-2 py-1 rounded-full ${this.getPointStatusClass(point.status)}">
+                                        ${point.status || 'Pendiente'}
+                                    </span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <h4 class="font-semibold text-gray-900">${point.client}</h4>
+                                        <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeColorClass(point.wasteType)}">
+                                            ${point.wasteType}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>${point.address}
+                                    </p>
+                                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                        <div>
+                                            <i class="fas fa-clock mr-1"></i>
+                                            <strong>Estimado:</strong> ${point.estimatedTime || 'No definido'}
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-phone mr-1"></i>
+                                            <strong>Tel:</strong> ${point.phone || 'No disponible'}
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-cube mr-1"></i>
+                                            <strong>Volumen:</strong> ${point.estimated}
+                                        </div>
+                                        ${point.actualTime ? `
+                                            <div class="text-green-600">
+                                                <i class="fas fa-check mr-1"></i>
+                                                <strong>Completado:</strong> ${point.actualTime}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    ${point.specialInstructions ? `
+                                        <div class="mt-2 p-2 bg-blue-50 rounded text-xs">
+                                            <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                                            <strong>Instrucciones:</strong> ${point.specialInstructions}
+                                        </div>
+                                    ` : ''}
+                                    ${point.collectionData ? `
+                                        <div class="mt-2 p-2 bg-green-50 rounded text-xs">
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div><strong>Vol. Real:</strong> ${point.collectionData.actualVolume} m³</div>
+                                                <div><strong>Peso:</strong> ${point.collectionData.actualWeight} Ton</div>
+                                            </div>
+                                            ${point.collectionData.operatorNotes ? `
+                                                <div class="mt-1"><strong>Notas:</strong> ${point.collectionData.operatorNotes}</div>
+                                            ` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
                             </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeColorClass(point.wasteType)}">
-                                ${point.wasteType}
-                            </span>
-                            <p class="text-sm text-gray-600 mt-1">${point.estimated}</p>
+                            ${isOperatorView ? this.renderPointActions(point) : ''}
                         </div>
                     </div>
                 `).join('')}
+            </div>
+        `;
+    },
+
+    getPointStatusClass(status) {
+        const classes = {
+            'Pendiente': 'bg-gray-100 text-gray-800',
+            'En Progreso': 'bg-yellow-100 text-yellow-800',
+            'Completado': 'bg-green-100 text-green-800',
+            'Saltado': 'bg-red-100 text-red-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    getPointStatusIcon(status) {
+        const classes = {
+            'Pendiente': 'bg-gray-500 text-white',
+            'En Progreso': 'bg-yellow-500 text-white',
+            'Completado': 'bg-green-500 text-white',
+            'Saltado': 'bg-red-500 text-white'
+        };
+        return classes[status] || 'bg-gray-500 text-white';
+    },
+
+    renderPointActions(point) {
+        const currentUser = app?.currentUser;
+        if (!currentUser || currentUser.type !== 'operator') return '';
+
+        let actions = '';
+        
+        if (point.status === 'Pendiente') {
+            actions += `
+                <div class="flex flex-col space-y-2">
+                    <button onclick="routesModule.startCollection(${point.id})" 
+                            class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
+                        <i class="fas fa-play mr-1"></i>Iniciar
+                    </button>
+                    <button onclick="routesModule.skipPoint(${point.id})" 
+                            class="px-3 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700">
+                        <i class="fas fa-forward mr-1"></i>Saltar
+                    </button>
+                </div>
+            `;
+        } else if (point.status === 'En Progreso') {
+            actions += `
+                <div class="flex flex-col space-y-2">
+                    <button onclick="routesModule.completeCollection(${point.id})" 
+                            class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">
+                        <i class="fas fa-check mr-1"></i>Completar
+                    </button>
+                    <button onclick="routesModule.cancelCollection(${point.id})" 
+                            class="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">
+                        <i class="fas fa-times mr-1"></i>Cancelar
+                    </button>
+                </div>
+            `;
+        } else if (point.status === 'Completado') {
+            actions += `
+                <div class="flex flex-col space-y-2">
+                    <button onclick="routesModule.viewCollectionDetails(${point.id})" 
+                            class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
+                        <i class="fas fa-eye mr-1"></i>Ver Datos
+                    </button>
+                </div>
+            `;
+        }
+
+        return actions;
+    },
+
+    // ========== FUNCIONES PARA MANEJO DE ESTADOS DE PUNTOS ==========
+
+    startCollection(pointId) {
+        const point = this.findCollectionPoint(pointId);
+        if (!point) {
+            authSystem?.showNotification?.('Punto de recolección no encontrado', 'error');
+            return;
+        }
+
+        if (point.status !== 'Pendiente') {
+            authSystem?.showNotification?.('Este punto ya ha sido procesado', 'warning');
+            return;
+        }
+
+        // Marcar como en progreso
+        point.status = 'En Progreso';
+        point.startedAt = new Date().toISOString();
+        
+        this.saveAll();
+        authSystem?.showNotification?.(`Iniciando recolección en ${point.client}`, 'info');
+        
+        // Abrir modal de recolección o redirigir al módulo de collection
+        this.openCollectionForm(point);
+    },
+
+    completeCollection(pointId) {
+        const point = this.findCollectionPoint(pointId);
+        if (!point) return;
+
+        // Abrir formulario de completar recolección
+        this.openCollectionCompletionForm(point);
+    },
+
+    cancelCollection(pointId) {
+        const point = this.findCollectionPoint(pointId);
+        if (!point) return;
+
+        if (confirm('¿Está seguro de cancelar esta recolección?')) {
+            point.status = 'Pendiente';
+            point.startedAt = null;
+            
+            this.saveAll();
+            authSystem?.showNotification?.('Recolección cancelada', 'warning');
+            this.loadOperatorView();
+        }
+    },
+
+    skipPoint(pointId) {
+        const point = this.findCollectionPoint(pointId);
+        if (!point) return;
+
+        const reason = prompt('¿Por qué desea saltar este punto de recolección?');
+        if (reason) {
+            point.status = 'Saltado';
+            point.skippedReason = reason;
+            point.skippedAt = new Date().toISOString();
+            
+            this.saveAll();
+            authSystem?.showNotification?.('Punto de recolección saltado', 'warning');
+            this.loadOperatorView();
+        }
+    },
+
+    findCollectionPoint(pointId) {
+        for (const route of this.routes) {
+            const point = route.collectionPoints?.find(p => p.id === parseInt(pointId));
+            if (point) {
+                point._routeId = route.id; // Agregar referencia a la ruta
+                return point;
+            }
+        }
+        return null;
+    },
+
+    openCollectionForm(point) {
+        const modalHTML = `
+            <div id="collection-form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+                    <h3 class="text-xl font-semibold mb-4">Registrar Recolección - ${point.client}</h3>
+                    
+                    <form id="point-collection-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Volumen Real (m³) *</label>
+                                <input type="number" id="actual-volume" step="0.1" min="0" required
+                                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                                       placeholder="${point.estimated}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Peso (Ton) *</label>
+                                <input type="number" id="actual-weight" step="0.1" min="0" required
+                                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Residuo Confirmado *</label>
+                            <select id="confirmed-waste-type" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                <option value="${point.wasteType}" selected>${point.wasteType}</option>
+                                <option value="Orgánico">Orgánico</option>
+                                <option value="Reciclable">Reciclable</option>
+                                <option value="No Reciclable">No Reciclable</option>
+                                <option value="Peligroso">Peligroso</option>
+                                <option value="Mixtos">Mixtos</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Estado del Cliente</label>
+                            <select id="client-status" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                <option value="presente">Cliente presente</option>
+                                <option value="ausente">Cliente ausente</option>
+                                <option value="representante">Atendido por representante</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones del Operador</label>
+                            <textarea id="operator-notes" rows="3" 
+                                      class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                                      placeholder="Observaciones sobre la recolección..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Evidencia Fotográfica</label>
+                            <input type="file" id="collection-photos" multiple accept="image/*" 
+                                   class="w-full px-3 py-2 border rounded-lg">
+                            <p class="text-xs text-gray-500 mt-1">Opcional: Fotos del antes/después de la recolección</p>
+                        </div>
+
+                        <div class="flex justify-end space-x-4 pt-4 border-t">
+                            <button type="button" onclick="routesModule.cancelCollectionForm()" 
+                                    class="px-6 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">
+                                Cancelar
+                            </button>
+                            <button type="submit" 
+                                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                <i class="fas fa-check mr-2"></i>Completar Recolección
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Configurar el formulario
+        document.getElementById('point-collection-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.submitCollectionForm(point);
+        });
+    },
+
+    openCollectionCompletionForm(point) {
+        // Si ya hay datos de recolección, abrimos el formulario con los datos pre-llenados
+        this.openCollectionForm(point);
+        
+        if (point.collectionData) {
+            // Pre-llenar formulario con datos existentes
+            document.getElementById('actual-volume').value = point.collectionData.actualVolume || '';
+            document.getElementById('actual-weight').value = point.collectionData.actualWeight || '';
+            document.getElementById('operator-notes').value = point.collectionData.operatorNotes || '';
+        }
+    },
+
+    submitCollectionForm(point) {
+        const formData = {
+            actualVolume: document.getElementById('actual-volume').value,
+            actualWeight: document.getElementById('actual-weight').value,
+            confirmedWasteType: document.getElementById('confirmed-waste-type').value,
+            clientStatus: document.getElementById('client-status').value,
+            operatorNotes: document.getElementById('operator-notes').value,
+            completedAt: new Date().toISOString(),
+            operatorId: app?.currentUser?.id,
+            operatorName: app?.currentUser?.name
+        };
+
+        if (!formData.actualVolume || !formData.actualWeight) {
+            authSystem?.showNotification?.('Complete los campos obligatorios', 'warning');
+            return;
+        }
+
+        // Actualizar el punto con los datos de recolección
+        point.status = 'Completado';
+        point.actualTime = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        point.collectionData = formData;
+        
+        // Actualizar tipo de residuo si cambió
+        if (formData.confirmedWasteType !== point.wasteType) {
+            point.wasteType = formData.confirmedWasteType;
+            point.wasteTypeChanged = true;
+        }
+
+        this.saveAll();
+        
+        // También guardarlo en el módulo de collection para compatibilidad
+        this.saveToCollectionModule(point, formData);
+        
+        // Verificar si la ruta está completada
+        this.checkRouteCompletion(point._routeId);
+        
+        authSystem?.showNotification?.(`Recolección en ${point.client} completada exitosamente`, 'success');
+        
+        this.cancelCollectionForm();
+        this.loadOperatorView();
+    },
+
+    saveToCollectionModule(point, formData) {
+        // Crear registro en el módulo de collection para mantener compatibilidad
+        const collectionRecord = {
+            id: Date.now(),
+            routeId: point._routeId,
+            pointId: point.id,
+            clientName: point.client,
+            address: point.address,
+            wasteType: formData.confirmedWasteType,
+            estimatedVolume: point.estimated,
+            actualVolume: formData.actualVolume,
+            weight: formData.actualWeight,
+            collectionDate: new Date().toISOString().split('T')[0],
+            collectionTime: point.actualTime,
+            status: 'Completado',
+            operator: formData.operatorName,
+            vehicle: this.getCurrentRouteVehicle(point._routeId),
+            notes: formData.operatorNotes,
+            clientStatus: formData.clientStatus,
+            timestamp: formData.completedAt
+        };
+
+        // Guardar en el módulo de collection si existe
+        if (window.collectionModule && window.collectionModule.collections) {
+            window.collectionModule.collections.push(collectionRecord);
+            // Guardar en localStorage si el módulo lo soporta
+            try {
+                localStorage.setItem('ecogestion_collections', JSON.stringify(window.collectionModule.collections));
+            } catch (e) {
+                console.warn('Error saving to collection module:', e);
+            }
+        }
+    },
+
+    getCurrentRouteVehicle(routeId) {
+        const route = this.routes.find(r => r.id === routeId);
+        return route ? route.vehicle : 'N/A';
+    },
+
+    cancelCollectionForm() {
+        const modal = document.getElementById('collection-form-modal');
+        if (modal) {
+            modal.remove();
+        }
+    },
+
+    viewCollectionDetails(pointId) {
+        const point = this.findCollectionPoint(pointId);
+        if (!point || !point.collectionData) {
+            authSystem?.showNotification?.('No hay datos de recolección disponibles', 'warning');
+            return;
+        }
+
+        const modalHTML = `
+            <div id="collection-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+                    <h3 class="text-xl font-semibold mb-4">Detalles de Recolección - ${point.client}</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-3 rounded">
+                                <p class="text-sm text-gray-600">Volumen Estimado</p>
+                                <p class="font-semibold">${point.estimated}</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <p class="text-sm text-gray-600">Volumen Real</p>
+                                <p class="font-semibold">${point.collectionData.actualVolume} m³</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <p class="text-sm text-gray-600">Peso</p>
+                                <p class="font-semibold">${point.collectionData.actualWeight} Ton</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <p class="text-sm text-gray-600">Tipo de Residuo</p>
+                                <p class="font-semibold">${point.wasteType}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-3 rounded">
+                            <p class="text-sm text-gray-600">Estado del Cliente</p>
+                            <p class="font-semibold">${point.collectionData.clientStatus}</p>
+                        </div>
+
+                        ${point.collectionData.operatorNotes ? `
+                            <div class="bg-gray-50 p-3 rounded">
+                                <p class="text-sm text-gray-600">Observaciones del Operador</p>
+                                <p class="font-semibold">${point.collectionData.operatorNotes}</p>
+                            </div>
+                        ` : ''}
+
+                        <div class="bg-gray-50 p-3 rounded">
+                            <p class="text-sm text-gray-600">Completado</p>
+                            <p class="font-semibold">${new Date(point.collectionData.completedAt).toLocaleString('es-ES')}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4 border-t">
+                        <button onclick="document.getElementById('collection-details-modal').remove()" 
+                                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    },
+
+    // ========== FUNCIONES DE GESTIÓN DE RUTAS ==========
+
+    checkRouteCompletion(routeId) {
+        const route = this.routes.find(r => r.id === routeId);
+        if (!route) return;
+
+        const allPoints = route.collectionPoints || [];
+        const completedPoints = allPoints.filter(p => p.status === 'Completado');
+        const skippedPoints = allPoints.filter(p => p.status === 'Saltado');
+        const pendingPoints = allPoints.filter(p => p.status === 'Pendiente' || p.status === 'En Progreso');
+
+        // Si todos los puntos están completados o saltados
+        if (pendingPoints.length === 0 && allPoints.length > 0) {
+            route.status = 'Completada';
+            route.completedAt = new Date().toISOString();
+            route.completionSummary = {
+                totalPoints: allPoints.length,
+                completedPoints: completedPoints.length,
+                skippedPoints: skippedPoints.length,
+                completedAt: new Date().toISOString()
+            };
+
+            this.saveAll();
+            authSystem?.showNotification?.(`¡Ruta "${route.name}" completada!`, 'success');
+        }
+    },
+
+    updateRouteProgress(routeId) {
+        const route = this.routes.find(r => r.id === routeId);
+        if (!route) return;
+
+        const allPoints = route.collectionPoints || [];
+        const completedPoints = allPoints.filter(p => p.status === 'Completado');
+        const totalPoints = allPoints.length;
+
+        route.progress = totalPoints > 0 ? Math.round((completedPoints.length / totalPoints) * 100) : 0;
+        
+        return route.progress;
+    },
+
+    renderRouteProgress(route) {
+        const allPoints = route.collectionPoints || [];
+        const completedPoints = allPoints.filter(p => p.status === 'Completado');
+        const totalPoints = allPoints.length;
+        const progress = totalPoints > 0 ? Math.round((completedPoints.length / totalPoints) * 100) : 0;
+
+        if (totalPoints === 0) {
+            return '<span class="text-gray-400">Sin puntos</span>';
+        }
+
+        return `
+            <div class="text-xs">
+                <div class="flex items-center space-x-2">
+                    <span class="font-medium">${completedPoints}/${totalPoints}</span>
+                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: ${progress}%"></div>
+                    </div>
+                    <span class="font-medium">${progress}%</span>
+                </div>
             </div>
         `;
     },
@@ -711,16 +1404,38 @@ window.routesModule = {
     },
 
     // Utilidades
-    formatDate(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-    },
+    // Utilidades
+formatDate(value) {
+    if (!value) return '';
+
+    let d;
+
+    if (value instanceof Date) {
+        d = value;
+    } else if (typeof value === 'number') {
+        d = new Date(value);
+    } else if (typeof value === 'string') {
+        // Maneja bien 'YYYY-MM-DD' en hora local (sin desfase UTC)
+        const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (m) {
+            d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        } else {
+            d = new Date(value);
+        }
+    } else {
+        d = new Date(value);
+    }
+
+    if (isNaN(d.getTime())) return String(value);
+
+    return d.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+,
 
     getWasteTypeColorClass(wasteType) {
         const classes = {
@@ -1160,11 +1875,6 @@ window.routesModule = {
             'No Disponible': 'bg-red-100 text-red-800'
         };
         return classes[status] || 'bg-gray-100 text-gray-800';
-    },
-
-    formatDate(date) {
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        return date.toLocaleDateString('es-ES', options);
     },
 
     // ====== CRUD de Rutas ======
