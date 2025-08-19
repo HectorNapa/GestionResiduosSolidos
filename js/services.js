@@ -16,6 +16,7 @@ window.servicesModule = {
                 this.services = [
                     {
                         id: 1,
+                        clientId: 1,
                         clientName: 'Empresa ABC S.A.',
                         clientEmail: 'contacto@abc.com',
                         clientPhone: '+(57) 300 000 000',
@@ -34,6 +35,7 @@ window.servicesModule = {
                     },
                     {
                         id: 2,
+                        clientId: 1,
                         clientName: 'Industrias XYZ',
                         clientEmail: 'logistica@xyz.com',
                         clientPhone: '+(57) 320 000 000',
@@ -48,7 +50,177 @@ window.servicesModule = {
                         accessNotes: '',
                         status: 'Programado',
                         createdDate: '2024-01-14',
-                        createdBy: 1
+                        createdBy: 1,
+                        schedule: {
+                            collectionDate: '2024-01-17',
+                            collectionTime: '10:30',
+                            estimatedDuration: '2',
+                            equipmentRequired: 'Camión compactador',
+                            personnelRequired: '1 operador + 1 ayudante',
+                            schedulePriority: 'Alta'
+                        }
+                    },
+                    // Servicios para el cliente de prueba (cliente1 - id: 3)
+                    {
+                        id: 3,
+                        clientId: 3,
+                        clientName: 'Empresa ABC S.A.',
+                        clientEmail: 'contacto@empresaabc.com',
+                        clientPhone: '+(57) 300 123 4567',
+                        address: 'Av. Siempreviva 742, Springfield, Bogotá',
+                        wasteType: 'Reciclable',
+                        estimatedVolume: '3.2',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date().toISOString().split('T')[0], // Hoy
+                        preferredTime: 'morning',
+                        specificTime: '09:00',
+                        priority: 'Alta',
+                        accessNotes: 'Portería principal, preguntar por el supervisor',
+                        status: 'Programado',
+                        createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 2 días
+                        createdBy: 3,
+                        schedule: {
+                            collectionDate: new Date().toISOString().split('T')[0],
+                            collectionTime: '09:00',
+                            estimatedDuration: '1.5',
+                            equipmentRequired: 'Camión estándar',
+                            personnelRequired: '1 operador + 1 ayudante',
+                            schedulePriority: 'Alta'
+                        }
+                    },
+                    {
+                        id: 4,
+                        clientId: 3,
+                        clientName: 'Empresa ABC S.A.',
+                        clientEmail: 'contacto@empresaabc.com',
+                        clientPhone: '+(57) 300 123 4567',
+                        address: 'Av. Siempreviva 742, Springfield, Bogotá',
+                        wasteType: 'Peligroso',
+                        estimatedVolume: '1.8',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Mañana
+                        preferredTime: 'specific',
+                        specificTime: '14:30',
+                        priority: 'Urgente',
+                        accessNotes: 'Requiere equipo especializado',
+                        status: 'En Proceso',
+                        createdDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Ayer
+                        createdBy: 3,
+                        schedule: {
+                            collectionDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            collectionTime: '14:30',
+                            estimatedDuration: '2.5',
+                            equipmentRequired: 'Camión especializado',
+                            personnelRequired: 'Equipo especializado',
+                            schedulePriority: 'Urgente'
+                        }
+                    },
+                    {
+                        id: 5,
+                        clientId: 3,
+                        clientName: 'Empresa ABC S.A.',
+                        clientEmail: 'contacto@empresaabc.com',
+                        clientPhone: '+(57) 300 123 4567',
+                        address: 'Av. Siempreviva 742, Springfield, Bogotá',
+                        wasteType: 'Orgánico',
+                        estimatedVolume: '4.5',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 5 días
+                        preferredTime: 'afternoon',
+                        specificTime: '',
+                        priority: 'Media',
+                        accessNotes: '',
+                        status: 'Completado',
+                        createdDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 7 días
+                        createdBy: 3
+                    },
+                    // Servicios adicionales para pruebas de operador con estados variados
+                    {
+                        id: 6,
+                        clientId: 1,
+                        clientName: 'Hospital Central',
+                        clientEmail: 'residuos@hospitalcentral.com',
+                        clientPhone: '+(57) 310 555 0001',
+                        address: 'Calle 26 #47-15, Bogotá',
+                        wasteType: 'Peligroso',
+                        estimatedVolume: '2.0',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date().toISOString().split('T')[0],
+                        preferredTime: 'morning',
+                        specificTime: '08:00',
+                        priority: 'Urgente',
+                        accessNotes: 'Coordinar con seguridad hospitalaria',
+                        status: 'En Ruta',
+                        createdDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        createdBy: 1,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 4,
+                        schedule: {
+                            collectionDate: new Date().toISOString().split('T')[0],
+                            collectionTime: '08:00',
+                            estimatedDuration: '1.5',
+                            equipmentRequired: 'Camión especializado',
+                            personnelRequired: 'Equipo especializado + 1 supervisor',
+                            schedulePriority: 'Urgente'
+                        }
+                    },
+                    {
+                        id: 7,
+                        clientId: 2,
+                        clientName: 'Supermercado FreshMart',
+                        clientEmail: 'operaciones@freshmart.com',
+                        clientPhone: '+(57) 320 555 0002',
+                        address: 'Av. El Dorado #68-45, Bogotá',
+                        wasteType: 'Orgánico',
+                        estimatedVolume: '3.5',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date().toISOString().split('T')[0],
+                        preferredTime: 'afternoon',
+                        specificTime: '15:30',
+                        priority: 'Media',
+                        accessNotes: 'Entrada por el muelle de carga',
+                        status: 'Recolectado',
+                        createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        createdBy: 2,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 4,
+                        schedule: {
+                            collectionDate: new Date().toISOString().split('T')[0],
+                            collectionTime: '15:30',
+                            estimatedDuration: '1.0',
+                            equipmentRequired: 'Camión compactador',
+                            personnelRequired: '1 operador + 1 ayudante',
+                            schedulePriority: 'Media'
+                        }
+                    },
+                    {
+                        id: 8,
+                        clientId: 3,
+                        clientName: 'Fábrica EcoTech',
+                        clientEmail: 'produccion@ecotech.com',
+                        clientPhone: '+(57) 315 555 0003',
+                        address: 'Zona Industrial Sur, Km 12 Autopista Sur',
+                        wasteType: 'Industrial',
+                        estimatedVolume: '8.0',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        preferredTime: 'morning',
+                        specificTime: '09:00',
+                        priority: 'Alta',
+                        accessNotes: 'Recoger en área de almacenamiento temporal',
+                        status: 'Programado',
+                        createdDate: new Date().toISOString().split('T')[0],
+                        createdBy: 3,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 4,
+                        schedule: {
+                            collectionDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            collectionTime: '09:00',
+                            estimatedDuration: '2.5',
+                            equipmentRequired: 'Camión de carga pesada',
+                            personnelRequired: '1 operador + 2 ayudantes',
+                            schedulePriority: 'Alta'
+                        }
                     }
                 ];
                 this.saveServices();
@@ -96,7 +268,10 @@ window.servicesModule = {
                             <option value="Aprobado">Aprobado</option>
                             <option value="Rechazado">Rechazado</option>
                             <option value="Programado">Programado</option>
+                            <option value="En Ruta">En Ruta</option>
                             <option value="En Proceso">En Proceso</option>
+                            <option value="Recolectado">Recolectado</option>
+                            <option value="En Tránsito">En Tránsito</option>
                             <option value="Completado">Completado</option>
                         </select>
                     </div>
@@ -224,17 +399,28 @@ window.servicesModule = {
         `).join('');
     },
 
-    // ========== NUEVA SOLICITUD (ADMIN) ==========
+    // ========== NUEVA SOLICITUD ==========
     loadNewService() {
         const contentArea = document.getElementById('content-area');
+        const currentUser = app.currentUser;
+        const isClientUser = currentUser && currentUser.type === 'client';
+        
+        // Determinar título y descripción según el tipo de usuario
+        const title = isClientUser ? 
+            'Nueva Solicitud de Servicio' : 
+            'Nueva Solicitud de Servicio (Admin)';
+        const description = isClientUser ? 
+            'Solicite nuestros servicios de recolección de residuos' : 
+            'Crea una solicitud a nombre de un cliente';
 
         contentArea.innerHTML = `
             <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">Nueva Solicitud de Servicio (Admin)</h1>
-                <p class="text-gray-600">Crea una solicitud a nombre de un cliente</p>
+                <h1 class="text-3xl font-bold text-gray-800">${title}</h1>
+                <p class="text-gray-600">${description}</p>
             </div>
 
             <div class="bg-white rounded-lg shadow p-6">
+                ${!isClientUser ? `
                 <div class="mb-6 border rounded-lg p-4 bg-gray-50">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Buscar cliente por email</label>
                     <div class="flex">
@@ -243,27 +429,28 @@ window.servicesModule = {
                     </div>
                     <p class="text-xs text-gray-500 mt-2">Si el cliente no existe, podrás crearlo desde aquí.</p>
                 </div>
+                ` : ''}
 
                 <form id="new-service-form" class="space-y-6">
                     <input type="hidden" id="selected-client-id">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Cliente *</label>
-                            <input type="text" id="client-name" class="w-full px-3 py-2 border rounded-lg bg-gray-100" required readonly>
+                            <input type="text" id="client-name" class="w-full px-3 py-2 border rounded-lg ${!isClientUser ? 'bg-gray-100' : ''}" required ${!isClientUser ? 'readonly' : ''}>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                            <input type="email" id="client-email" class="w-full px-3 py-2 border rounded-lg bg-gray-100" required readonly>
+                            <input type="email" id="client-email" class="w-full px-3 py-2 border rounded-lg ${!isClientUser ? 'bg-gray-100' : ''}" required ${!isClientUser ? 'readonly' : ''}>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
-                            <input type="tel" id="client-phone" class="w-full px-3 py-2 border rounded-lg bg-gray-100" required readonly>
+                            <input type="tel" id="client-phone" class="w-full px-3 py-2 border rounded-lg ${!isClientUser ? 'bg-gray-100' : ''}" required ${!isClientUser ? 'readonly' : ''}>
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Dirección Completa (Editable) *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Dirección Completa ${!isClientUser ? '(Editable)' : ''} *</label>
                             <textarea id="client-address" rows="3" class="w-full px-3 py-2 border rounded-lg" required></textarea>
                         </div>
                     </div>
@@ -364,7 +551,7 @@ window.servicesModule = {
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6 border-t">
-                        <button type="button" onclick="app.loadModule('services')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <button type="button" onclick="${isClientUser ? 'app.loadModule(\"dashboard\")' : 'app.loadModule(\"services\")'}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancelar</button>
                         <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                             <i class="fas fa-save mr-2"></i>Crear Solicitud
                         </button>
@@ -373,6 +560,11 @@ window.servicesModule = {
             </div>
         `;
         this.initNewServiceForm();
+        
+        // Si es un cliente logueado, pre-llenar automáticamente su información
+        if (isClientUser) {
+            this._fillClientFields(currentUser);
+        }
     },
 
     initNewServiceForm() {
@@ -392,11 +584,14 @@ window.servicesModule = {
             hazardousContainer.classList.toggle('hidden', this.value !== 'Peligroso');
         });
 
-        // Buscar por email
-        document.getElementById('search-client-btn').addEventListener('click', () => {
-            const email = (document.getElementById('client-email-search').value || '').trim().toLowerCase();
-            this._handleFindClientByEmail(email);
-        });
+        // Buscar por email (solo para admins)
+        const searchBtn = document.getElementById('search-client-btn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                const email = (document.getElementById('client-email-search').value || '').trim().toLowerCase();
+                this._handleFindClientByEmail(email);
+            });
+        }
 
         // Callback cuando se crea un usuario
         if (window.app) {
@@ -487,8 +682,14 @@ window.servicesModule = {
     validateNewServiceForm(data) {
         const errors = [];
         const emailRegex = /^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$/;
+        const currentUser = app?.currentUser;
+        const isClientUser = currentUser && currentUser.type === 'client';
 
-        if (!data.clientId) errors.push('Busque y seleccione un cliente por su email.');
+        // Para usuarios clientes, no validamos clientId ya que se obtiene automáticamente
+        if (!isClientUser && !data.clientId) {
+            errors.push('Busque y seleccione un cliente por su email.');
+        }
+        
         if (!data.clientName?.trim()) errors.push('Nombre del cliente es obligatorio.');
         if (!emailRegex.test(data.clientEmail || '')) errors.push('Email del cliente inválido.');
         if (!data.clientPhone?.trim()) errors.push('Teléfono del cliente es obligatorio.');
@@ -514,9 +715,10 @@ window.servicesModule = {
 
     saveNewService() {
         const currentUser = app?.currentUser || { id: 'admin' };
+        const isClientUser = currentUser && currentUser.type === 'client';
         
         const formData = {
-            clientId: document.getElementById('selected-client-id').value,
+            clientId: isClientUser ? currentUser.id : document.getElementById('selected-client-id').value,
             clientName: document.getElementById('client-name').value.trim(),
             clientEmail: document.getElementById('client-email').value.trim(),
             clientPhone: document.getElementById('client-phone').value.trim(),
@@ -561,7 +763,20 @@ window.servicesModule = {
         this.saveServices();
 
         authSystem?.showNotification?.('Solicitud creada exitosamente', 'success');
-        this.load(); // volver al listado admin
+        
+        // Determinar a dónde dirigir según el tipo de usuario
+        const currentUser = app?.currentUser;
+        const isClientUser = currentUser && currentUser.type === 'client';
+        
+        if (isClientUser) {
+            // Para clientes, volver al dashboard
+            setTimeout(() => {
+                app.loadModule('dashboard');
+            }, 1500);
+        } else {
+            // Para admins, volver al listado de servicios
+            this.load();
+        }
     },
 
     // ========== APROBAR / RECHAZAR ==========
@@ -640,6 +855,10 @@ window.servicesModule = {
         const s = this.services.find(x => x.id === id);
         if (!s) return;
 
+        const currentUser = app?.currentUser;
+        const isClient = currentUser?.type === 'client';
+        const backAction = isClient ? "app.loadModule('my-services')" : "servicesModule.load()";
+
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = `
             <div class="mb-6 flex justify-between items-center">
@@ -647,7 +866,7 @@ window.servicesModule = {
                     <h1 class="text-3xl font-bold text-gray-800">Servicio #${String(s.id).padStart(3,'0')}</h1>
                     <p class="text-gray-600">Información completa de la solicitud</p>
                 </div>
-                <button onclick="servicesModule.load()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                <button onclick="${backAction}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                     <i class="fas fa-arrow-left mr-2"></i>Volver
                 </button>
             </div>
@@ -694,6 +913,7 @@ window.servicesModule = {
                     </div>
                 </div>
 
+                ${!isClient ? `
                 <div class="pt-6 border-t flex flex-wrap gap-3">
                     ${s.status === 'Pendiente de Aprobación' ? `
                         <button onclick="servicesModule.approveService(${s.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
@@ -714,6 +934,7 @@ window.servicesModule = {
                         <i class="fas fa-trash mr-2"></i>Eliminar
                     </button>
                 </div>
+                ` : ''}
             </div>
         `;
     },
@@ -828,7 +1049,7 @@ window.servicesModule = {
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6 border-t">
-                        <button type="button" onclick="servicesModule.viewService(${s.id})" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <button type="button" onclick="${(app?.currentUser?.type === 'client') ? "app.loadModule('my-services')" : `servicesModule.viewService(${s.id})`}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancelar</button>
                         <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                             <i class="fas fa-save mr-2"></i>Guardar Cambios
                         </button>
@@ -969,7 +1190,7 @@ window.servicesModule = {
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6 border-t">
-                        <button type="button" onclick="servicesModule.viewService(${s.id})" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <button type="button" onclick="${(app?.currentUser?.type === 'client') ? "app.loadModule('my-services')" : `servicesModule.viewService(${s.id})`}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancelar</button>
                         <button type="submit" class="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
                             <i class="fas fa-calendar-check mr-2"></i>Confirmar Programación
                         </button>
@@ -1133,7 +1354,10 @@ window.servicesModule = {
             'Aprobado': 'bg-blue-100 text-blue-800',
             'Rechazado': 'bg-red-100 text-red-800',
             'Programado': 'bg-blue-100 text-blue-800',
+            'En Ruta': 'bg-cyan-100 text-cyan-800',
             'En Proceso': 'bg-orange-100 text-orange-800',
+            'Recolectado': 'bg-purple-100 text-purple-800',
+            'En Tránsito': 'bg-indigo-100 text-indigo-800',
             'Completado': 'bg-green-100 text-green-800',
             'Cancelado': 'bg-red-100 text-red-800'
         };
@@ -1161,6 +1385,136 @@ window.servicesModule = {
     },
     generateServiceId() {
         return this.services.length > 0 ? Math.max(...this.services.map(s => s.id)) + 1 : 1;
+    },
+
+    // ========== GESTIÓN DE ESTADOS PARA OPERADORES ==========
+    
+    // Cambiar estado de un servicio (para operadores en campo)
+    updateServiceStatus(serviceId, newStatus, additionalData = {}) {
+        const serviceIndex = this.services.findIndex(s => s.id === serviceId);
+        if (serviceIndex === -1) {
+            throw new Error('Servicio no encontrado');
+        }
+
+        const service = this.services[serviceIndex];
+        const currentUser = app?.currentUser;
+        
+        // Validar que el operador puede cambiar este estado
+        if (currentUser?.type === 'operator' && !this.canOperatorChangeStatus(service, newStatus)) {
+            throw new Error('No tienes permisos para cambiar a este estado');
+        }
+
+        // Actualizar estado y metadata
+        service.status = newStatus;
+        service.lastStatusUpdate = new Date().toISOString();
+        service.lastUpdatedBy = currentUser?.name || 'Sistema';
+
+        // Agregar datos específicos según el estado
+        switch (newStatus) {
+            case 'En Ruta':
+                service.startedRoute = new Date().toISOString();
+                service.operatorId = currentUser?.id;
+                break;
+            case 'En Proceso':
+                service.arrivedAt = new Date().toISOString();
+                service.checkInLocation = additionalData.location;
+                break;
+            case 'Recolectado':
+                service.collectedAt = new Date().toISOString();
+                service.actualWeight = additionalData.weight;
+                service.actualVolume = additionalData.volume;
+                service.collectionNotes = additionalData.notes;
+                service.clientSignature = additionalData.signature;
+                service.evidencePhotos = additionalData.photos;
+                break;
+            case 'En Tránsito':
+                service.departedAt = new Date().toISOString();
+                service.destinationPlant = additionalData.plant;
+                break;
+            case 'Completado':
+                service.completedAt = new Date().toISOString();
+                service.finalDisposition = additionalData.disposition;
+                break;
+        }
+
+        // Guardar cambios
+        this.saveServices();
+        
+        return service;
+    },
+
+    // Verificar si un operador puede cambiar a un estado específico
+    canOperatorChangeStatus(service, newStatus) {
+        const currentStatus = service.status;
+        
+        // Transiciones permitidas para operadores
+        const allowedTransitions = {
+            'Programado': ['En Ruta'],
+            'En Ruta': ['En Proceso'],
+            'En Proceso': ['Recolectado'],
+            'Recolectado': ['En Tránsito'],
+            'En Tránsito': ['Completado']
+        };
+
+        return allowedTransitions[currentStatus]?.includes(newStatus) || false;
+    },
+
+    // Función auxiliar para operadores: marcar servicio como "En Ruta"
+    startServiceCollection(serviceId) {
+        try {
+            const service = this.updateServiceStatus(serviceId, 'En Ruta');
+            authSystem?.showNotification?.(`Servicio #${String(serviceId).padStart(3, '0')} marcado como "En Ruta"`, 'success');
+            return service;
+        } catch (error) {
+            authSystem?.showNotification?.(error.message, 'error');
+            throw error;
+        }
+    },
+
+    // Función auxiliar para operadores: marcar llegada al punto
+    checkInAtService(serviceId, location = null) {
+        try {
+            const additionalData = {};
+            if (location) {
+                additionalData.location = location;
+            }
+            
+            const service = this.updateServiceStatus(serviceId, 'En Proceso', additionalData);
+            authSystem?.showNotification?.(`Check-in registrado en servicio #${String(serviceId).padStart(3, '0')}`, 'success');
+            return service;
+        } catch (error) {
+            authSystem?.showNotification?.(error.message, 'error');
+            throw error;
+        }
+    },
+
+    // Función auxiliar para operadores: completar recolección
+    completeCollection(serviceId, collectionData) {
+        try {
+            const service = this.updateServiceStatus(serviceId, 'Recolectado', collectionData);
+            authSystem?.showNotification?.(`Recolección completada para servicio #${String(serviceId).padStart(3, '0')}`, 'success');
+            return service;
+        } catch (error) {
+            authSystem?.showNotification?.(error.message, 'error');
+            throw error;
+        }
+    },
+
+    // Obtener servicios asignados a un operador específico
+    getOperatorServices(operatorId) {
+        return this.services.filter(service => 
+            service.assignedOperator === operatorId || 
+            service.operatorId === operatorId ||
+            service.createdBy === operatorId
+        );
+    },
+
+    // Obtener servicios en estados activos para un operador
+    getActiveOperatorServices(operatorId) {
+        const activeStatuses = ['Programado', 'En Ruta', 'En Proceso', 'Recolectado', 'En Tránsito'];
+        return this.getOperatorServices(operatorId).filter(service => 
+            activeStatuses.includes(service.status)
+        );
     }
 };
 

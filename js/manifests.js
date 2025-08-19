@@ -156,19 +156,111 @@ window.manifestsModule = {
 
     // --- OPERATOR VIEW ---
     renderOperatorView(container) {
+        const currentUser = app?.currentUser;
+        const operatorManifests = this.getOperatorManifests(currentUser);
+        
         container.innerHTML = `
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Generar Nuevo Manifiesto</h3>
+            <!-- KPIs del operador -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-file-alt text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Mis Manifiestos</h3>
+                            <p class="text-2xl font-bold text-gray-900">${operatorManifests.length}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <form id="manifest-form" class="space-y-4"></form>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-truck text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">En Tránsito</h3>
+                            <p class="text-2xl font-bold text-gray-900">${this.getOperatorInTransit(currentUser)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Completados Hoy</h3>
+                            <p class="text-2xl font-bold text-gray-900">${this.getOperatorCompletedToday(currentUser)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-weight-hanging text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Peso Total Hoy</h3>
+                            <p class="text-2xl font-bold text-gray-900">${this.getOperatorWeightToday(currentUser)} T</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Acciones rápidas -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Acciones Rápidas</h3>
+                        <div class="space-y-3">
+                            <button onclick="manifestsModule.showNewManifestForm()" 
+                                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                                <i class="fas fa-plus mr-2"></i>Crear Nuevo Manifiesto
+                            </button>
+                            <button onclick="manifestsModule.showQuickWasteCapture()" 
+                                    class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 flex items-center justify-center">
+                                <i class="fas fa-camera mr-2"></i>Captura Rápida de Residuos
+                            </button>
+                            <button onclick="manifestsModule.scanQRCode()" 
+                                    class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 flex items-center justify-center">
+                                <i class="fas fa-qrcode mr-2"></i>Escanear QR de Punto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Estado de Mi Ruta Actual</h3>
+                        ${this.renderCurrentRouteStatus(currentUser)}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mis manifiestos recientes -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">Mis Manifiestos Recientes</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="manifestsModule.filterOperatorManifests('today')" 
+                                class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Hoy</button>
+                        <button onclick="manifestsModule.filterOperatorManifests('week')" 
+                                class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Esta Semana</button>
+                        <button onclick="manifestsModule.filterOperatorManifests('all')" 
+                                class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Todos</button>
+                    </div>
+                </div>
+                <div id="operator-manifests-list">
+                    ${this.renderOperatorManifestsList(operatorManifests)}
+                </div>
+            </div>
+
+            <!-- Modal containers -->
+            <div id="operator-modal-container"></div>
         `;
-        // The form content is extensive, so it's better to build it with a dedicated function
-        this.renderManifestForm(document.getElementById('manifest-form'));
-        this.initManifestForm();
+        
+        this.initOperatorEventListeners();
     },
 
     // --- DYNAMIC CARD FUNCTIONS ---

@@ -9,7 +9,7 @@ window.routesModule = {
             vehicle: 'C-001', // usamos el CÓDIGO del vehículo
             driver: 'Carlos Rodríguez',
             helper: 'Ana García',
-            date: '2024-01-16',
+            date: new Date().toISOString().split('T')[0], // Hoy
             startTime: '08:00',
             estimatedDuration: 4, // horas (número)
             status: 'En Progreso',
@@ -33,6 +33,39 @@ window.routesModule = {
             collectionPoints: [
                 { address: 'Plaza Mayor 100',   client: 'Restaurante Central', wasteType: 'Orgánico',   estimated: '4.1 m³' },
                 { address: 'Calle Comercio 250', client: 'Tienda Moderna',      wasteType: 'Reciclable', estimated: '0.8 m³' }
+            ]
+        },
+        {
+            id: 3,
+            name: 'Ruta Sur Industrial',
+            code: 'R-003',
+            vehicle: 'C-001',
+            driver: 'Carlos Rodríguez',
+            helper: 'María López',
+            date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Mañana
+            startTime: '07:30',
+            estimatedDuration: 5,
+            status: 'Programada',
+            collectionPoints: [
+                { address: 'Zona Industrial 1 Lote 15', client: 'Industrias Metal', wasteType: 'Peligroso', estimated: '1.2 m³' },
+                { address: 'Zona Industrial 2 Lote 8', client: 'Fábrica Textil', wasteType: 'Reciclable', estimated: '3.5 m³' },
+                { address: 'Zona Industrial 3 Lote 22', client: 'Procesadora Alimentos', wasteType: 'Orgánico', estimated: '2.8 m³' }
+            ]
+        },
+        {
+            id: 4,
+            name: 'Ruta Comercial Este',
+            code: 'R-004',
+            vehicle: 'C-002',
+            driver: 'Carlos Rodríguez',
+            helper: 'Ana García',
+            date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Ayer
+            startTime: '14:00',
+            estimatedDuration: 3,
+            status: 'Completada',
+            collectionPoints: [
+                { address: 'Centro Comercial Plaza', client: 'Mall Plaza', wasteType: 'Mixtos', estimated: '5.2 m³' },
+                { address: 'Oficinas Torre Norte', client: 'Corporativo ABC', wasteType: 'Papel', estimated: '1.5 m³' }
             ]
         }
     ],
@@ -130,6 +163,13 @@ window.routesModule = {
     // ====== UI principal ======
     load() {
         this.ensureLoaded();
+        
+        // Detectar si el usuario actual es operador
+        const currentUser = app?.currentUser;
+        if (currentUser && currentUser.type === 'operator') {
+            this.loadOperatorView();
+            return;
+        }
 
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = `
@@ -210,6 +250,487 @@ window.routesModule = {
 
         this.showTab('routes');
         this.updateSummaryCards(); // asegurar métricas correctas al cargar
+    },
+
+    // ====== VISTA ESPECÍFICA PARA OPERADORES ======
+    loadOperatorView() {
+        const contentArea = document.getElementById('content-area');
+        const currentUser = app?.currentUser;
+        
+        // Obtener rutas asignadas al operador
+        const myRoutes = this.getOperatorRoutes(currentUser);
+        
+        contentArea.innerHTML = `
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">Mis Rutas</h1>
+                        <p class="text-gray-600">Gestiona tus rutas asignadas - ${currentUser.name}</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex items-center space-x-3">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                            <i class="fas fa-truck text-xs mr-1"></i>Operador Activo
+                        </span>
+                        <button onclick="routesModule.loadOperatorView()" 
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPIs del Operador -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                ${this.renderOperatorRouteKpis(myRoutes)}
+            </div>
+
+            <!-- Filtros y acciones -->
+            <div class="bg-white p-4 rounded-lg shadow mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar por fecha</label>
+                        <select id="operator-date-filter" onchange="routesModule.filterOperatorRoutes()" 
+                                class="px-3 py-2 border rounded-lg">
+                            <option value="today">Hoy</option>
+                            <option value="tomorrow">Mañana</option>
+                            <option value="week">Esta semana</option>
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="operator-status-filter" onchange="routesModule.filterOperatorRoutes()" 
+                                class="px-3 py-2 border rounded-lg">
+                            <option value="all">Todos los estados</option>
+                            <option value="Programada">Programadas</option>
+                            <option value="En Progreso">En Progreso</option>
+                            <option value="Completada">Completadas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de rutas del operador -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold">Mis Rutas Asignadas</h3>
+                </div>
+                <div id="operator-routes-container">
+                    ${this.renderOperatorRoutes(myRoutes)}
+                </div>
+            </div>
+        `;
+    },
+
+    // Obtener rutas asignadas al operador actual
+    getOperatorRoutes(currentUser) {
+        if (!currentUser) return [];
+        
+        // Filtrar rutas donde el operador aparece como driver
+        return this.routes.filter(route => 
+            route.driver === currentUser.name || 
+            route.driver === currentUser.id ||
+            route.assignedOperator === currentUser.id
+        );
+    },
+
+    renderOperatorRouteKpis(routes) {
+        const today = new Date().toISOString().split('T')[0];
+        const todayRoutes = routes.filter(r => r.date === today);
+        const inProgress = routes.filter(r => r.status === 'En Progreso');
+        const completed = routes.filter(r => r.status === 'Completada');
+
+        const kpis = [
+            {
+                title: 'Rutas Hoy',
+                value: todayRoutes.length,
+                subtitle: 'Asignadas',
+                icon: 'fa-calendar-day',
+                color: 'blue'
+            },
+            {
+                title: 'En Progreso',
+                value: inProgress.length,
+                subtitle: 'Activas ahora',
+                icon: 'fa-truck',
+                color: 'yellow'
+            },
+            {
+                title: 'Completadas',
+                value: completed.length,
+                subtitle: 'Total histórico',
+                icon: 'fa-check-circle',
+                color: 'green'
+            }
+        ];
+
+        return kpis.map(kpi => `
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-${kpi.color}-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-${kpi.color}-600 text-sm font-medium">${kpi.title}</p>
+                        <p class="text-3xl font-bold text-gray-900">${kpi.value}</p>
+                        <p class="text-gray-500 text-xs mt-1">${kpi.subtitle}</p>
+                    </div>
+                    <div class="p-3 bg-${kpi.color}-100 rounded-full">
+                        <i class="fas ${kpi.icon} text-${kpi.color}-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    renderOperatorRoutes(routes) {
+        if (routes.length === 0) {
+            return `
+                <div class="p-8 text-center">
+                    <i class="fas fa-route text-gray-300 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">No hay rutas asignadas</h3>
+                    <p class="text-gray-500">No tienes rutas asignadas en este momento.</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="divide-y divide-gray-200">
+                ${routes.map(route => this.renderOperatorRouteCard(route)).join('')}
+            </div>
+        `;
+    },
+
+    renderOperatorRouteCard(route) {
+        const statusColors = {
+            'Programada': 'blue',
+            'En Progreso': 'yellow',
+            'Completada': 'green',
+            'Pausada': 'red'
+        };
+        const color = statusColors[route.status] || 'gray';
+
+        return `
+            <div class="p-6 hover:bg-gray-50 transition-colors">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4 mb-3">
+                            <h4 class="text-lg font-semibold text-gray-900">${route.name}</h4>
+                            <span class="px-3 py-1 text-sm rounded-full bg-${color}-100 text-${color}-800">
+                                ${route.status}
+                            </span>
+                            <span class="text-sm text-gray-500">ID: ${route.code}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                            <div>
+                                <i class="fas fa-calendar mr-2 text-blue-500"></i>
+                                <strong>Fecha:</strong> ${this.formatDate(route.date)}
+                            </div>
+                            <div>
+                                <i class="fas fa-clock mr-2 text-green-500"></i>
+                                <strong>Inicio:</strong> ${route.startTime}
+                            </div>
+                            <div>
+                                <i class="fas fa-truck mr-2 text-purple-500"></i>
+                                <strong>Vehículo:</strong> ${this.getVehicleDisplayName(route.vehicle)}
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2 text-red-500"></i>
+                                <strong>Puntos de recolección:</strong> 
+                                <span class="ml-2">${route.collectionPoints?.length || 0} paradas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 lg:mt-0 lg:ml-6 flex flex-col space-y-2">
+                        ${this.renderOperatorRouteActions(route)}
+                    </div>
+                </div>
+
+                <!-- Puntos de recolección (expandible) -->
+                <div class="mt-4">
+                    <button onclick="routesModule.toggleRouteDetails('route-${route.id}')" 
+                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-chevron-down mr-1"></i>Ver detalles de paradas
+                    </button>
+                    <div id="route-${route.id}-details" class="hidden mt-3 bg-gray-50 p-4 rounded-lg">
+                        ${this.renderCollectionPoints(route.collectionPoints)}
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    renderOperatorRouteActions(route) {
+        const actions = [];
+
+        if (route.status === 'Programada') {
+            actions.push(`
+                <button onclick="routesModule.startRoute(${route.id})" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+                    <i class="fas fa-play mr-2"></i>Iniciar Ruta
+                </button>
+            `);
+        }
+
+        if (route.status === 'En Progreso') {
+            actions.push(`
+                <button onclick="routesModule.continueRoute(${route.id})" 
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                    <i class="fas fa-truck mr-2"></i>Continuar
+                </button>
+            `);
+            actions.push(`
+                <button onclick="routesModule.pauseRoute(${route.id})" 
+                        class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 text-sm">
+                    <i class="fas fa-pause mr-2"></i>Pausar
+                </button>
+            `);
+        }
+
+        if (route.status === 'Pausada') {
+            actions.push(`
+                <button onclick="routesModule.resumeRoute(${route.id})" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
+                    <i class="fas fa-play mr-2"></i>Reanudar
+                </button>
+            `);
+        }
+
+        // Acciones siempre disponibles
+        actions.push(`
+            <button onclick="routesModule.viewRouteDetails(${route.id})" 
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm">
+                <i class="fas fa-eye mr-2"></i>Ver Detalles
+            </button>
+        `);
+
+        return actions.join('');
+    },
+
+    renderCollectionPoints(points) {
+        if (!points || points.length === 0) {
+            return '<p class="text-gray-500">No hay puntos de recolección definidos.</p>';
+        }
+
+        return `
+            <div class="space-y-2">
+                ${points.map((point, index) => `
+                    <div class="flex items-center justify-between p-3 bg-white rounded border">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                ${index + 1}
+                            </span>
+                            <div>
+                                <p class="font-medium">${point.client}</p>
+                                <p class="text-sm text-gray-600">${point.address}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeColorClass(point.wasteType)}">
+                                ${point.wasteType}
+                            </span>
+                            <p class="text-sm text-gray-600 mt-1">${point.estimated}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+
+    // Funciones de acción para operadores
+    startRoute(routeId) {
+        const route = this.routes.find(r => r.id === routeId);
+        if (!route) return;
+
+        if (confirm(`¿Iniciar la ruta "${route.name}"?`)) {
+            route.status = 'En Progreso';
+            route.startedAt = new Date().toISOString();
+            this.saveAll();
+            authSystem?.showNotification?.(`Ruta "${route.name}" iniciada`, 'success');
+            this.loadOperatorView();
+        }
+    },
+
+    continueRoute(routeId) {
+        // Redirigir al módulo de recolección
+        app.loadModule('collection');
+        authSystem?.showNotification?.('Redirigiendo al módulo de recolección...', 'info');
+    },
+
+    pauseRoute(routeId) {
+        const route = this.routes.find(r => r.id === routeId);
+        if (!route) return;
+
+        if (confirm(`¿Pausar la ruta "${route.name}"?`)) {
+            route.status = 'Pausada';
+            route.pausedAt = new Date().toISOString();
+            this.saveAll();
+            authSystem?.showNotification?.(`Ruta "${route.name}" pausada`, 'warning');
+            this.loadOperatorView();
+        }
+    },
+
+    resumeRoute(routeId) {
+        const route = this.routes.find(r => r.id === routeId);
+        if (!route) return;
+
+        if (confirm(`¿Reanudar la ruta "${route.name}"?`)) {
+            route.status = 'En Progreso';
+            route.resumedAt = new Date().toISOString();
+            this.saveAll();
+            authSystem?.showNotification?.(`Ruta "${route.name}" reanudada`, 'success');
+            this.loadOperatorView();
+        }
+    },
+
+    viewRouteDetails(routeId) {
+        // Mostrar modal con detalles completos de la ruta
+        const route = this.routes.find(r => r.id === routeId);
+        if (!route) return;
+
+        const modalHtml = `
+            <div id="route-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold">Detalles de Ruta: ${route.name}</h3>
+                        <button onclick="document.getElementById('route-details-modal').remove()" 
+                                class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    ${this.renderRouteDetailsContent(route)}
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    },
+
+    renderRouteDetailsContent(route) {
+        return `
+            <div class="space-y-6">
+                <!-- Información general -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-3">Información General</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><strong>Código:</strong> ${route.code}</p>
+                            <p><strong>Fecha:</strong> ${this.formatDate(route.date)}</p>
+                            <p><strong>Hora de inicio:</strong> ${route.startTime}</p>
+                            <p><strong>Duración estimada:</strong> ${route.estimatedDuration} horas</p>
+                            <p><strong>Estado:</strong> <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${route.status}</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-3">Equipo Asignado</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><strong>Conductor:</strong> ${route.driver}</p>
+                            <p><strong>Ayudante:</strong> ${route.helper}</p>
+                            <p><strong>Vehículo:</strong> ${this.getVehicleDisplayName(route.vehicle)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Puntos de recolección -->
+                <div>
+                    <h4 class="font-semibold mb-3">Puntos de Recolección</h4>
+                    ${this.renderCollectionPoints(route.collectionPoints)}
+                </div>
+
+                <!-- Acciones -->
+                <div class="flex justify-end space-x-3 pt-4 border-t">
+                    <button onclick="document.getElementById('route-details-modal').remove()" 
+                            class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cerrar
+                    </button>
+                    ${route.status === 'En Progreso' ? `
+                        <button onclick="routesModule.continueRoute(${route.id}); document.getElementById('route-details-modal').remove();" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Ir a Recolección
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    },
+
+    // Filtros para vista de operador
+    filterOperatorRoutes() {
+        const dateFilter = document.getElementById('operator-date-filter')?.value;
+        const statusFilter = document.getElementById('operator-status-filter')?.value;
+        const currentUser = app?.currentUser;
+        
+        let routes = this.getOperatorRoutes(currentUser);
+        
+        // Filtrar por fecha
+        if (dateFilter !== 'all') {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            if (dateFilter === 'today') {
+                routes = routes.filter(r => r.date === todayStr);
+            } else if (dateFilter === 'tomorrow') {
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                routes = routes.filter(r => r.date === tomorrowStr);
+            } else if (dateFilter === 'week') {
+                const endOfWeek = new Date(today);
+                endOfWeek.setDate(endOfWeek.getDate() + 7);
+                routes = routes.filter(r => r.date >= todayStr && r.date <= endOfWeek.toISOString().split('T')[0]);
+            }
+        }
+        
+        // Filtrar por estado
+        if (statusFilter !== 'all') {
+            routes = routes.filter(r => r.status === statusFilter);
+        }
+        
+        // Actualizar la vista
+        const container = document.getElementById('operator-routes-container');
+        if (container) {
+            container.innerHTML = this.renderOperatorRoutes(routes);
+        }
+    },
+
+    toggleRouteDetails(elementId) {
+        const element = document.getElementById(elementId + '-details');
+        const button = element?.parentElement.querySelector('button i');
+        
+        if (element) {
+            element.classList.toggle('hidden');
+            if (button) {
+                button.className = element.classList.contains('hidden') 
+                    ? 'fas fa-chevron-down mr-1' 
+                    : 'fas fa-chevron-up mr-1';
+            }
+        }
+    },
+
+    // Utilidades
+    formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    },
+
+    getWasteTypeColorClass(wasteType) {
+        const classes = {
+            'Orgánico': 'bg-green-100 text-green-800',
+            'Reciclable': 'bg-blue-100 text-blue-800',
+            'No Reciclable': 'bg-gray-100 text-gray-800',
+            'Peligroso': 'bg-red-100 text-red-800',
+            'Mixtos': 'bg-purple-100 text-purple-800'
+        };
+        return classes[wasteType] || 'bg-gray-100 text-gray-800';
     },
 
     showTab(tabName) {

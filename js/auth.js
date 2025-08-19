@@ -26,9 +26,15 @@ class AuthSystem {
                 type: 'client',
                 name: 'Empresa ABC S.A.',
                 email: 'contacto@empresaabc.com',
-                permissions: ['services', 'tracking', 'invoices']
+                permissions: ['services', 'tracking', 'invoices'],
+                phone: '+(57) 300 123 4567',
+                address: 'Av. Siempreviva 742, Springfield, Bogotá',
+                status: 'Activo'
             }
         ];
+        
+        // Cargar usuarios desde localStorage al inicializar
+        this.loadUsersFromLocalStorage();
         
         this.initLoginForm();
         this.checkExistingSession();
@@ -135,6 +141,8 @@ class AuthSystem {
     initLoginForm() {
         const loginForm = document.getElementById('login-form');
         const emailInput = document.getElementById('email');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
         
         if (loginForm) {
             // Validación en tiempo real para el email
@@ -151,6 +159,27 @@ class AuthSystem {
             emailInput.addEventListener('input', () => {
                 this.clearFieldError(emailInput);
             });
+
+            // Funcionalidad mostrar/ocultar contraseña
+            if (togglePasswordBtn && passwordInput) {
+                togglePasswordBtn.addEventListener('click', () => {
+                    const isPassword = passwordInput.type === 'password';
+                    const icon = togglePasswordBtn.querySelector('i');
+                    
+                    if (isPassword) {
+                        passwordInput.type = 'text';
+                        icon.className = 'fas fa-eye-slash text-gray-600 hover:text-gray-800 transition-colors';
+                        togglePasswordBtn.title = 'Ocultar contraseña';
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.className = 'fas fa-eye text-gray-600 hover:text-gray-800 transition-colors';
+                        togglePasswordBtn.title = 'Mostrar contraseña';
+                    }
+                });
+                
+                // Tooltip inicial
+                togglePasswordBtn.title = 'Mostrar contraseña';
+            }
 
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -176,18 +205,23 @@ class AuthSystem {
             return;
         }
 
-        const user = this.validateCredentials(email, password, userType);
-        
-        if (user) {
-            this.loginSuccess(user);
-        } else {
-            // Verificar si el email existe para dar un mensaje más específico
-            const emailExists = this.users.some(user => user.email === email);
-            if (emailExists) {
-                this.showLoginError('Contraseña incorrecta para este email');
+        try {
+            const user = this.validateCredentials(email, password, userType);
+            
+            if (user) {
+                this.loginSuccess(user);
             } else {
-                this.showLoginError('Email no registrado en el sistema');
+                // Verificar si el email existe para dar un mensaje más específico
+                const emailExists = this.users.some(user => user.email === email);
+                if (emailExists) {
+                    this.showLoginError('Contraseña incorrecta para este email');
+                } else {
+                    this.showLoginError('Email no registrado en el sistema');
+                }
             }
+        } catch (error) {
+            // Manejar errores de usuario desactivado
+            this.showLoginError(error.message);
         }
     }
 
@@ -224,11 +258,18 @@ class AuthSystem {
     }
 
     validateCredentials(email, password, userType) {
-        return this.users.find(user => 
-            user.email === email && 
+        const user = this.users.find(user => 
+            (user.email === email || user.username === email) && 
             user.password === password && 
             user.type === userType
         );
+        
+        // Verificar que el usuario esté activo
+        if (user && user.status === 'Inactivo') {
+            throw new Error('Usuario desactivado. Contacte al administrador.');
+        }
+        
+        return user;
     }
 
     loginSuccess(user) {
@@ -322,6 +363,258 @@ class AuthSystem {
         this.clearSavedSession();
         
         this.showNotification('Sesión cerrada exitosamente', 'info');
+    }
+
+    // ========= GESTIÓN DE USUARIOS =========
+
+    // Cargar usuarios desde localStorage
+    loadUsersFromLocalStorage() {
+        try {
+            const saved = localStorage.getItem('ecogestion_users');
+            if (saved) {
+                const savedUsers = JSON.parse(saved);
+                // Combinar usuarios por defecto con usuarios guardados, evitando duplicados
+                this.mergeUsers(savedUsers);
+            } else {
+                // Si no hay usuarios guardados, guardar los usuarios por defecto
+                this.saveUsersToLocalStorage();
+            }
+        } catch (e) {
+            console.warn('Error cargando usuarios desde localStorage:', e);
+            // Mantener usuarios por defecto y guardarlos
+            this.saveUsersToLocalStorage();
+        }
+    }
+
+    // Combinar usuarios evitando duplicados (preservar usuarios por defecto)
+    mergeUsers(savedUsers) {
+        const defaultUsernames = this.users.map(u => u.username);
+        
+        // Agregar usuarios guardados que no existan en los usuarios por defecto
+        savedUsers.forEach(savedUser => {
+            if (!defaultUsernames.includes(savedUser.username)) {
+                this.users.push(savedUser);
+            } else {
+                // Actualizar usuarios por defecto con cambios guardados (excepto credenciales críticas)
+                const defaultUserIndex = this.users.findIndex(u => u.username === savedUser.username);
+                if (defaultUserIndex !== -1) {
+                    // Preservar username y password originales para usuarios por defecto
+                    this.users[defaultUserIndex] = {
+                        ...this.users[defaultUserIndex],
+                        name: savedUser.name || this.users[defaultUserIndex].name,
+                        email: savedUser.email || this.users[defaultUserIndex].email
+                    };
+                }
+            }
+        });
+    }
+
+    // Guardar usuarios en localStorage
+    saveUsersToLocalStorage() {
+        try {
+            localStorage.setItem('ecogestion_users', JSON.stringify(this.users || []));
+        } catch (e) {
+            console.error('Error guardando usuarios en localStorage:', e);
+        }
+    }
+
+    // Obtener todos los usuarios
+    getAllUsers() {
+        return [...this.users]; // Retornar copia para evitar modificaciones directas
+    }
+
+    // Obtener usuario por ID
+    getUserById(id) {
+        return this.users.find(u => u.id === id);
+    }
+
+    // Verificar si un email ya existe (excluyendo un ID específico)
+    emailExists(email, excludeId = null) {
+        const lowerCaseEmail = email.toLowerCase();
+        return this.users.some(u => u.email.toLowerCase() === lowerCaseEmail && u.id !== excludeId);
+    }
+
+    // Verificar si un username ya existe (excluyendo un ID específico)
+    usernameExists(username, excludeId = null) {
+        const lowerCaseUsername = username.toLowerCase();
+        return this.users.some(u => u.username.toLowerCase() === lowerCaseUsername && u.id !== excludeId);
+    }
+
+    // Agregar nuevo usuario
+    addUser(userData) {
+        console.log('📝 Creando usuario con datos:', userData);
+        
+        // Validar datos requeridos
+        if (!userData.username || !userData.password || !userData.name || !userData.email || !userData.type) {
+            throw new Error('Todos los campos son requeridos');
+        }
+
+        // Validar formato de email
+        if (!this.isValidEmail(userData.email)) {
+            throw new Error('Formato de email inválido');
+        }
+
+        // Verificar duplicados
+        if (this.emailExists(userData.email)) {
+            throw new Error('Ya existe un usuario con este email');
+        }
+
+        if (this.usernameExists(userData.username)) {
+            throw new Error('Ya existe un usuario con este nombre de usuario');
+        }
+
+        // Generar nuevo ID
+        const newId = this.users.length > 0 ? Math.max(...this.users.map(u => u.id)) + 1 : 1;
+
+        // Crear nuevo usuario
+        const newUser = {
+            id: newId,
+            username: userData.username,
+            password: userData.password,
+            name: userData.name,
+            email: userData.email,
+            type: userData.type,
+            permissions: this.getDefaultPermissions(userData.type),
+            created: new Date().toISOString(),
+            lastLogin: null,
+            // Campos adicionales opcionales
+            phone: userData.phone || '',
+            address: userData.address || '',
+            isTemporaryPassword: userData.isTemporaryPassword || false,
+            status: userData.status || 'Activo'
+        };
+
+        // Agregar a la lista
+        this.users.push(newUser);
+        
+        // Guardar en localStorage
+        this.saveUsersToLocalStorage();
+
+        console.log('✅ Usuario creado exitosamente:', newUser);
+        return newUser;
+    }
+
+    // Actualizar usuario existente
+    updateUser(id, userData) {
+        const userIndex = this.users.findIndex(u => u.id === id);
+        if (userIndex === -1) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        // Validar datos requeridos
+        if (!userData.username || !userData.name || !userData.email || !userData.type) {
+            throw new Error('Todos los campos son requeridos');
+        }
+
+        // Validar formato de email
+        if (!this.isValidEmail(userData.email)) {
+            throw new Error('Formato de email inválido');
+        }
+
+        // Verificar duplicados (excluyendo el usuario actual)
+        if (this.emailExists(userData.email, id)) {
+            throw new Error('Ya existe otro usuario con este email');
+        }
+
+        if (this.usernameExists(userData.username, id)) {
+            throw new Error('Ya existe otro usuario con este nombre de usuario');
+        }
+
+        // Actualizar usuario
+        const updatedUser = {
+            ...this.users[userIndex],
+            username: userData.username,
+            name: userData.name,
+            email: userData.email,
+            type: userData.type,
+            permissions: this.getDefaultPermissions(userData.type),
+            updated: new Date().toISOString(),
+            // Campos adicionales opcionales
+            phone: userData.phone !== undefined ? userData.phone : this.users[userIndex].phone,
+            address: userData.address !== undefined ? userData.address : this.users[userIndex].address,
+            status: userData.status !== undefined ? userData.status : this.users[userIndex].status
+        };
+
+        // Actualizar password solo si se proporciona
+        if (userData.password && userData.password.trim()) {
+            updatedUser.password = userData.password;
+        }
+
+        this.users[userIndex] = updatedUser;
+        
+        // Guardar en localStorage
+        this.saveUsersToLocalStorage();
+
+        return updatedUser;
+    }
+
+    // Eliminar usuario
+    deleteUser(id) {
+        // No permitir eliminar usuarios por defecto críticos
+        const defaultUserIds = [1, 2, 3]; // admin, operador1, cliente1
+        if (defaultUserIds.includes(id)) {
+            throw new Error('No se puede eliminar este usuario del sistema');
+        }
+
+        const userIndex = this.users.findIndex(u => u.id === id);
+        if (userIndex === -1) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        // Verificar si es el usuario actualmente logueado
+        if (app.currentUser && app.currentUser.id === id) {
+            throw new Error('No puedes eliminar tu propio usuario mientras tienes una sesión activa');
+        }
+
+        // Eliminar usuario
+        this.users.splice(userIndex, 1);
+        
+        // Guardar en localStorage
+        this.saveUsersToLocalStorage();
+
+        return true;
+    }
+
+    // Cambiar estado de usuario (Activo/Inactivo)
+    changeUserStatus(id, newStatus) {
+        const userIndex = this.users.findIndex(u => u.id === id);
+        if (userIndex === -1) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        // No permitir desactivar el usuario actualmente logueado
+        if (app.currentUser && app.currentUser.id === id && newStatus === 'Inactivo') {
+            throw new Error('No puedes desactivar tu propio usuario mientras tienes una sesión activa');
+        }
+
+        // Actualizar estado
+        this.users[userIndex].status = newStatus;
+        this.users[userIndex].updated = new Date().toISOString();
+        
+        // Guardar en localStorage
+        this.saveUsersToLocalStorage();
+
+        console.log(`🔄 Estado de usuario ${id} cambiado a: ${newStatus}`);
+        return this.users[userIndex];
+    }
+
+    // Obtener permisos por defecto según el tipo de usuario
+    getDefaultPermissions(userType) {
+        const permissions = {
+            'admin': ['all'],
+            'operator': ['collection', 'routes', 'manifests', 'plant'],
+            'client': ['services', 'tracking', 'invoices']
+        };
+        return permissions[userType] || [];
+    }
+
+    // Validar credenciales de usuario (para el login)
+    validateUserCredentials(emailOrUsername, password, userType) {
+        return this.users.find(user => 
+            (user.email === emailOrUsername || user.username === emailOrUsername) && 
+            user.password === password && 
+            user.type === userType
+        );
     }
 }
 

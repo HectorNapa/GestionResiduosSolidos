@@ -5,8 +5,7 @@ class WasteManagementApp {
         this.currentUser = null;
         this.currentModule = 'dashboard';
 
-        // Usuarios (gestión local)
-        this.mockUsers = [];
+        // Callback para cuando se crean usuarios
         this.onUserCreated = null; // callback que puede usar servicesModule
 
         // Iniciar
@@ -15,8 +14,7 @@ class WasteManagementApp {
 
     // ========= BOOT =========
     init() {
-        // Cargar usuarios locales
-        this.loadUsersFromLocalStorage();
+        // Los usuarios se cargan automáticamente en auth.js
 
         // Mostrar loader breve
         this.showLoadingScreen();
@@ -185,6 +183,7 @@ class WasteManagementApp {
             case 'my-services': this.loadMyServices(); break;
             case 'invoices': this.loadInvoices(); break;
             case 'tracking': this.loadTracking(); break;
+            case 'config': this.loadConfig(); break;
             default:
                 if (contentArea) {
                     contentArea.innerHTML = '<div class="text-center py-8"><h2 class="text-2xl">Módulo en desarrollo</h2></div>';
@@ -279,6 +278,7 @@ class WasteManagementApp {
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teléfono</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
@@ -294,48 +294,62 @@ class WasteManagementApp {
 
     loadUsersData() {
         // garantizar que tenemos usuarios
-        if (!Array.isArray(this.mockUsers)) this.mockUsers = [];
+        const users = authSystem.getAllUsers();
         const tbody = document.getElementById('users-table-body');
         if (!tbody) return;
 
-        tbody.innerHTML = this.mockUsers.map(user => `
-            <tr data-user-id="${user.id}">
-                <td class="px-6 py-4 whitespace-nowrap">${user.name}</td>
+        tbody.innerHTML = users.map(user => `
+            <tr data-user-id="${user.id}" class="${user.status === 'Inactivo' ? 'bg-gray-50 opacity-75' : ''}">
+                <td class="px-6 py-4 whitespace-nowrap" ${user.address ? `title="Dirección: ${user.address}"` : ''}>${user.name}${user.status === 'Inactivo' ? ' <span class="text-gray-500 text-xs">(Desactivado)</span>' : ''}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${user.phone || '<span class="text-gray-400">No registrado</span>'}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 py-1 text-xs rounded-full ${this.getUserTypeClass(user.type)}">
                         ${this.getUserTypeLabel(user.type)}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${user.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                    <span class="px-2 py-1 text-xs rounded-full ${user.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
                         ${user.status || 'Activo'}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onclick="app.editUser(${user.id})" class="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
-                    <button onclick="app.deactivateUser(${user.id})" class="text-red-600 hover:text-red-900">${user.status === 'Activo' ? 'Desactivar' : 'Activar'}</button>
+                    <button onclick="app.editUser(${user.id})" class="text-blue-600 hover:text-blue-900 mr-2">
+                        <i class="fas fa-edit mr-1"></i>Editar
+                    </button>
+                    <button onclick="app.deactivateUser(${user.id})" class="${user.status === 'Activo' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}">
+                        <i class="fas ${user.status === 'Activo' ? 'fa-user-slash' : 'fa-user-check'} mr-1"></i>${user.status === 'Activo' ? 'Desactivar' : 'Activar'}
+                    </button>
                 </td>
             </tr>
         `).join('');
     }
 
     editUser(userId) {
-        const user = this.mockUsers.find(u => u.id === userId);
+        const user = authSystem.getUserById(userId);
         if (user) {
             this.showNewUserModal(user);
         }
     }
 
     deactivateUser(userId) {
-        const user = this.mockUsers.find(u => u.id === userId);
-        if (user) {
+        try {
+            const user = authSystem.getUserById(userId);
+            if (!user) {
+                authSystem.showNotification('Usuario no encontrado', 'error');
+                return;
+            }
+            
             const newStatus = user.status === 'Activo' ? 'Inactivo' : 'Activo';
-            if (confirm(`¿Está seguro de que desea ${newStatus === 'Activo' ? 'activar' : 'desactivar'} a este usuario?`)) {
-                user.status = newStatus;
-                this.saveUsersToLocalStorage();
+            const action = newStatus === 'Activo' ? 'activar' : 'desactivar';
+            
+            if (confirm(`¿Está seguro de que desea ${action} a este usuario?`)) {
+                authSystem.changeUserStatus(userId, newStatus);
+                authSystem.showNotification(`Usuario ${action}do exitosamente`, 'success');
                 this.loadUsersData();
             }
+        } catch (error) {
+            authSystem.showNotification(error.message, 'error');
         }
     }
 
@@ -432,68 +446,102 @@ class WasteManagementApp {
 
     saveNewUser(userData) {
         const { id, name, email, type, address, phone } = userData;
-        const lowerCaseEmail = email.toLowerCase();
 
-        if (!/^\S+@\S+\.\S+$/.test(lowerCaseEmail)) {
+        if (!/^\S+@\S+\.\S+$/.test(email.toLowerCase())) {
             window.authSystem?.showNotification?.('Por favor, ingrese un email válido.', 'error');
             return;
         }
 
-        if (id) { // Editar usuario existente
-            const userIndex = this.mockUsers.findIndex(u => u.id === id);
-            if (userIndex > -1) {
-                // Validar duplicado de email al editar
-                if (this.mockUsers.some(u => u.email.toLowerCase() === lowerCaseEmail && u.id !== id)) {
-                    window.authSystem?.showNotification?.('Ya existe otro usuario con ese email.', 'error');
-                    return;
-                }
-                const user = this.mockUsers[userIndex];
-                user.name = name;
-                user.email = email;
-                user.phone = phone;
-                user.type = type;
+        try {
+            if (id) { // Editar usuario existente
+                const updateData = {
+                    username: email.split('@')[0], // Generar username desde email
+                    name,
+                    email,
+                    type,
+                    phone,
+                };
+                
                 if (type === 'client') {
-                    user.address = address;
-                } else {
-                    delete user.address;
+                    updateData.address = address;
                 }
+
+                authSystem.updateUser(id, updateData);
                 window.authSystem?.showNotification?.('Usuario actualizado correctamente.', 'success');
-            }
-        } else { // Crear nuevo usuario
-            if (this.mockUsers.some(u => u.email.toLowerCase() === lowerCaseEmail)) {
-                window.authSystem?.showNotification?.('Ya existe un usuario con ese email.', 'error');
-                return;
-            }
+                this.loadUsersData?.();
+            } else { // Crear nuevo usuario
+                const tempPassword = this.generateTemporaryPassword();
+                const newUserData = {
+                    username: email.split('@')[0], // Generar username desde email
+                    password: tempPassword,
+                    name,
+                    email,
+                    type,
+                    phone,
+                    isTemporaryPassword: true,
+                    status: 'Activo'
+                };
+                
+                if (type === 'client') {
+                    newUserData.address = address;
+                }
 
-            const tempPassword = this.generateTemporaryPassword();
-            const newId = (this.mockUsers.length ? Math.max(...this.mockUsers.map(u => u.id)) + 1 : 1);
-
-            const newUser = {
-                id: newId,
-                name,
-                email,
-                phone,
-                type,
-                password: tempPassword,
-                isTemporaryPassword: true,
-                status: 'Activo'
-            };
-            
-            if (type === 'client') {
-                newUser.address = address;
+                const newUser = authSystem.addUser(newUserData);
+                
+                // Mostrar el modal inmediatamente
+                this.showWelcomeEmailModal(email, tempPassword, type);
+                
+                // Actualizar la lista de usuarios después
+                setTimeout(() => {
+                    this.loadUsersData?.();
+                }, 200);
+                
+                window.authSystem?.showNotification?.('Usuario creado exitosamente.', 'success');
+                
+                if (typeof this.onUserCreated === 'function') {
+                    try { this.onUserCreated(newUser); } catch (e) { console.warn(e); }
+                }
             }
+        } catch (error) {
+            window.authSystem?.showNotification?.(error.message, 'error');
+            return;
+        }
+    }
 
-            this.mockUsers.push(newUser);
-            this.showWelcomeEmailModal(email, tempPassword, type);
-            window.authSystem?.showNotification?.('Usuario creado exitosamente.', 'success');
-            
-            if (typeof this.onUserCreated === 'function') {
-                try { this.onUserCreated(newUser); } catch (e) { console.warn(e); }
+    // ========= CONFIGURACIÓN (ADMIN) =========
+    loadConfig() {
+        if (!this.requireAuth()) return;
+        
+        // Verificar permisos de admin
+        if (this.currentUser.type !== 'admin') {
+            const contentArea = document.getElementById('content-area');
+            if (contentArea) {
+                contentArea.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-lock text-6xl text-gray-400 mb-4"></i>
+                        <h2 class="text-2xl text-gray-600">Acceso Restringido</h2>
+                        <p class="text-gray-500">Solo los administradores pueden acceder a la configuración del sistema.</p>
+                    </div>
+                `;
             }
+            return;
         }
 
-        this.saveUsersToLocalStorage();
-        this.loadUsersData?.();
+        // Cargar módulo de configuración
+        if (typeof window.configModule !== 'undefined') {
+            window.configModule.load();
+        } else {
+            const contentArea = document.getElementById('content-area');
+            if (contentArea) {
+                contentArea.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-6xl text-yellow-400 mb-4"></i>
+                        <h2 class="text-2xl text-gray-600">Módulo no Disponible</h2>
+                        <p class="text-gray-500">El módulo de configuración no está cargado.</p>
+                    </div>
+                `;
+            }
+        }
     }
 
     // ========= FLUJO LOGIN / LOGOUT =========
@@ -556,39 +604,13 @@ class WasteManagementApp {
     }
 
     // ========= PERSISTENCIA DE USUARIOS =========
-    loadUsersFromLocalStorage() {
-        try {
-            const saved = localStorage.getItem('ecogestion_users');
-            if (saved) {
-                this.mockUsers = JSON.parse(saved);
-            } else {
-                // Semilla
-                this.mockUsers = [
-                    {id: 1, name: 'Administrador Sistema', email: 'admin@ecogestion.com', type: 'admin', status: 'Activo', password: 'admin123'},
-                    {id: 2, name: 'María García', email: 'maria@example.com', type: 'operator', status: 'Activo', password: 'operator'},
-                    {id: 3, name: 'Carlos López', email: 'carlos@example.com', type: 'client', status: 'Activo', password: 'client', isTemporaryPassword: false, phone: '3101234567', address: 'Calle Falsa 123, Springfield'}
-                ];
-                this.saveUsersToLocalStorage();
-            }
-        } catch (e) {
-            console.error('Error cargando usuarios:', e);
-            this.mockUsers = [];
-            this.saveUsersToLocalStorage();
-        }
-    }
-    saveUsersToLocalStorage() {
-        try {
-            localStorage.setItem('ecogestion_users', JSON.stringify(this.mockUsers || []));
-        } catch (e) {
-            console.error('Error guardando usuarios:', e);
-        }
-    }
+    // Los usuarios ahora se gestionan centralmente en auth.js
 
     // ========= UTILIDADES =========
     resetUserData() {
         if (confirm("¿Está seguro de que desea borrar todos los datos de usuario y restaurar los valores iniciales? Esta acción no se puede deshacer.")) {
             localStorage.removeItem('ecogestion_users');
-            localStorage.removeItem('ecogestion_current_user');
+            localStorage.removeItem('ecogestion_session');
             location.reload();
         }
     }
@@ -601,27 +623,116 @@ class WasteManagementApp {
     }
 
     showWelcomeEmailModal(email, tempPassword, type) {
+        console.log('🔔 Mostrando modal de bienvenida para:', email, 'Tipo:', type);
+        
+        // Remover modal existente si hay uno
+        const existingModal = document.getElementById('welcome-email-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const typeLabels = {
+            'admin': 'Administrador',
+            'operator': 'Operador',
+            'client': 'Cliente'
+        };
+
         const modalHTML = `
         <div id="welcome-email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-lg p-6 w-full max-w-lg">
-                <h3 class="text-lg font-semibold mb-4">Usuario Creado Exitosamente</h3>
-                <p class="mb-4">Se ha creado un nuevo usuario. Copia estas credenciales para su primer ingreso.</p>
-                <div class="bg-gray-100 p-4 rounded-lg">
-                    <p><strong>Email:</strong> ${email}</p>
-                    <p><strong>Contraseña Temporal:</strong> ${tempPassword}</p>
-                    <p><strong>Rol:</strong> ${type}</p>
-                    <p class="mt-2"><strong>Link de Acceso:</strong> 
-                        <a class="text-blue-600 underline" href="file:///C:/Users/CLEAR%20MINDS/Desktop/ProyectoEcoGestion/Proyecto%20residuos/GestionResiduosSolidos/index.html?#">
-                            Ir al login
-                        </a>
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-user-plus text-green-500 text-2xl mr-3"></i>
+                    <h3 class="text-lg font-semibold">Usuario Creado Exitosamente</h3>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-gray-600">Se ha creado un nuevo usuario. Proporciona estas credenciales para su primer ingreso:</p>
+                </div>
+                
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Email:</span>
+                            <span class="text-blue-600 font-mono">${email}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Contraseña Temporal:</span>
+                            <span class="text-red-600 font-mono bg-red-50 px-2 py-1 rounded">${tempPassword}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Tipo de Usuario:</span>
+                            <span class="text-gray-800">${typeLabels[type] || type}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mb-6">
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Importante:</strong> El usuario deberá cambiar esta contraseña en su primer inicio de sesión.
                     </p>
                 </div>
-                <div class="flex justify-end mt-6">
-                    <button type="button" onclick="document.getElementById('welcome-email-modal').remove()" class="px-4 py-2 border rounded-lg">Cerrar</button>
+                
+                <div class="flex justify-between">
+                    <button type="button" onclick="app.copyCredentials('${email}', '${tempPassword}')" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-copy mr-2"></i>Copiar Credenciales
+                    </button>
+                    <button type="button" onclick="document.getElementById('welcome-email-modal').remove()" 
+                            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        Cerrar
+                    </button>
                 </div>
             </div>
         </div>`;
+        
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Verificar que el modal se insertó correctamente
+        const insertedModal = document.getElementById('welcome-email-modal');
+        if (insertedModal) {
+            console.log('✅ Modal de bienvenida insertado correctamente');
+            // Forzar que aparezca por encima de todo
+            insertedModal.style.zIndex = '9999';
+        } else {
+            console.error('❌ Error: No se pudo insertar el modal de bienvenida');
+            // Fallback: mostrar alert si el modal falla
+            alert(`Usuario creado exitosamente\n\nEmail: ${email}\nContraseña: ${tempPassword}\nTipo: ${type}\n\nNota: Debe cambiar la contraseña en el primer ingreso.`);
+        }
+    }
+
+    copyCredentials(email, password) {
+        const text = `Credenciales de Acceso EcoGestión\n\nEmail: ${email}\nContraseña: ${password}\n\nNota: Debe cambiar la contraseña en el primer inicio de sesión.`;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                authSystem.showNotification('Credenciales copiadas al portapapeles', 'success');
+            }).catch(() => {
+                this.fallbackCopyText(text);
+            });
+        } else {
+            this.fallbackCopyText(text);
+        }
+    }
+
+    fallbackCopyText(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            authSystem.showNotification('Credenciales copiadas al portapapeles', 'success');
+        } catch (err) {
+            authSystem.showNotification('No se pudo copiar. Anote las credenciales manualmente.', 'warning');
+        }
+        
+        document.body.removeChild(textArea);
     }
 }
 
