@@ -229,32 +229,329 @@ class WasteManagementApp {
     loadMyServices() {
         const contentArea = document.getElementById('content-area');
         if (!contentArea) return;
+        
+        const currentUser = this.currentUser;
+        if (!currentUser || currentUser.type !== 'client') {
+            contentArea.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-lock text-6xl text-gray-400 mb-4"></i>
+                    <h2 class="text-2xl text-gray-600">Acceso Restringido</h2>
+                    <p class="text-gray-500">Esta sección es solo para clientes.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Obtener servicios del cliente actual
+        const clientServices = this.getClientServices(currentUser.id);
+        
         contentArea.innerHTML = `
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-2xl font-bold mb-6">Mis Servicios</h2>
-                <p class="text-gray-600">Vista de ejemplo. (Implementada en services.js para clientes)</p>
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Mis Servicios</h1>
+                <p class="text-gray-600">Historial y estado de sus solicitudes de recolección</p>
+            </div>
+
+            <!-- Resumen de servicios -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                ${this.renderServiceSummaryCards(clientServices)}
+            </div>
+
+            <!-- Filtros simples -->
+            <div class="bg-white p-4 rounded-lg shadow mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="client-status-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">Todos</option>
+                            <option value="Pendiente de Aprobación">Pendiente</option>
+                            <option value="Aprobado">Aprobado</option>
+                            <option value="Programado">Programado</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Rechazado">Rechazado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Últimos</label>
+                        <select id="client-period-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">Todos</option>
+                            <option value="30">Últimos 30 días</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="365">Último año</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="app.applyClientFilters()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-filter mr-2"></i>Aplicar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de servicios -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Solicitud</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volumen</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" id="client-services-table-body">
+                            ${this.renderClientServicesTable(clientServices)}
+                        </tbody>
+                    </table>
+                </div>
+                ${clientServices.length === 0 ? `
+                    <div class="text-center py-12">
+                        <i class="fas fa-clipboard-list text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-900 mb-2">No hay servicios registrados</h3>
+                        <p class="text-gray-500 mb-6">Aún no ha solicitado ningún servicio de recolección.</p>
+                        <button onclick="app.loadModule('new-service')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Solicitar Primer Servicio
+                        </button>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
     loadInvoices() {
         const contentArea = document.getElementById('content-area');
         if (!contentArea) return;
+        
+        const currentUser = this.currentUser;
+        if (!currentUser || currentUser.type !== 'client') {
+            contentArea.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-lock text-6xl text-gray-400 mb-4"></i>
+                    <h2 class="text-2xl text-gray-600">Acceso Restringido</h2>
+                    <p class="text-gray-500">Esta sección es solo para clientes.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Obtener facturas del cliente actual
+        const clientInvoices = this.getClientInvoices(currentUser.id);
+        
         contentArea.innerHTML = `
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-2xl font-bold mb-6">Mis Facturas</h2>
-                <p class="text-gray-600">Vista de ejemplo.</p>
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Mis Facturas</h1>
+                <p class="text-gray-600">Historial de facturación y estado de pagos</p>
+            </div>
+
+            <!-- Resumen de facturación -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                ${this.renderInvoiceSummaryCards(clientInvoices)}
+            </div>
+
+            <!-- Filtros -->
+            <div class="bg-white p-4 rounded-lg shadow mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="invoice-status-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">Todos</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Pagada">Pagada</option>
+                            <option value="Vencida">Vencida</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Período</label>
+                        <select id="invoice-period-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">Todos</option>
+                            <option value="30">Últimos 30 días</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="180">Últimos 6 meses</option>
+                            <option value="365">Último año</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="app.applyInvoiceFilters()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mr-2">
+                            <i class="fas fa-filter mr-2"></i>Aplicar
+                        </button>
+                        <button onclick="app.downloadInvoiceReport()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-download mr-2"></i>Reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de facturas -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Factura</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Servicio</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimiento</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" id="invoices-table-body">
+                            ${this.renderInvoicesTable(clientInvoices)}
+                        </tbody>
+                    </table>
+                </div>
+                ${clientInvoices.length === 0 ? `
+                    <div class="text-center py-12">
+                        <i class="fas fa-file-invoice-dollar text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-900 mb-2">No hay facturas registradas</h3>
+                        <p class="text-gray-500 mb-6">Las facturas aparecerán aquí una vez que complete servicios.</p>
+                        <button onclick="app.loadModule('new-service')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Solicitar Servicio
+                        </button>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
     loadTracking() {
         const contentArea = document.getElementById('content-area');
         if (!contentArea) return;
+        
+        const currentUser = this.currentUser;
+        if (!currentUser || currentUser.type !== 'client') {
+            contentArea.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-lock text-6xl text-gray-400 mb-4"></i>
+                    <h2 class="text-2xl text-gray-600">Acceso Restringido</h2>
+                    <p class="text-gray-500">Esta sección es solo para clientes.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Obtener servicios activos del cliente (Programado, En Proceso)
+        const activeServices = this.getActiveServicesForTracking(currentUser.id);
+        
         contentArea.innerHTML = `
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-2xl font-bold mb-6">Seguimiento</h2>
-                <p class="text-gray-600">Vista de ejemplo.</p>
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Seguimiento en Tiempo Real</h1>
+                <p class="text-gray-600">Ubicación y estado de sus servicios de recolección activos</p>
             </div>
+
+            <!-- Selector de servicio activo -->
+            <div class="bg-white p-4 rounded-lg shadow mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Servicio a Seguir</label>
+                        <select id="tracking-service-selector" onchange="app.selectServiceForTracking(this.value)" 
+                                class="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            ${activeServices.length === 0 ? 
+                                '<option value="">No hay servicios activos</option>' :
+                                activeServices.map(service => 
+                                    `<option value="${service.id}">Servicio #${String(service.id).padStart(3, '0')} - ${service.wasteType}</option>`
+                                ).join('')
+                            }
+                        </select>
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button onclick="app.refreshTracking()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                        </button>
+                        <button id="auto-refresh-btn" onclick="app.toggleAutoRefresh()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-play mr-2"></i>Auto-actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            ${activeServices.length === 0 ? `
+                <!-- Estado sin servicios activos -->
+                <div class="bg-white rounded-lg shadow p-8">
+                    <div class="text-center">
+                        <i class="fas fa-map-marker-alt text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-900 mb-2">No hay servicios activos para seguir</h3>
+                        <p class="text-gray-500 mb-6">Los servicios aparecerán aquí cuando estén programados o en proceso.</p>
+                        <div class="space-x-4">
+                            <button onclick="app.loadModule('new-service')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-plus mr-2"></i>Solicitar Servicio
+                            </button>
+                            <button onclick="app.loadModule('my-services')" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700">
+                                <i class="fas fa-list mr-2"></i>Ver Mis Servicios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <!-- Vista principal de seguimiento -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Mapa de seguimiento -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                            <div class="p-4 border-b bg-gray-50">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-lg font-semibold">Ubicación del Vehículo</h3>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span class="text-sm text-green-600 font-medium">En línea</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tracking-map" class="h-96 bg-gray-100 relative">
+                                ${this.renderTrackingMap()}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de información -->
+                    <div class="space-y-6">
+                        <!-- Estado actual -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Estado Actual</h4>
+                            <div id="current-status" class="space-y-3">
+                                ${this.renderCurrentStatus(activeServices[0])}
+                            </div>
+                        </div>
+
+                        <!-- Estimaciones -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Estimaciones</h4>
+                            <div id="estimations" class="space-y-3">
+                                ${this.renderEstimations(activeServices[0])}
+                            </div>
+                        </div>
+
+                        <!-- Información del vehículo -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Vehículo Asignado</h4>
+                            <div id="vehicle-info" class="space-y-3">
+                                ${this.renderVehicleInfo(activeServices[0])}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline de eventos -->
+                <div class="mt-6 bg-white rounded-lg shadow">
+                    <div class="p-6 border-b">
+                        <h3 class="text-lg font-semibold">Timeline del Servicio</h3>
+                    </div>
+                    <div class="p-6">
+                        <div id="service-timeline">
+                            ${this.renderServiceTimeline(activeServices[0])}
+                        </div>
+                    </div>
+                </div>
+            `}
         `;
+
+        // Iniciar auto-refresh si hay servicios activos
+        if (activeServices.length > 0) {
+            this.initializeTracking(activeServices[0]);
+        }
     }
 
     // ========= USUARIOS (ADMIN) =========
@@ -615,6 +912,16 @@ class WasteManagementApp {
         }
     }
 
+    resetServicesData() {
+        if (confirm("¿Está seguro de que desea restaurar los servicios de ejemplo? Esto eliminará todos los servicios actuales.")) {
+            localStorage.removeItem('ecogestion_services');
+            authSystem?.showNotification?.('Datos de servicios restaurados. Recargue la página para ver los cambios.', 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        }
+    }
+
     generateTemporaryPassword() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let pwd = '';
@@ -733,6 +1040,901 @@ class WasteManagementApp {
         }
         
         document.body.removeChild(textArea);
+    }
+
+    // ========= MÉTODOS PARA "MIS SERVICIOS" (CLIENTES) =========
+    getClientServices(clientId) {
+        if (!window.servicesModule || !servicesModule.services) return [];
+        
+        // Filtrar servicios del cliente actual
+        return servicesModule.services.filter(service => 
+            service.clientId == clientId || service.createdBy == clientId
+        ).sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+    }
+
+    renderServiceSummaryCards(services) {
+        const total = services.length;
+        const pending = services.filter(s => s.status === 'Pendiente de Aprobación').length;
+        const inProgress = services.filter(s => ['Aprobado', 'Programado', 'En Proceso'].includes(s.status)).length;
+        const completed = services.filter(s => s.status === 'Completado').length;
+
+        const cards = [
+            { title: 'Total Solicitudes', value: total, icon: 'fa-clipboard-list', color: 'blue' },
+            { title: 'Pendientes', value: pending, icon: 'fa-clock', color: 'yellow' },
+            { title: 'En Proceso', value: inProgress, icon: 'fa-spinner', color: 'orange' },
+            { title: 'Completados', value: completed, icon: 'fa-check-circle', color: 'green' }
+        ];
+
+        return cards.map(card => `
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-${card.color}-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-${card.color}-600 text-sm font-medium">${card.title}</p>
+                        <p class="text-2xl font-bold text-gray-900">${card.value}</p>
+                    </div>
+                    <div class="p-3 bg-${card.color}-100 rounded-full">
+                        <i class="fas ${card.icon} text-${card.color}-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    renderClientServicesTable(services) {
+        if (services.length === 0) return '';
+
+        return services.map(service => `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">#${String(service.id).padStart(3, '0')}</div>
+                        <div class="text-xs text-gray-500">Creado: ${this.formatDate(service.createdDate)}</div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${this.formatDate(service.requestedDate)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getWasteTypeClass(service.wasteType)}">
+                        ${service.wasteType}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${service.estimatedVolume} ${service.volumeUnit || 'm³'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusClass(service.status)}">
+                        ${service.status}
+                    </span>
+                    ${service.status === 'Programado' && service.schedule ? `
+                        <div class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-calendar mr-1"></i>${service.schedule.collectionDate} ${service.schedule.collectionTime}
+                        </div>
+                    ` : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="app.viewClientService(${service.id})" 
+                            class="text-blue-600 hover:text-blue-900 mr-3" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${(service.status === 'Programado' || service.status === 'En Proceso') ? `
+                        <button onclick="app.trackService(${service.id})" 
+                                class="text-green-600 hover:text-green-900" title="Seguimiento GPS">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Métodos auxiliares reutilizando lógica de servicesModule
+    getWasteTypeClass(type) {
+        const classes = {
+            'Orgánico': 'bg-green-100 text-green-800',
+            'Reciclable': 'bg-blue-100 text-blue-800',
+            'No Reciclable': 'bg-gray-100 text-gray-800',
+            'Peligroso': 'bg-red-100 text-red-800',
+            'Electrónicos': 'bg-purple-100 text-purple-800',
+            'Construcción': 'bg-yellow-100 text-yellow-800'
+        };
+        return classes[type] || 'bg-gray-100 text-gray-800';
+    }
+
+    getStatusClass(status) {
+        const classes = {
+            'Pendiente de Aprobación': 'bg-yellow-100 text-yellow-800',
+            'Aprobado': 'bg-blue-100 text-blue-800',
+            'Rechazado': 'bg-red-100 text-red-800',
+            'Programado': 'bg-blue-100 text-blue-800',
+            'En Proceso': 'bg-orange-100 text-orange-800',
+            'Completado': 'bg-green-100 text-green-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    }
+
+    formatDate(dateString) {
+        if (!dateString) return '—';
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString('es-ES', options);
+    }
+
+    // Filtros para "Mis Servicios"
+    applyClientFilters() {
+        const statusFilter = document.getElementById('client-status-filter')?.value || '';
+        const periodFilter = document.getElementById('client-period-filter')?.value || '';
+        
+        const currentUser = this.currentUser;
+        if (!currentUser) return;
+
+        let services = this.getClientServices(currentUser.id);
+
+        // Aplicar filtro de estado
+        if (statusFilter) {
+            services = services.filter(s => s.status === statusFilter);
+        }
+
+        // Aplicar filtro de período
+        if (periodFilter) {
+            const days = parseInt(periodFilter);
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+            services = services.filter(s => new Date(s.createdDate) >= cutoffDate);
+        }
+
+        // Actualizar tabla
+        const tbody = document.getElementById('client-services-table-body');
+        if (tbody) {
+            tbody.innerHTML = this.renderClientServicesTable(services);
+        }
+
+        authSystem?.showNotification?.(`Se encontraron ${services.length} servicios`, 'info');
+    }
+
+    // Ver detalles de un servicio desde la vista del cliente
+    viewClientService(serviceId) {
+        if (window.servicesModule && typeof servicesModule.viewService === 'function') {
+            servicesModule.viewService(serviceId);
+        }
+    }
+
+    // Función para rastrear un servicio específico
+    trackService(serviceId) {
+        // Verificar que el servicio sea rastreable
+        const currentUser = this.currentUser;
+        const services = this.getActiveServicesForTracking(currentUser.id);
+        const serviceToTrack = services.find(s => s.id == serviceId);
+        
+        if (!serviceToTrack) {
+            authSystem?.showNotification?.('Este servicio no está disponible para seguimiento', 'warning');
+            return;
+        }
+        
+        // Cambiar a la sección de seguimiento
+        this.loadModule('tracking');
+        
+        // Esperar un momento para que se cargue la interfaz y luego seleccionar el servicio
+        setTimeout(() => {
+            this.selectServiceForTracking(serviceId);
+        }, 100);
+    }
+
+    // ========= MÉTODOS PARA "FACTURAS" (CLIENTES) =========
+    getClientInvoices(clientId) {
+        // Simular facturas basadas en servicios completados del cliente
+        const clientServices = this.getClientServices(clientId);
+        const invoices = [];
+        
+        // Crear facturas para servicios completados y algunos en proceso
+        clientServices.forEach((service, index) => {
+            if (['Completado', 'Programado', 'En Proceso'].includes(service.status)) {
+                const invoiceDate = new Date(service.requestedDate);
+                invoiceDate.setDate(invoiceDate.getDate() + (service.status === 'Completado' ? 3 : -5));
+                
+                const dueDate = new Date(invoiceDate);
+                dueDate.setDate(dueDate.getDate() + 30); // 30 días para pagar
+                
+                const amount = this.calculateServiceAmount(service);
+                const isOverdue = new Date() > dueDate;
+                
+                let status = 'Pendiente';
+                if (service.status === 'Completado' && Math.random() > 0.3) {
+                    status = 'Pagada';
+                } else if (isOverdue && status === 'Pendiente') {
+                    status = 'Vencida';
+                }
+
+                invoices.push({
+                    id: `FAC-${(1000 + index).toString()}`,
+                    serviceId: service.id,
+                    clientId: clientId,
+                    invoiceDate: invoiceDate.toISOString().split('T')[0],
+                    dueDate: dueDate.toISOString().split('T')[0],
+                    amount: amount,
+                    status: status,
+                    serviceDescription: `${service.wasteType} - ${service.estimatedVolume} ${service.volumeUnit}`,
+                    paymentMethod: status === 'Pagada' ? ['Transferencia', 'Efectivo', 'Cheque'][Math.floor(Math.random() * 3)] : null,
+                    paidDate: status === 'Pagada' ? new Date(dueDate.getTime() - Math.random() * 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null
+                });
+            }
+        });
+        
+        return invoices.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+    }
+
+    calculateServiceAmount(service) {
+        // Calcular costo basado en tipo de residuo y volumen
+        const baseRates = {
+            'Orgánico': 15000,
+            'Reciclable': 12000,
+            'No Reciclable': 18000,
+            'Peligroso': 45000,
+            'Electrónicos': 25000,
+            'Construcción': 35000
+        };
+        
+        const baseRate = baseRates[service.wasteType] || 15000;
+        const volume = parseFloat(service.estimatedVolume) || 1;
+        const volumeMultiplier = service.volumeUnit === 'ton' ? 1000 : (service.volumeUnit === 'kg' ? 1 : 100);
+        
+        let amount = baseRate + (volume * volumeMultiplier * 500);
+        
+        // Aplicar recargo por prioridad
+        if (service.priority === 'Alta') amount *= 1.2;
+        if (service.priority === 'Urgente') amount *= 1.5;
+        
+        return Math.round(amount);
+    }
+
+    renderInvoiceSummaryCards(invoices) {
+        const total = invoices.length;
+        const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
+        const pending = invoices.filter(inv => inv.status === 'Pendiente').length;
+        const pendingAmount = invoices.filter(inv => inv.status === 'Pendiente').reduce((sum, inv) => sum + inv.amount, 0);
+        const overdue = invoices.filter(inv => inv.status === 'Vencida').length;
+        const overdueAmount = invoices.filter(inv => inv.status === 'Vencida').reduce((sum, inv) => sum + inv.amount, 0);
+        const paid = invoices.filter(inv => inv.status === 'Pagada').length;
+
+        const cards = [
+            { 
+                title: 'Total Facturas', 
+                value: total, 
+                subtitle: `$${this.formatCurrency(totalAmount)}`,
+                icon: 'fa-file-invoice-dollar', 
+                color: 'blue' 
+            },
+            { 
+                title: 'Pendientes', 
+                value: pending, 
+                subtitle: `$${this.formatCurrency(pendingAmount)}`,
+                icon: 'fa-clock', 
+                color: 'yellow' 
+            },
+            { 
+                title: 'Vencidas', 
+                value: overdue, 
+                subtitle: `$${this.formatCurrency(overdueAmount)}`,
+                icon: 'fa-exclamation-triangle', 
+                color: 'red' 
+            },
+            { 
+                title: 'Pagadas', 
+                value: paid, 
+                subtitle: 'Al día',
+                icon: 'fa-check-circle', 
+                color: 'green' 
+            }
+        ];
+
+        return cards.map(card => `
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-${card.color}-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-${card.color}-600 text-sm font-medium">${card.title}</p>
+                        <p class="text-2xl font-bold text-gray-900">${card.value}</p>
+                        <p class="text-sm text-gray-500">${card.subtitle}</p>
+                    </div>
+                    <div class="p-3 bg-${card.color}-100 rounded-full">
+                        <i class="fas ${card.icon} text-${card.color}-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    renderInvoicesTable(invoices) {
+        if (invoices.length === 0) return '';
+
+        return invoices.map(invoice => `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">${invoice.id}</div>
+                        <div class="text-xs text-gray-500">Servicio #${String(invoice.serviceId).padStart(3, '0')}</div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${this.formatDate(invoice.invoiceDate)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${invoice.serviceDescription}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">$${this.formatCurrency(invoice.amount)}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${this.formatDate(invoice.dueDate)}
+                    ${this.isOverdue(invoice.dueDate) && invoice.status !== 'Pagada' ? 
+                        '<div class="text-xs text-red-600 font-medium">¡Vencida!</div>' : ''
+                    }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getInvoiceStatusClass(invoice.status)}">
+                        ${invoice.status}
+                    </span>
+                    ${invoice.status === 'Pagada' && invoice.paidDate ? `
+                        <div class="text-xs text-gray-500 mt-1">Pagada: ${this.formatDate(invoice.paidDate)}</div>
+                    ` : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="app.viewInvoiceDetails('${invoice.id}')" 
+                            class="text-blue-600 hover:text-blue-900 mr-3" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button onclick="app.downloadInvoicePDF('${invoice.id}')" 
+                            class="text-green-600 hover:text-green-900 mr-3" title="Descargar PDF">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                    ${invoice.status === 'Pendiente' || invoice.status === 'Vencida' ? `
+                        <button onclick="app.payInvoice('${invoice.id}')" 
+                                class="text-purple-600 hover:text-purple-900" title="Reportar pago">
+                            <i class="fas fa-credit-card"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    getInvoiceStatusClass(status) {
+        const classes = {
+            'Pendiente': 'bg-yellow-100 text-yellow-800',
+            'Pagada': 'bg-green-100 text-green-800',
+            'Vencida': 'bg-red-100 text-red-800',
+            'Cancelada': 'bg-gray-100 text-gray-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    }
+
+    formatCurrency(amount) {
+        return new Intl.NumberFormat('es-CO', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    }
+
+    isOverdue(dueDate) {
+        return new Date() > new Date(dueDate);
+    }
+
+    // Filtros para facturas
+    applyInvoiceFilters() {
+        const statusFilter = document.getElementById('invoice-status-filter')?.value || '';
+        const periodFilter = document.getElementById('invoice-period-filter')?.value || '';
+        
+        const currentUser = this.currentUser;
+        if (!currentUser) return;
+
+        let invoices = this.getClientInvoices(currentUser.id);
+
+        // Aplicar filtro de estado
+        if (statusFilter) {
+            invoices = invoices.filter(inv => inv.status === statusFilter);
+        }
+
+        // Aplicar filtro de período
+        if (periodFilter) {
+            const days = parseInt(periodFilter);
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+            invoices = invoices.filter(inv => new Date(inv.invoiceDate) >= cutoffDate);
+        }
+
+        // Actualizar tabla
+        const tbody = document.getElementById('invoices-table-body');
+        if (tbody) {
+            tbody.innerHTML = this.renderInvoicesTable(invoices);
+        }
+
+        authSystem?.showNotification?.(`Se encontraron ${invoices.length} facturas`, 'info');
+    }
+
+    // Acciones de facturas
+    viewInvoiceDetails(invoiceId) {
+        const currentUser = this.currentUser;
+        const invoices = this.getClientInvoices(currentUser.id);
+        const invoice = invoices.find(inv => inv.id === invoiceId);
+        
+        if (!invoice) return;
+
+        const modalHTML = `
+            <div id="invoice-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-full overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Detalles de Factura ${invoice.id}</h3>
+                        <button onclick="document.getElementById('invoice-details-modal').remove()" 
+                                class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">Información de Factura</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><span class="font-medium">Número:</span> ${invoice.id}</p>
+                                <p><span class="font-medium">Fecha de emisión:</span> ${this.formatDate(invoice.invoiceDate)}</p>
+                                <p><span class="font-medium">Fecha de vencimiento:</span> ${this.formatDate(invoice.dueDate)}</p>
+                                <p><span class="font-medium">Estado:</span> 
+                                    <span class="px-2 py-1 text-xs rounded-full ${this.getInvoiceStatusClass(invoice.status)}">
+                                        ${invoice.status}
+                                    </span>
+                                </p>
+                                ${invoice.paidDate ? `<p><span class="font-medium">Fecha de pago:</span> ${this.formatDate(invoice.paidDate)}</p>` : ''}
+                                ${invoice.paymentMethod ? `<p><span class="font-medium">Método de pago:</span> ${invoice.paymentMethod}</p>` : ''}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">Detalles del Servicio</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><span class="font-medium">Servicio #:</span> ${String(invoice.serviceId).padStart(3, '0')}</p>
+                                <p><span class="font-medium">Descripción:</span> ${invoice.serviceDescription}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t">
+                        <div class="flex justify-between items-center text-lg">
+                            <span class="font-semibold">Total a pagar:</span>
+                            <span class="font-bold text-2xl text-blue-600">$${this.formatCurrency(invoice.amount)}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button onclick="app.downloadInvoicePDF('${invoice.id}')" 
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-download mr-2"></i>Descargar PDF
+                        </button>
+                        ${invoice.status !== 'Pagada' ? `
+                            <button onclick="app.payInvoice('${invoice.id}'); document.getElementById('invoice-details-modal').remove();" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-credit-card mr-2"></i>Reportar Pago
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    downloadInvoicePDF(invoiceId) {
+        // Simular descarga de PDF
+        authSystem?.showNotification?.(`Descargando factura ${invoiceId}...`, 'info');
+        
+        setTimeout(() => {
+            authSystem?.showNotification?.(`Factura ${invoiceId} descargada exitosamente`, 'success');
+        }, 2000);
+    }
+
+    downloadInvoiceReport() {
+        authSystem?.showNotification?.('Generando reporte de facturas...', 'info');
+        
+        setTimeout(() => {
+            authSystem?.showNotification?.('Reporte de facturas descargado exitosamente', 'success');
+        }, 2000);
+    }
+
+    payInvoice(invoiceId) {
+        if (confirm('¿Confirma que ha realizado el pago de esta factura?')) {
+            authSystem?.showNotification?.('Pago reportado. Se verificará en 24-48 horas.', 'success');
+            
+            // Aquí podrías actualizar el estado en una base de datos real
+            setTimeout(() => {
+                this.loadInvoices(); // Recargar para mostrar cambios
+            }, 1000);
+        }
+    }
+
+    // ========= MÉTODOS PARA "SEGUIMIENTO" (CLIENTES) =========
+    getActiveServicesForTracking(clientId) {
+        const clientServices = this.getClientServices(clientId);
+        return clientServices.filter(service => 
+            ['Programado', 'En Proceso'].includes(service.status)
+        );
+    }
+
+    renderTrackingMap() {
+        // Simular un mapa con marcadores
+        return `
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 relative">
+                <!-- Ubicación del cliente -->
+                <div class="absolute top-4 left-4 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-map-marker-alt mr-2"></i>Su Ubicación
+                </div>
+                
+                <!-- Ruta simulada -->
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 300">
+                    <!-- Línea de ruta -->
+                    <path d="M 50 250 Q 200 150 350 100" stroke="#3B82F6" stroke-width="3" fill="none" stroke-dasharray="10,5"/>
+                    
+                    <!-- Marcador del cliente -->
+                    <circle cx="50" cy="250" r="8" fill="#3B82F6"/>
+                    <text x="50" y="270" text-anchor="middle" class="text-xs fill-gray-600">Cliente</text>
+                    
+                    <!-- Marcador del vehículo (animado) -->
+                    <circle cx="200" cy="150" r="10" fill="#10B981" class="animate-pulse">
+                        <animateMotion dur="20s" repeatCount="indefinite" 
+                                       path="M 50 250 Q 200 150 350 100"/>
+                    </circle>
+                    
+                    <!-- Destino -->
+                    <circle cx="350" cy="100" r="8" fill="#F59E0B"/>
+                    <text x="350" y="85" text-anchor="middle" class="text-xs fill-gray-600">Planta</text>
+                </svg>
+                
+                <!-- Panel de información del mapa -->
+                <div class="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow-lg max-w-xs">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <div>
+                            <p class="font-medium text-sm">Vehículo ECO-003</p>
+                            <p class="text-xs text-gray-500">Velocidad: 45 km/h</p>
+                            <p class="text-xs text-gray-500">Última actualización: hace 30 seg</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controles del mapa -->
+                <div class="absolute top-4 right-4 space-y-2">
+                    <button class="bg-white p-2 rounded shadow hover:bg-gray-50" title="Zoom in">
+                        <i class="fas fa-plus text-gray-600"></i>
+                    </button>
+                    <button class="bg-white p-2 rounded shadow hover:bg-gray-50" title="Zoom out">
+                        <i class="fas fa-minus text-gray-600"></i>
+                    </button>
+                    <button class="bg-white p-2 rounded shadow hover:bg-gray-50" title="Centrar">
+                        <i class="fas fa-crosshairs text-gray-600"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    renderCurrentStatus(service) {
+        if (!service) return '';
+        
+        const statusInfo = this.getServiceStatusInfo(service);
+        
+        return `
+            <div class="flex items-center space-x-3 p-3 bg-${statusInfo.color}-50 rounded-lg">
+                <div class="p-2 bg-${statusInfo.color}-100 rounded-full">
+                    <i class="fas ${statusInfo.icon} text-${statusInfo.color}-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">${statusInfo.title}</p>
+                    <p class="text-sm text-gray-600">${statusInfo.description}</p>
+                </div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Servicio:</span>
+                    <span class="font-medium">#${String(service.id).padStart(3, '0')}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Tipo:</span>
+                    <span class="font-medium">${service.wasteType}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Volumen:</span>
+                    <span class="font-medium">${service.estimatedVolume} ${service.volumeUnit}</span>
+                </div>
+                ${service.schedule ? `
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Programado:</span>
+                        <span class="font-medium">${service.schedule.collectionDate} ${service.schedule.collectionTime}</span>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    renderEstimations(service) {
+        if (!service) return '';
+        
+        const now = new Date();
+        const scheduledTime = service.schedule ? 
+            new Date(`${service.schedule.collectionDate}T${service.schedule.collectionTime}`) : 
+            new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 horas por defecto
+        
+        const estimatedArrival = new Date(scheduledTime.getTime() + Math.random() * 30 * 60 * 1000); // ±30 min
+        const estimatedCompletion = new Date(estimatedArrival.getTime() + 45 * 60 * 1000); // +45 min
+        
+        return `
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-clock text-blue-600"></i>
+                        <span class="text-sm font-medium">Llegada estimada</span>
+                    </div>
+                    <span class="font-bold text-blue-600">${this.formatTime(estimatedArrival)}</span>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                        <span class="text-sm font-medium">Finalización estimada</span>
+                    </div>
+                    <span class="font-bold text-green-600">${this.formatTime(estimatedCompletion)}</span>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-route text-yellow-600"></i>
+                        <span class="text-sm font-medium">Distancia restante</span>
+                    </div>
+                    <span class="font-bold text-yellow-600">${(Math.random() * 15 + 2).toFixed(1)} km</span>
+                </div>
+            </div>
+        `;
+    }
+
+    renderVehicleInfo(service) {
+        if (!service) return '';
+        
+        const vehicles = ['ECO-001', 'ECO-002', 'ECO-003', 'ECO-004'];
+        const drivers = ['Carlos Rodríguez', 'María García', 'Luis Martinez', 'Ana López'];
+        const selectedVehicle = vehicles[Math.floor(Math.random() * vehicles.length)];
+        const selectedDriver = drivers[Math.floor(Math.random() * drivers.length)];
+        
+        return `
+            <div class="space-y-3">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-blue-100 rounded-full">
+                        <i class="fas fa-truck text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">${selectedVehicle}</p>
+                        <p class="text-sm text-gray-600">Camión Compactador</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-green-100 rounded-full">
+                        <i class="fas fa-user text-green-600"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">${selectedDriver}</p>
+                        <p class="text-sm text-gray-600">Conductor Principal</p>
+                    </div>
+                </div>
+                
+                <div class="pt-3 border-t space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Capacidad:</span>
+                        <span class="font-medium">85%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Último servicio:</span>
+                        <span class="font-medium">10:30 AM</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Servicios hoy:</span>
+                        <span class="font-medium">3 de 6</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderServiceTimeline(service) {
+        if (!service) return '';
+        
+        const now = new Date();
+        const events = [
+            {
+                title: 'Solicitud creada',
+                time: service.createdDate,
+                status: 'completed',
+                icon: 'fa-file-plus',
+                description: 'Su solicitud fue registrada en el sistema'
+            },
+            {
+                title: 'Solicitud aprobada',
+                time: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                status: 'completed',
+                icon: 'fa-check',
+                description: 'Su solicitud fue revisada y aprobada'
+            },
+            {
+                title: 'Servicio programado',
+                time: service.schedule?.collectionDate || service.requestedDate,
+                status: 'completed',
+                icon: 'fa-calendar-check',
+                description: 'Se asignó vehículo y conductor'
+            },
+            {
+                title: 'Vehículo en ruta',
+                time: 'En tiempo real',
+                status: 'current',
+                icon: 'fa-truck',
+                description: 'El vehículo se dirige a su ubicación'
+            },
+            {
+                title: 'Recolección iniciada',
+                time: 'Pendiente',
+                status: 'pending',
+                icon: 'fa-play-circle',
+                description: 'Inicio de la recolección de residuos'
+            },
+            {
+                title: 'Recolección completada',
+                time: 'Pendiente',
+                status: 'pending',
+                icon: 'fa-check-circle',
+                description: 'Finalización y traslado a planta'
+            }
+        ];
+
+        return `
+            <div class="space-y-4">
+                ${events.map((event, index) => `
+                    <div class="flex items-start space-x-4">
+                        <div class="flex flex-col items-center">
+                            <div class="p-2 rounded-full ${this.getTimelineStatusClass(event.status)}">
+                                <i class="fas ${event.icon} text-sm"></i>
+                            </div>
+                            ${index < events.length - 1 ? `
+                                <div class="w-px h-8 ${event.status === 'completed' ? 'bg-green-300' : 'bg-gray-300'} mt-2"></div>
+                            ` : ''}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <p class="font-medium text-gray-900">${event.title}</p>
+                                <span class="text-sm text-gray-500">
+                                    ${event.time === 'En tiempo real' ? event.time : 
+                                      event.time === 'Pendiente' ? event.time :
+                                      this.formatDate(event.time)}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">${event.description}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    getServiceStatusInfo(service) {
+        const statusMap = {
+            'Programado': {
+                color: 'blue',
+                icon: 'fa-calendar-check',
+                title: 'Servicio Programado',
+                description: 'El vehículo se dirige a su ubicación'
+            },
+            'En Proceso': {
+                color: 'orange',
+                icon: 'fa-spinner',
+                title: 'Recolección en Proceso',
+                description: 'Se está realizando la recolección'
+            }
+        };
+        
+        return statusMap[service.status] || statusMap['Programado'];
+    }
+
+    getTimelineStatusClass(status) {
+        const classes = {
+            'completed': 'bg-green-100 text-green-600',
+            'current': 'bg-blue-100 text-blue-600 ring-4 ring-blue-50',
+            'pending': 'bg-gray-100 text-gray-400'
+        };
+        return classes[status] || classes['pending'];
+    }
+
+    formatTime(date) {
+        return date.toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    }
+
+    // Variables para auto-refresh
+    trackingInterval = null;
+    autoRefreshEnabled = false;
+
+    initializeTracking(service) {
+        // Configuración inicial del seguimiento
+        this.currentTrackedService = service;
+    }
+
+    selectServiceForTracking(serviceId) {
+        if (!serviceId) return;
+        
+        const currentUser = this.currentUser;
+        const services = this.getActiveServicesForTracking(currentUser.id);
+        const selectedService = services.find(s => s.id == serviceId);
+        
+        if (selectedService) {
+            this.currentTrackedService = selectedService;
+            this.updateTrackingDisplay(selectedService);
+            authSystem?.showNotification?.(`Siguiendo servicio #${String(selectedService.id).padStart(3, '0')}`, 'info');
+        }
+    }
+
+    updateTrackingDisplay(service) {
+        // Actualizar estado actual
+        const statusElement = document.getElementById('current-status');
+        if (statusElement) {
+            statusElement.innerHTML = this.renderCurrentStatus(service);
+        }
+        
+        // Actualizar estimaciones
+        const estimationsElement = document.getElementById('estimations');
+        if (estimationsElement) {
+            estimationsElement.innerHTML = this.renderEstimations(service);
+        }
+        
+        // Actualizar info del vehículo
+        const vehicleInfoElement = document.getElementById('vehicle-info');
+        if (vehicleInfoElement) {
+            vehicleInfoElement.innerHTML = this.renderVehicleInfo(service);
+        }
+        
+        // Actualizar timeline
+        const timelineElement = document.getElementById('service-timeline');
+        if (timelineElement) {
+            timelineElement.innerHTML = this.renderServiceTimeline(service);
+        }
+    }
+
+    refreshTracking() {
+        if (this.currentTrackedService) {
+            this.updateTrackingDisplay(this.currentTrackedService);
+            authSystem?.showNotification?.('Información actualizada', 'success');
+        }
+    }
+
+    toggleAutoRefresh() {
+        const btn = document.getElementById('auto-refresh-btn');
+        if (!btn) return;
+        
+        if (this.autoRefreshEnabled) {
+            // Detener auto-refresh
+            if (this.trackingInterval) {
+                clearInterval(this.trackingInterval);
+                this.trackingInterval = null;
+            }
+            this.autoRefreshEnabled = false;
+            btn.innerHTML = '<i class="fas fa-play mr-2"></i>Auto-actualizar';
+            btn.className = 'bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700';
+            authSystem?.showNotification?.('Auto-actualización desactivada', 'info');
+        } else {
+            // Iniciar auto-refresh
+            this.trackingInterval = setInterval(() => {
+                this.refreshTracking();
+            }, 10000); // Cada 10 segundos
+            
+            this.autoRefreshEnabled = true;
+            btn.innerHTML = '<i class="fas fa-pause mr-2"></i>Detener';
+            btn.className = 'bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700';
+            authSystem?.showNotification?.('Auto-actualización activada (cada 10s)', 'success');
+        }
     }
 }
 
