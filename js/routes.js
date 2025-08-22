@@ -291,13 +291,6 @@ window.routesModule = {
     // ====== UI principal ======
     load() {
         this.ensureLoaded();
-        
-        // Detectar si el usuario actual es operador
-        const currentUser = app?.currentUser;
-        if (currentUser && currentUser.type === 'operator') {
-            this.loadOperatorView();
-            return;
-        }
 
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = `
@@ -374,286 +367,6 @@ window.routesModule = {
 
         this.showTab('routes');
         this.updateSummaryCards(); // asegurar métricas correctas al cargar
-    },
-
-    // ====== VISTA ESPECÍFICA PARA OPERADORES ======
-    loadOperatorView() {
-        const contentArea = document.getElementById('content-area');
-        const currentUser = app?.currentUser;
-        
-        // Obtener rutas asignadas al operador
-        const myRoutes = this.getOperatorRoutes(currentUser);
-        
-        if (!contentArea) {
-            console.error('Content area not found!');
-            return;
-        }
-        
-        try {
-            contentArea.innerHTML = `
-            <div class="mb-6">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-800">Mis Rutas</h1>
-                        <p class="text-gray-600">Gestiona tus rutas asignadas - ${currentUser?.name || 'Operador'}</p>
-                        <p class="text-xs text-gray-500 mt-1">Rutas encontradas: ${myRoutes.length}</p>
-                    </div>
-                    <div class="mt-4 md:mt-0 flex items-center space-x-3">
-                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                            <i class="fas fa-truck text-xs mr-1"></i>Operador Activo
-                        </span>
-                        <button onclick="routesModule.loadOperatorView()" 
-                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                            <i class="fas fa-sync-alt mr-2"></i>Actualizar
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- KPIs del Operador -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                ${this.renderOperatorRouteKpis(myRoutes)}
-            </div>
-
-            <!-- Filtros y acciones -->
-            <div class="bg-white p-4 rounded-lg shadow mb-6">
-                <div class="flex flex-wrap gap-4 items-center">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar por fecha</label>
-                        <select id="operator-date-filter" onchange="routesModule.filterOperatorRoutes()" 
-                                class="px-3 py-2 border rounded-lg">
-                            <option value="today">Hoy</option>
-                            <option value="tomorrow">Mañana</option>
-                            <option value="week">Esta semana</option>
-                            <option value="all">Todas</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                        <select id="operator-status-filter" onchange="routesModule.filterOperatorRoutes()" 
-                                class="px-3 py-2 border rounded-lg">
-                            <option value="all">Todos los estados</option>
-                            <option value="Programada">Programadas</option>
-                            <option value="En Progreso">En Progreso</option>
-                            <option value="Completada">Completadas</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Lista de rutas del operador -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Mis Rutas Asignadas</h3>
-                </div>
-                <div id="operator-routes-container">
-                    ${this.renderOperatorRoutes(myRoutes)}
-                </div>
-            </div>
-        `;
-        } catch (error) {
-            console.error('Error in loadOperatorView:', error);
-            contentArea.innerHTML = `
-                <div class="p-8 text-center">
-                    <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
-                    <h3 class="text-xl font-medium text-red-900 mb-2">Error al cargar Mis Rutas</h3>
-                    <p class="text-red-500">Hubo un problema al cargar la vista. Por favor, actualiza la página.</p>
-                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Actualizar Página
-                    </button>
-                </div>
-            `;
-        }
-    },
-
-    // Obtener rutas asignadas al operador actual
-    getOperatorRoutes(currentUser) {
-        if (!currentUser) {
-            return [];
-        }
-        
-        // Asegurar que las rutas estén cargadas
-        this.ensureLoaded();
-        
-        // Filtrar rutas donde el operador aparece como driver (usar name para compatibilidad)
-        const filteredRoutes = this.routes.filter(route => {
-            return route.driver === currentUser.name || 
-                   route.driver === currentUser.id ||
-                   route.assignedOperator === currentUser.id ||
-                   route.assignedOperator === currentUser.name;
-        });
-        
-        return filteredRoutes;
-    },
-
-    renderOperatorRouteKpis(routes) {
-        const today = new Date().toISOString().split('T')[0];
-        const todayRoutes = routes.filter(r => r.date === today);
-        const inProgress = routes.filter(r => r.status === 'En Progreso');
-        const completed = routes.filter(r => r.status === 'Completada');
-
-        // Calcular progreso de puntos
-        const totalPoints = routes.reduce((sum, route) => sum + (route.collectionPoints?.length || 0), 0);
-        const completedPoints = routes.reduce((sum, route) => {
-            const completed = route.collectionPoints?.filter(p => p.status === 'Completado') || [];
-            return sum + completed.length;
-        }, 0);
-
-        const kpis = [
-            {
-                title: 'Rutas Hoy',
-                value: todayRoutes.length,
-                subtitle: 'Asignadas',
-                icon: 'fa-calendar-day',
-                color: 'blue'
-            },
-            {
-                title: 'En Progreso',
-                value: inProgress.length,
-                subtitle: 'Activas ahora',
-                icon: 'fa-truck',
-                color: 'yellow'
-            },
-            {
-                title: 'Puntos Completados',
-                value: `${completedPoints}/${totalPoints}`,
-                subtitle: `${totalPoints > 0 ? Math.round((completedPoints/totalPoints)*100) : 0}% progreso`,
-                icon: 'fa-map-marker-alt',
-                color: 'green'
-            }
-        ];
-
-        return kpis.map(kpi => `
-            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-${kpi.color}-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-${kpi.color}-600 text-sm font-medium">${kpi.title}</p>
-                        <p class="text-3xl font-bold text-gray-900">${kpi.value}</p>
-                        <p class="text-gray-500 text-xs mt-1">${kpi.subtitle}</p>
-                    </div>
-                    <div class="p-3 bg-${kpi.color}-100 rounded-full">
-                        <i class="fas ${kpi.icon} text-${kpi.color}-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    },
-
-    renderOperatorRoutes(routes) {
-        if (!routes || routes.length === 0) {
-            return `
-                <div class="p-8 text-center">
-                    <i class="fas fa-route text-gray-300 text-6xl mb-4"></i>
-                    <h3 class="text-xl font-medium text-gray-900 mb-2">No hay rutas asignadas</h3>
-                    <p class="text-gray-500">No tienes rutas asignadas en este momento.</p>
-                    <p class="text-xs text-gray-400 mt-2">Si esto es incorrecto, contacta al administrador.</p>
-                </div>
-            `;
-        }
-
-        try {
-            // Renderizar cada ruta individualmente para identificar problemas
-            const routeCards = routes.map((route, index) => {
-                try {
-                    return this.renderOperatorRouteCard(route);
-                } catch (error) {
-                    console.error(`Error rendering route ${index}:`, route, error);
-                    return `
-                        <div class="p-6 bg-red-50 border border-red-200 rounded-lg">
-                            <h4 class="text-red-800 font-semibold">Error al cargar ruta: ${route.name || 'Sin nombre'}</h4>
-                            <p class="text-red-600 text-sm mt-1">Error: ${error.message}</p>
-                        </div>
-                    `;
-                }
-            });
-
-            return `
-                <div class="divide-y divide-gray-200">
-                    ${routeCards.join('')}
-                </div>
-            `;
-        } catch (error) {
-            console.error('Error rendering operator routes:', error);
-            return `
-                <div class="p-8 text-center">
-                    <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
-                    <h3 class="text-xl font-medium text-red-900 mb-2">Error al cargar rutas</h3>
-                    <p class="text-red-500">Hubo un problema al cargar tus rutas. Error: ${error.message}</p>
-                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Actualizar Página
-                    </button>
-                </div>
-            `;
-        }
-    },
-
-    renderOperatorRouteCard(route) {
-        const statusColors = {
-            'Programada': 'blue',
-            'En Progreso': 'yellow',
-            'Completada': 'green',
-            'Pausada': 'red'
-        };
-        const color = statusColors[route.status] || 'gray';
-
-        return `
-            <div class="p-6 hover:bg-gray-50 transition-colors">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-4 mb-3">
-                            <h4 class="text-lg font-semibold text-gray-900">${route.name}</h4>
-                            <span class="px-3 py-1 text-sm rounded-full bg-${color}-100 text-${color}-800">
-                                ${route.status}
-                            </span>
-                            <span class="text-sm text-gray-500">ID: ${route.code}</span>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                            <div>
-                                <i class="fas fa-calendar mr-2 text-blue-500"></i>
-                                <strong>Fecha:</strong> ${this.formatDate(route.date)}
-                            </div>
-                            <div>
-                                <i class="fas fa-clock mr-2 text-green-500"></i>
-                                <strong>Inicio:</strong> ${route.startTime}
-                            </div>
-                            <div>
-                                <i class="fas fa-truck mr-2 text-purple-500"></i>
-                                <strong>Vehículo:</strong> ${this.getVehicleDisplayName(route.vehicle)}
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <div class="flex items-center justify-between text-sm text-gray-600">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-red-500"></i>
-                                    <strong>Puntos de recolección:</strong> 
-                                    <span class="ml-2">${route.collectionPoints?.length || 0} paradas</span>
-                                </div>
-                                <div class="text-right">
-                                    ${this.renderRouteProgress(route)}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 lg:mt-0 lg:ml-6 flex flex-col space-y-2">
-                        ${this.renderOperatorRouteActions(route)}
-                    </div>
-                </div>
-
-                <!-- Puntos de recolección (expandible) -->
-                <div class="mt-4">
-                    <button onclick="routesModule.toggleRouteDetails('route-${route.id}')" 
-                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                        <i class="fas fa-chevron-down mr-1"></i>Ver detalles de paradas
-                    </button>
-                    <div id="route-${route.id}-details" class="hidden mt-3 bg-gray-50 p-4 rounded-lg">
-                        ${this.renderCollectionPoints(route.collectionPoints, true)}
-                    </div>
-                </div>
-            </div>
-        `;
     },
 
     renderOperatorRouteActions(route) {
@@ -891,7 +604,6 @@ window.routesModule = {
             
             this.saveAll();
             authSystem?.showNotification?.('Recolección cancelada', 'warning');
-            this.loadOperatorView();
         }
     },
 
@@ -907,7 +619,6 @@ window.routesModule = {
             
             this.saveAll();
             authSystem?.showNotification?.('Punto de recolección saltado', 'warning');
-            this.loadOperatorView();
         }
     },
 
@@ -1053,7 +764,6 @@ window.routesModule = {
         authSystem?.showNotification?.(`Recolección en ${point.client} completada exitosamente`, 'success');
         
         this.cancelCollectionForm();
-        this.loadOperatorView();
     },
 
     saveToCollectionModule(point, formData) {
@@ -1257,7 +967,6 @@ window.routesModule = {
             route.pausedAt = new Date().toISOString();
             this.saveAll();
             authSystem?.showNotification?.(`Ruta "${route.name}" pausada`, 'warning');
-            this.loadOperatorView();
         }
     },
 
@@ -1270,7 +979,6 @@ window.routesModule = {
             route.resumedAt = new Date().toISOString();
             this.saveAll();
             authSystem?.showNotification?.(`Ruta "${route.name}" reanudada`, 'success');
-            this.loadOperatorView();
         }
     },
 
@@ -1346,44 +1054,7 @@ window.routesModule = {
         `;
     },
 
-    // Filtros para vista de operador
-    filterOperatorRoutes() {
-        const dateFilter = document.getElementById('operator-date-filter')?.value;
-        const statusFilter = document.getElementById('operator-status-filter')?.value;
-        const currentUser = app?.currentUser;
-        
-        let routes = this.getOperatorRoutes(currentUser);
-        
-        // Filtrar por fecha
-        if (dateFilter !== 'all') {
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
-            
-            if (dateFilter === 'today') {
-                routes = routes.filter(r => r.date === todayStr);
-            } else if (dateFilter === 'tomorrow') {
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const tomorrowStr = tomorrow.toISOString().split('T')[0];
-                routes = routes.filter(r => r.date === tomorrowStr);
-            } else if (dateFilter === 'week') {
-                const endOfWeek = new Date(today);
-                endOfWeek.setDate(endOfWeek.getDate() + 7);
-                routes = routes.filter(r => r.date >= todayStr && r.date <= endOfWeek.toISOString().split('T')[0]);
-            }
-        }
-        
-        // Filtrar por estado
-        if (statusFilter !== 'all') {
-            routes = routes.filter(r => r.status === statusFilter);
-        }
-        
-        // Actualizar la vista
-        const container = document.getElementById('operator-routes-container');
-        if (container) {
-            container.innerHTML = this.renderOperatorRoutes(routes);
-        }
-    },
+
 
     toggleRouteDetails(elementId) {
         const element = document.getElementById(elementId + '-details');

@@ -98,45 +98,134 @@ window.servicesModule = {
                         wasteType: 'Peligroso',
                         estimatedVolume: '1.8',
                         volumeUnit: 'm3',
-                        requestedDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Mañana
-                        preferredTime: 'specific',
-                        specificTime: '14:30',
-                        priority: 'Urgente',
-                        accessNotes: 'Requiere equipo especializado',
-                        status: 'En Proceso',
-                        createdDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Ayer
+                        requestedDate: new Date().toISOString().split('T')[0], // Hoy
+                        preferredTime: 'afternoon',
+                        specificTime: '14:00',
+                        priority: 'Alta',
+                        accessNotes: 'Material peligroso - Requiere manejo especial',
+                        status: 'Programado',
+                        createdDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 1 día
                         createdBy: 3,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 2,
                         schedule: {
-                            collectionDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                            collectionTime: '14:30',
+                            collectionDate: new Date().toISOString().split('T')[0],
+                            collectionTime: '14:00',
                             estimatedDuration: '2.5',
-                            equipmentRequired: 'Camión especializado',
-                            personnelRequired: 'Equipo especializado',
-                            schedulePriority: 'Urgente'
+                            equipmentRequired: 'Camión especial para residuos peligrosos',
+                            personnelRequired: '2 operadores especializados',
+                            schedulePriority: 'Alta'
+                        }
+                    },
+                    // Solicitud asignada al operador Carlos Rodríguez (ID: 4)
+                    {
+                        id: 5,
+                        clientId: 2,
+                        clientName: 'Centro Comercial Plaza Mayor',
+                        clientEmail: 'administracion@plazamayor.com',
+                        clientPhone: '+(57) 310 555 1234',
+                        address: 'Calle 72 #12-34, Centro Comercial',
+                        wasteType: 'Orgánico',
+                        estimatedVolume: '4.2',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date().toISOString().split('T')[0], // Hoy
+                        preferredTime: 'morning',
+                        specificTime: '08:30',
+                        priority: 'Media',
+                        accessNotes: 'Entrada por carga, coordinar con seguridad',
+                        status: 'En Ruta',
+                        createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 3 días
+                        createdBy: 2,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 2,
+                        schedule: {
+                            collectionDate: new Date().toISOString().split('T')[0],
+                            collectionTime: '08:30',
+                            estimatedDuration: '1.5',
+                            equipmentRequired: 'Camión compactador',
+                            personnelRequired: '1 operador + 1 ayudante',
+                            schedulePriority: 'Media'
                         }
                     },
                     {
-                        id: 5,
-                        clientId: 3,
-                        clientName: 'Empresa ABC S.A.',
-                        clientEmail: 'contacto@empresaabc.com',
-                        clientPhone: '+(57) 300 123 4567',
-                        address: 'Av. Siempreviva 742, Springfield, Bogotá',
+                        id: 6,
+                        clientId: 1,
+                        clientName: 'Restaurante El Buen Sabor',
+                        clientEmail: 'gerencia@elbuensabor.com',
+                        clientPhone: '+(57) 315 777 8888',
+                        address: 'Carrera 15 #45-67, Zona Rosa',
                         wasteType: 'Orgánico',
-                        estimatedVolume: '4.5',
+                        estimatedVolume: '2.8',
                         volumeUnit: 'm3',
-                        requestedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 5 días
+                        requestedDate: (() => {
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            return tomorrow.toISOString().split('T')[0];
+                        })(), // Mañana
+                        preferredTime: 'morning',
+                        specificTime: '07:00',
+                        priority: 'Alta',
+                        accessNotes: 'Residuos de cocina, coordinar con el chef',
+                        status: 'Aprobado',
+                        createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 2 días
+                        createdBy: 1,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 2,
+                        schedule: {
+                            collectionDate: (() => {
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                return tomorrow.toISOString().split('T')[0];
+                            })(),
+                            collectionTime: '07:00',
+                            estimatedDuration: '1',
+                            equipmentRequired: 'Camión estándar',
+                            personnelRequired: '1 operador',
+                            schedulePriority: 'Alta'
+                        }
+                    },
+                    {
+                        id: 7,
+                        clientId: 3,
+                        clientName: 'Oficinas Corporativas',
+                        clientEmail: 'servicios@corporativas.com',
+                        clientPhone: '+(57) 300 999 0000',
+                        address: 'Calle 100 #15-20, Torre Norte',
+                        wasteType: 'Reciclable',
+                        estimatedVolume: '3.5',
+                        volumeUnit: 'm3',
+                        requestedDate: (() => {
+                            const yesterday = new Date();
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            return yesterday.toISOString().split('T')[0];
+                        })(), // Ayer
                         preferredTime: 'afternoon',
-                        specificTime: '',
+                        specificTime: '15:00',
                         priority: 'Media',
-                        accessNotes: '',
+                        accessNotes: 'Papel y cartón separados, acceso por sótano',
                         status: 'Completado',
-                        createdDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 7 días
-                        createdBy: 3
+                        createdDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Hace 4 días
+                        createdBy: 3,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 2,
+                        completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                        finalDisposition: 'Centro de Reciclaje',
+                        schedule: {
+                            collectionDate: (() => {
+                                const yesterday = new Date();
+                                yesterday.setDate(yesterday.getDate() - 1);
+                                return yesterday.toISOString().split('T')[0];
+                            })(),
+                            collectionTime: '15:00',
+                            estimatedDuration: '2',
+                            equipmentRequired: 'Camión de reciclaje',
+                            personnelRequired: '1 operador + 1 ayudante',
+                            schedulePriority: 'Media'
+                        }
                     },
                     // Servicios adicionales para pruebas de operador con estados variados
                     {
-                        id: 6,
+                        id: 8,
                         clientId: 1,
                         clientName: 'Hospital Central',
                         clientEmail: 'residuos@hospitalcentral.com',
@@ -154,7 +243,7 @@ window.servicesModule = {
                         createdDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                         createdBy: 1,
                         assignedOperator: 'Carlos Rodríguez',
-                        operatorId: 4,
+                        operatorId: 2,
                         schedule: {
                             collectionDate: new Date().toISOString().split('T')[0],
                             collectionTime: '08:00',
@@ -165,7 +254,7 @@ window.servicesModule = {
                         }
                     },
                     {
-                        id: 7,
+                        id: 9,
                         clientId: 2,
                         clientName: 'Supermercado FreshMart',
                         clientEmail: 'operaciones@freshmart.com',
@@ -183,7 +272,7 @@ window.servicesModule = {
                         createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                         createdBy: 2,
                         assignedOperator: 'Carlos Rodríguez',
-                        operatorId: 4,
+                        operatorId: 2,
                         schedule: {
                             collectionDate: new Date().toISOString().split('T')[0],
                             collectionTime: '15:30',
@@ -194,7 +283,7 @@ window.servicesModule = {
                         }
                     },
                     {
-                        id: 8,
+                        id: 10,
                         clientId: 3,
                         clientName: 'Fábrica EcoTech',
                         clientEmail: 'produccion@ecotech.com',
@@ -210,16 +299,74 @@ window.servicesModule = {
                         accessNotes: 'Recoger en área de almacenamiento temporal',
                         status: 'Programado',
                         createdDate: new Date().toISOString().split('T')[0],
-                        createdBy: 3,
+                        createdBy: 1,
                         assignedOperator: 'Carlos Rodríguez',
-                        operatorId: 4,
+                        operatorId: 2,
                         schedule: {
                             collectionDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                             collectionTime: '09:00',
-                            estimatedDuration: '2.5',
-                            equipmentRequired: 'Camión de carga pesada',
-                            personnelRequired: '1 operador + 2 ayudantes',
+                            estimatedDuration: '3.0',
+                            equipmentRequired: 'Camión industrial',
+                            personnelRequired: '2 operadores + 1 supervisor',
                             schedulePriority: 'Alta'
+                        }
+                    },
+                    {
+                        id: 11,
+                        clientId: 4,
+                        clientName: 'Centro Comercial Galerías',
+                        clientEmail: 'administracion@galerias.com',
+                        clientPhone: '+(57) 300 555 0123',
+                        address: 'Calle 80 #12-45, Bogotá',
+                        wasteType: 'Mixto',
+                        estimatedVolume: '5.5',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date().toISOString().split('T')[0],
+                        preferredTime: 'afternoon',
+                        specificTime: '16:00',
+                        priority: 'Media',
+                        accessNotes: 'Acceso por puerta trasera del centro comercial',
+                        status: 'En Ruta',
+                        createdDate: new Date().toISOString().split('T')[0],
+                        createdBy: 1,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 2,
+                        schedule: {
+                            collectionDate: new Date().toISOString().split('T')[0],
+                            collectionTime: '16:00',
+                            estimatedDuration: '2.5',
+                            equipmentRequired: 'Camión compactador',
+                            personnelRequired: '1 operador + 1 ayudante',
+                            schedulePriority: 'Media'
+                        }
+                    },
+                    {
+                        id: 12,
+                        clientId: 5,
+                        clientName: 'Restaurante La Parrilla',
+                        clientEmail: 'gerencia@laparrilla.com',
+                        clientPhone: '+(57) 310 555 0456',
+                        address: 'Carrera 15 #93-20, Bogotá',
+                        wasteType: 'Orgánico',
+                        estimatedVolume: '2.8',
+                        volumeUnit: 'm3',
+                        requestedDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        preferredTime: 'evening',
+                        specificTime: '20:00',
+                        priority: 'Baja',
+                        accessNotes: 'Recoger después del cierre del restaurante',
+                        status: 'Aprobado',
+                        createdDate: new Date().toISOString().split('T')[0],
+                        createdBy: 1,
+                        assignedOperator: 'Carlos Rodríguez',
+                        operatorId: 2,
+                        schedule: {
+                            collectionDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            collectionTime: '20:00',
+                            estimatedDuration: '1.0',
+                            equipmentRequired: 'Camión compactador',
+                            personnelRequired: '1 operador',
+                            schedulePriority: 'Baja'
                         }
                     }
                 ];
@@ -857,7 +1004,17 @@ window.servicesModule = {
 
         const currentUser = app?.currentUser;
         const isClient = currentUser?.type === 'client';
-        const backAction = isClient ? "app.loadModule('my-services')" : "servicesModule.load()";
+        const isOperator = currentUser?.type === 'operator';
+        
+        // Determinar la acción de volver según el tipo de usuario
+        let backAction;
+        if (isClient) {
+            backAction = "app.loadModule('my-services')";
+        } else if (isOperator) {
+            backAction = "plantModule.load()";
+        } else {
+            backAction = "servicesModule.load()";
+        }
 
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = `
@@ -913,7 +1070,7 @@ window.servicesModule = {
                     </div>
                 </div>
 
-                ${!isClient ? `
+                ${!isClient && !isOperator ? `
                 <div class="pt-6 border-t flex flex-wrap gap-3">
                     ${s.status === 'Pendiente de Aprobación' ? `
                         <button onclick="servicesModule.approveService(${s.id})" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
@@ -1501,9 +1658,13 @@ window.servicesModule = {
     },
 
     // Obtener servicios asignados a un operador específico
-    getOperatorServices(operatorId) {
+                getOperatorServices(operator) {
+        if (!operator) return [];
+        const operatorId = operator.id;
+        const operatorName = operator.name;
+
         return this.services.filter(service => 
-            service.assignedOperator === operatorId || 
+            service.assignedOperator === operatorName || 
             service.operatorId === operatorId ||
             service.createdBy === operatorId
         );

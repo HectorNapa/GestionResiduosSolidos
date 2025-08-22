@@ -203,103 +203,40 @@ window.plantModule = {
     // --- OPERATOR VIEW ---
     renderOperatorView(container) {
         const currentUser = app?.currentUser;
-        const operatorReceptions = this.getOperatorReceptions(currentUser);
         
         container.innerHTML = `
-            <!-- KPIs del operador -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <i class="fas fa-truck text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-500">Recepciones Hoy</h3>
-                            <p class="text-2xl font-bold text-gray-900">${this.getOperatorReceptionsToday(currentUser)}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
-                            <i class="fas fa-weight-hanging text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-500">Peso Total Hoy</h3>
-                            <p class="text-2xl font-bold text-gray-900">${this.getOperatorWeightToday(currentUser)} T</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                            <i class="fas fa-clock text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-500">Pendientes</h3>
-                            <p class="text-2xl font-bold text-gray-900">${this.getPendingManifests()}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <i class="fas fa-chart-line text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-500">Capacidad Usada</h3>
-                            <p class="text-2xl font-bold text-gray-900">${this.processingCapacity.current}%</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Acciones principales -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="grid grid-cols-1 gap-6 mb-6">
                 <!-- Formulario de nueva recepción -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-6 border-b">
-                            <div class="flex justify-between items-center">
-                                <h3 class="text-lg font-semibold">Nueva Recepción de Residuos</h3>
-                                <button onclick="plantModule.showQuickReceptionForm()" 
-                                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                                    <i class="fas fa-plus mr-2"></i>Recepción Rápida
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <form id="reception-form" class="space-y-4"></form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Panel de manifiestos pendientes -->
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-6 border-b">
-                        <h3 class="text-lg font-semibold">Manifiestos Pendientes</h3>
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold">Nueva Recepción de Residuos</h3>
+                        </div>
                     </div>
                     <div class="p-6">
-                        ${this.renderPendingManifests()}
+                        <form id="reception-form" class="space-y-4"></form>
                     </div>
                 </div>
             </div>
 
-            <!-- Recepciones recientes -->
+            <!-- Solicitudes Asignadas -->
             <div class="bg-white rounded-lg shadow">
                 <div class="p-6 border-b">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold">Recepciones Recientes</h3>
+                        <h3 class="text-lg font-semibold">Solicitudes Asignadas</h3>
                         <div class="flex space-x-2">
-                            <button onclick="plantModule.filterReceptions('today')" 
+                            <button onclick="plantModule.filterOperatorServices('today')" 
                                     class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Hoy</button>
-                            <button onclick="plantModule.filterReceptions('week')" 
+                            <button onclick="plantModule.filterOperatorServices('week')" 
                                     class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Esta Semana</button>
+                            <button onclick="plantModule.filterOperatorServices('all')" 
+                                    class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Todas</button>
                         </div>
                     </div>
                 </div>
-                <div id="operator-receptions-list">
-                    ${this.renderOperatorReceptionsList(operatorReceptions)}
+                <div id="operator-services-list">
+                    ${this.renderOperatorServicesList()}
                 </div>
             </div>
 
@@ -309,6 +246,14 @@ window.plantModule = {
         
         this.renderReceptionForm(document.getElementById('reception-form'));
         this.initReceptionForm();
+        
+        // Verificar que servicesModule esté disponible
+        this.verifyServicesModule();
+        
+        // Aplicar estilos a la tabla inicial
+        setTimeout(() => {
+            this.applyTableStyles();
+        }, 100);
     },
 
     // --- DYNAMIC DATA & ACTIONS ---
@@ -730,72 +675,7 @@ window.plantModule = {
         }
     },
 
-    // Funciones para mostrar estadísticas del operador
-    getOperatorReceptions(user) {
-        if (!user) return [];
-        return this.receptions.filter(r => 
-            r.operator === user.name || 
-            r.operator.includes('Operador')
-        );
-    },
 
-    getOperatorReceptionsToday(user) {
-        const today = new Date().toISOString().slice(0, 10);
-        return this.getOperatorReceptions(user).filter(r => r.arrivalDate === today).length;
-    },
-
-    getOperatorWeightToday(user) {
-        const today = new Date().toISOString().slice(0, 10);
-        const total = this.getOperatorReceptions(user)
-            .filter(r => r.arrivalDate === today)
-            .reduce((sum, r) => sum + (r.totalWeight || 0), 0);
-        return total.toFixed(1);
-    },
-
-    getPendingManifests() {
-        // Simulamos manifiestos pendientes
-        return window.manifestsModule?.manifests?.filter(m => 
-            m.status === 'En Tránsito'
-        )?.length || 2;
-    },
-
-    renderPendingManifests() {
-        const pendingManifests = window.manifestsModule?.manifests?.filter(m => 
-            m.status === 'En Tránsito'
-        ) || [
-            { manifestNumber: 'M-2024-003', route: 'R-003', totalWeight: 12.5, driver: 'Ana García' },
-            { manifestNumber: 'M-2024-004', route: 'R-001', totalWeight: 8.2, driver: 'Miguel López' }
-        ];
-
-        if (pendingManifests.length === 0) {
-            return `
-                <div class="text-center py-6">
-                    <i class="fas fa-check-circle text-green-400 text-3xl mb-2"></i>
-                    <p class="text-gray-500">No hay manifiestos pendientes</p>
-                </div>
-            `;
-        }
-
-        return `
-            <div class="space-y-3">
-                ${pendingManifests.map(manifest => `
-                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h5 class="font-medium">${manifest.manifestNumber}</h5>
-                                <p class="text-sm text-gray-600">${manifest.route} • ${manifest.totalWeight} Ton</p>
-                                <p class="text-sm text-gray-600">Conductor: ${manifest.driver}</p>
-                            </div>
-                            <button onclick="plantModule.quickReception('${manifest.manifestNumber}')" 
-                                    class="text-blue-600 hover:text-blue-800 text-sm">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    },
 
     renderOperatorReceptionsList(receptions) {
         if (!receptions || receptions.length === 0) {
@@ -860,5 +740,560 @@ window.plantModule = {
     filterReceptions(filter) {
         authSystem.showNotification(`Filtro "${filter}" aplicado`, 'info');
         // Aquí se implementaría la lógica de filtrado
+    },
+
+    // ========= FUNCIONES PARA SOLICITUDES DEL OPERADOR =========
+
+    // Obtener servicios asignados al operador actual
+    getOperatorServices() {
+        const currentUser = app?.currentUser;
+        if (!currentUser) {
+            console.warn('No hay usuario actual');
+            return [];
+        }
+        
+        if (!window.servicesModule) {
+            console.warn('servicesModule no está disponible');
+            return [];
+        }
+
+        const services = window.servicesModule.getOperatorServices(currentUser) || [];
+        console.log('Servicios del operador:', services);
+        return services;
+    },
+
+    // Renderizar lista de servicios del operador
+    renderOperatorServicesList() {
+        const services = this.getOperatorServices();
+        
+        if (!services || services.length === 0) {
+            return `
+                <div class="p-6 text-center">
+                    <i class="fas fa-clipboard-list text-gray-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500">No hay solicitudes asignadas</p>
+                    <p class="text-sm text-gray-400 mt-2">Las solicitudes aparecerán aquí cuando te sean asignadas</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitud</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Residuo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        ${services.map(service => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="p-2 rounded-full ${this.getServiceStatusColor(service.status)} mr-3">
+                                            <i class="fas ${this.getServiceStatusIcon(service.status)}"></i>
+                                        </div>
+                                        <div class="text-sm font-medium text-gray-900">#${String(service.id).padStart(3, '0')}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">${service.clientName}</div>
+                                    <div class="text-sm text-gray-500">${service.address}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">${service.wasteType}</div>
+                                    <div class="text-sm text-gray-500">${service.estimatedVolume} ${service.volumeUnit}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    ${this.formatDate(service.requestedDate)}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full ${this.getServiceStatusClass(service.status)}">
+                                        ${service.status}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button onclick="plantModule.viewService(${service.id})" 
+                                                class="text-blue-600 hover:text-blue-800 p-2" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        ${this.renderServiceActionButtons(service)}
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    },
+
+    // Obtener color de fondo para el estado del servicio
+    getServiceStatusColor(status) {
+        const colors = {
+            'Pendiente de Aprobación': 'bg-gray-100',
+            'Aprobado': 'bg-blue-100',
+            'Programado': 'bg-yellow-100',
+            'En Ruta': 'bg-orange-100',
+            'En Proceso': 'bg-purple-100',
+            'Recolectado': 'bg-green-100',
+            'En Tránsito': 'bg-indigo-100',
+            'Completado': 'bg-green-100',
+            'Rechazado': 'bg-red-100',
+            'Cancelado': 'bg-gray-100'
+        };
+        return colors[status] || 'bg-gray-100';
+    },
+
+    // Obtener icono para el estado del servicio
+    getServiceStatusIcon(status) {
+        const icons = {
+            'Pendiente de Aprobación': 'fa-clock text-gray-600',
+            'Aprobado': 'fa-check text-blue-600',
+            'Programado': 'fa-calendar text-yellow-600',
+            'En Ruta': 'fa-truck text-orange-600',
+            'En Proceso': 'fa-cogs text-purple-600',
+            'Recolectado': 'fa-check-circle text-green-600',
+            'En Tránsito': 'fa-shipping-fast text-indigo-600',
+            'Completado': 'fa-flag-checkered text-green-600',
+            'Rechazado': 'fa-times text-red-600',
+            'Cancelado': 'fa-ban text-gray-600'
+        };
+        return icons[status] || 'fa-question text-gray-600';
+    },
+
+    // Obtener clase CSS para el estado del servicio
+    getServiceStatusClass(status) {
+        const classes = {
+            'Pendiente de Aprobación': 'bg-gray-100 text-gray-800',
+            'Aprobado': 'bg-blue-100 text-blue-800',
+            'Programado': 'bg-yellow-100 text-yellow-800',
+            'En Ruta': 'bg-orange-100 text-orange-800',
+            'En Proceso': 'bg-purple-100 text-purple-800',
+            'Recolectado': 'bg-green-100 text-green-800',
+            'En Tránsito': 'bg-indigo-100 text-indigo-800',
+            'Completado': 'bg-green-100 text-green-800',
+            'Rechazado': 'bg-red-100 text-red-800',
+            'Cancelado': 'bg-gray-100 text-gray-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    },
+
+    // Renderizar botones de acción según el estado del servicio
+    renderServiceActionButtons(service) {
+        const buttons = [];
+        
+        // Botón para iniciar recolección (cuando está programado)
+        if (service.status === 'Programado') {
+            buttons.push(`
+                <button onclick="plantModule.startServiceCollection(${service.id})" 
+                        class="text-blue-600 hover:text-blue-800 p-2" title="Iniciar Recolección">
+                    <i class="fas fa-play"></i>
+                </button>
+            `);
+        }
+        
+        // Botón para hacer check-in (cuando está en ruta)
+        if (service.status === 'En Ruta') {
+            buttons.push(`
+                <button onclick="plantModule.checkInAtService(${service.id})" 
+                        class="text-yellow-600 hover:text-yellow-800 p-2" title="Check-in en Ubicación">
+                    <i class="fas fa-map-marker-alt"></i>
+                </button>
+            `);
+        }
+        
+        // Botón para confirmar recolección (cuando está en proceso)
+        if (service.status === 'En Proceso') {
+            buttons.push(`
+                <button onclick="plantModule.confirmCollection(${service.id})" 
+                        class="text-green-600 hover:text-green-800 p-2" title="Confirmar Recolección">
+                    <i class="fas fa-check"></i>
+                </button>
+            `);
+        }
+        
+        // Botón para iniciar tránsito (cuando está recolectado)
+        if (service.status === 'Recolectado') {
+            buttons.push(`
+                <button onclick="plantModule.startTransit(${service.id})" 
+                        class="text-indigo-600 hover:text-indigo-800 p-2" title="Iniciar Tránsito">
+                    <i class="fas fa-shipping-fast"></i>
+                </button>
+            `);
+        }
+        
+        // Botón para completar servicio (cuando está en tránsito)
+        if (service.status === 'En Tránsito') {
+            buttons.push(`
+                <button onclick="plantModule.completeService(${service.id})" 
+                        class="text-purple-600 hover:text-purple-800 p-2" title="Completar Servicio">
+                    <i class="fas fa-flag-checkered"></i>
+                </button>
+            `);
+        }
+
+        return buttons.join('');
+    },
+
+    confirmCollection(serviceId) {
+        if (window.servicesModule && typeof window.servicesModule.completeCollection === 'function') {
+            try {
+                // Usar la función completeCollection que maneja mejor los datos de recolección
+                window.servicesModule.completeCollection(serviceId, {
+                    weight: 0, // Se puede agregar un modal para capturar estos datos
+                    volume: 0,
+                    notes: 'Recolección confirmada por operador',
+                    signature: 'Confirmado',
+                    photos: []
+                });
+                
+                // Recargar la lista después de la acción
+                setTimeout(() => {
+                    const container = document.getElementById('operator-services-list');
+                    if (container) {
+                        container.innerHTML = this.renderOperatorServicesList();
+                        this.applyTableStyles();
+                    }
+                }, 500);
+            } catch (error) {
+                console.error('Error al confirmar recolección:', error);
+                authSystem.showNotification('Error al confirmar la recolección: ' + error.message, 'error');
+            }
+        } else {
+            authSystem.showNotification('Función de confirmar recolección no disponible', 'info');
+        }
+    },
+
+    // Filtrar servicios del operador
+    filterOperatorServices(filter) {
+        const container = document.getElementById('operator-services-list');
+        if (!container) return;
+
+        let services = this.getOperatorServices();
+        
+        if (filter === 'today') {
+            const today = new Date().toISOString().split('T')[0];
+            services = services.filter(s => s.requestedDate === today);
+        } else if (filter === 'week') {
+            const today = new Date();
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            services = services.filter(s => {
+                const serviceDate = new Date(s.requestedDate);
+                return serviceDate >= weekAgo && serviceDate <= today;
+            });
+        }
+        // 'all' muestra todos los servicios
+
+        // Actualizar la vista
+        container.innerHTML = this.renderFilteredServices(services);
+        
+        // Aplicar estilos adicionales para mejorar la tabla
+        this.applyTableStyles();
+        
+        authSystem.showNotification(`Filtro "${filter}" aplicado`, 'info');
+    },
+
+    // Aplicar estilos adicionales a la tabla
+    applyTableStyles() {
+        const table = document.querySelector('#operator-services-list table');
+        if (table) {
+            // Asegurar que la tabla tenga scroll horizontal en dispositivos móviles
+            table.style.minWidth = '800px';
+            table.style.width = 'auto';
+            table.style.tableLayout = 'auto';
+            
+            // Mejorar la legibilidad de las celdas
+            const cells = table.querySelectorAll('td, th');
+            cells.forEach(cell => {
+                cell.style.verticalAlign = 'top';
+                cell.style.padding = '12px 16px';
+                cell.style.borderBottom = '1px solid #e5e7eb';
+                cell.style.whiteSpace = 'nowrap';
+            });
+            
+            // Asegurar que los botones de acción sean consistentes
+            const actionButtons = table.querySelectorAll('button');
+            actionButtons.forEach(button => {
+                button.style.minWidth = '32px';
+                button.style.minHeight = '32px';
+                button.style.display = 'inline-flex';
+                button.style.alignItems = 'center';
+                button.style.justifyContent = 'center';
+                button.style.borderRadius = '6px';
+                button.style.transition = 'all 0.2s ease';
+            });
+            
+            // Mejorar el header de la tabla
+            const headerCells = table.querySelectorAll('th');
+            headerCells.forEach(cell => {
+                cell.style.backgroundColor = '#f9fafb';
+                cell.style.fontWeight = '600';
+                cell.style.textTransform = 'uppercase';
+                cell.style.letterSpacing = '0.05em';
+                cell.style.borderBottom = '2px solid #e5e7eb';
+            });
+            
+            // Asegurar que el contenedor tenga scroll horizontal y se ajuste al contenido
+            const container = document.getElementById('operator-services-list');
+            if (container) {
+                container.style.overflowX = 'auto';
+                container.style.overflowY = 'hidden';
+                container.style.width = '100%';
+                container.style.maxWidth = '100%';
+                container.style.display = 'block';
+                container.style.margin = '0';
+                container.style.padding = '0';
+            }
+            
+            // Optimizar el ancho de la tabla
+            this.optimizeTableWidth();
+            
+            // Agregar listener para redimensionamiento de ventana
+            this.handleTableResponsive();
+        }
+    },
+
+    // Optimizar el ancho de la tabla para eliminar espacios innecesarios
+    optimizeTableWidth() {
+        const table = document.querySelector('#operator-services-list table');
+        const container = document.getElementById('operator-services-list');
+        
+        if (!table || !container) return;
+        
+        // Calcular el ancho real necesario para la tabla
+        const tableWidth = table.scrollWidth;
+        const containerWidth = container.clientWidth;
+        
+        // Si la tabla es más pequeña que el contenedor, ajustar el ancho
+        if (tableWidth < containerWidth && window.innerWidth >= 768) {
+            table.style.width = '100%';
+            table.style.minWidth = 'auto';
+        } else {
+            table.style.width = 'auto';
+            table.style.minWidth = '800px';
+        }
+    },
+
+    // Verificar que servicesModule esté disponible y funcionando
+    verifyServicesModule() {
+        console.log('Verificando servicesModule...');
+        console.log('window.servicesModule:', window.servicesModule);
+        
+        if (!window.servicesModule) {
+            console.error('servicesModule no está disponible');
+            authSystem.showNotification('Error: Módulo de servicios no disponible', 'error');
+            return false;
+        }
+        
+        if (typeof window.servicesModule.getOperatorServices !== 'function') {
+            console.error('getOperatorServices no está disponible');
+            authSystem.showNotification('Error: Función getOperatorServices no disponible', 'error');
+            return false;
+        }
+        
+        if (typeof window.servicesModule.completeCollection !== 'function') {
+            console.error('completeCollection no está disponible');
+            authSystem.showNotification('Error: Función completeCollection no disponible', 'error');
+            return false;
+        }
+        
+        console.log('servicesModule verificado correctamente');
+        return true;
+    },
+
+    // Manejar la responsividad de la tabla
+    handleTableResponsive() {
+        const container = document.getElementById('operator-services-list');
+        if (!container) return;
+        
+        const handleResize = () => {
+            const table = container.querySelector('table');
+            if (!table) return;
+            
+            if (window.innerWidth < 768) {
+                // En móviles, ajustar el ancho mínimo
+                table.style.minWidth = '600px';
+                table.style.width = '100%';
+            } else {
+                // En desktop, ajustar el ancho para que se adapte al contenido
+                table.style.minWidth = '800px';
+                table.style.width = 'auto';
+            }
+            
+            // Ajustar el contenedor para que se adapte al contenido de la tabla
+            container.style.width = '100%';
+            container.style.maxWidth = '100%';
+            
+            // Optimizar el ancho después del redimensionamiento
+            setTimeout(() => {
+                this.optimizeTableWidth();
+            }, 100);
+        };
+        
+        // Aplicar al cargar
+        handleResize();
+        
+        // Aplicar al redimensionar
+        window.addEventListener('resize', handleResize);
+    },
+
+    // Renderizar servicios filtrados
+    renderFilteredServices(services) {
+        if (!services || services.length === 0) {
+            return `
+                <div class="p-6 text-center">
+                    <i class="fas fa-filter text-gray-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500">No hay solicitudes con el filtro aplicado</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitud</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Residuo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        ${services.map(service => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="p-2 rounded-full ${this.getServiceStatusColor(service.status)} mr-3">
+                                            <i class="fas ${this.getServiceStatusIcon(service.status)}"></i>
+                                        </div>
+                                        <div class="text-sm font-medium text-gray-900">#${String(service.id).padStart(3, '0')}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">${service.clientName}</div>
+                                    <div class="text-sm text-gray-500">${service.address}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">${service.wasteType}</div>
+                                    <div class="text-sm text-gray-500">${service.estimatedVolume} ${service.volumeUnit}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    ${this.formatDate(service.requestedDate)}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full ${this.getServiceStatusClass(service.status)}">
+                                        ${service.status}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button onclick="plantModule.viewService(${service.id})" 
+                                                class="text-blue-600 hover:text-blue-800 p-2" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        ${this.renderServiceActionButtons(service)}
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    },
+
+    // Funciones de acción para servicios
+    viewService(serviceId) {
+        if (window.servicesModule && typeof window.servicesModule.viewService === 'function') {
+            window.servicesModule.viewService(serviceId);
+        } else {
+            authSystem.showNotification('Función de visualización de servicio no disponible', 'info');
+        }
+    },
+
+    startServiceCollection(serviceId) {
+        if (window.servicesModule && typeof window.servicesModule.startServiceCollection === 'function') {
+            window.servicesModule.startServiceCollection(serviceId);
+            // Recargar la lista después de la acción
+            setTimeout(() => {
+                const container = document.getElementById('operator-services-list');
+                if (container) {
+                    container.innerHTML = this.renderOperatorServicesList();
+                }
+            }, 500);
+        } else {
+            authSystem.showNotification('Función de inicio de recolección no disponible', 'info');
+        }
+    },
+
+    checkInAtService(serviceId) {
+        if (window.servicesModule && typeof window.servicesModule.checkInAtService === 'function') {
+            window.servicesModule.checkInAtService(serviceId);
+            // Recargar la lista después de la acción
+            setTimeout(() => {
+                const container = document.getElementById('operator-services-list');
+                if (container) {
+                    container.innerHTML = this.renderOperatorServicesList();
+                }
+            }, 500);
+        } else {
+            authSystem.showNotification('Función de check-in no disponible', 'info');
+        }
+    },
+
+    completeCollection(serviceId) {
+        if (window.servicesModule && typeof window.servicesModule.completeCollection === 'function') {
+            window.servicesModule.completeCollection(serviceId);
+            // Recargar la lista después de la acción
+            setTimeout(() => {
+                const container = document.getElementById('operator-services-list');
+                if (container) {
+                    container.innerHTML = this.renderOperatorServicesList();
+                }
+            }, 500);
+        } else {
+            authSystem.showNotification('Función de completar recolección no disponible', 'info');
+        }
+    },
+
+    startTransit(serviceId) {
+        if (window.servicesModule && typeof window.servicesModule.updateServiceStatus === 'function') {
+            window.servicesModule.updateServiceStatus(serviceId, 'En Tránsito');
+            authSystem.showNotification('Servicio marcado como "En Tránsito"', 'success');
+            // Recargar la lista después de la acción
+            setTimeout(() => {
+                const container = document.getElementById('operator-services-list');
+                if (container) {
+                    container.innerHTML = this.renderOperatorServicesList();
+                }
+            }, 500);
+        } else {
+            authSystem.showNotification('Función de inicio de tránsito no disponible', 'info');
+        }
+    },
+
+    completeService(serviceId) {
+        if (window.servicesModule && typeof window.servicesModule.updateServiceStatus === 'function') {
+            window.servicesModule.updateServiceStatus(serviceId, 'Completado');
+            authSystem.showNotification('Servicio marcado como "Completado"', 'success');
+            // Recargar la lista después de la acción
+            setTimeout(() => {
+                const container = document.getElementById('operator-services-list');
+                if (container) {
+                    container.innerHTML = this.renderOperatorServicesList();
+                }
+            }, 500);
+        } else {
+            authSystem.showNotification('Función de completar servicio no disponible', 'info');
+        }
     }
 };

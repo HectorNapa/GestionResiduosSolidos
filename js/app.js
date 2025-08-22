@@ -90,7 +90,13 @@ class WasteManagementApp {
 
         // Menú e inicio
         this.loadMenu();
-        this.loadDashboard();
+        
+        // Cargar pantalla específica según el rol del usuario
+        if (this.currentUser && this.currentUser.type === 'operator') {
+            this.loadPlant(); // Cargar directamente la pantalla de Recepción para operadores
+        } else {
+            this.loadDashboard(); // Cargar Dashboard para otros roles
+        }
     }
     updateUserInfoBar() {
         const info = document.getElementById('user-info');
@@ -122,10 +128,6 @@ class WasteManagementApp {
             ];
         } else if (userType === 'operator') {
             menuConfig = [
-                {icon: 'fas fa-tachometer-alt', label: 'Dashboard', module: 'dashboard'},
-                {icon: 'fas fa-route', label: 'Mis Rutas', module: 'routes'},
-                {icon: 'fas fa-truck', label: 'Recolección', module: 'collection'},
-                {icon: 'fas fa-file-alt', label: 'Manifiestos', module: 'manifests'},
                 {icon: 'fas fa-industry', label: 'Recepción', module: 'plant'}
             ];
         } else { // client
@@ -169,7 +171,14 @@ class WasteManagementApp {
         const contentArea = document.getElementById('content-area');
 
         switch(moduleName) {
-            case 'dashboard': this.loadDashboard(); break;
+            case 'dashboard': 
+                // Si es operador, redirigir a la pantalla de Recepción
+                if (this.currentUser && this.currentUser.type === 'operator') {
+                    this.loadPlant();
+                } else {
+                    this.loadDashboard(); 
+                }
+                break;
             case 'services': this.loadServices(); break;
             case 'new-service': this.loadNewService(); break;
             case 'routes': this.loadRoutes(); break;
