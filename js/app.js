@@ -117,14 +117,7 @@ class WasteManagementApp {
             menuConfig = [
                 {icon: 'fas fa-tachometer-alt', label: 'Dashboard', module: 'dashboard'},
                 {icon: 'fas fa-clipboard-list', label: 'Solicitudes', module: 'services'},
-                {icon: 'fas fa-route', label: 'Rutas', module: 'routes'},
-                {icon: 'fas fa-truck', label: 'Recolección', module: 'collection'},
-                {icon: 'fas fa-file-alt', label: 'Manifiestos', module: 'manifests'},
-                {icon: 'fas fa-industry', label: 'Planta', module: 'plant'},
-                {icon: 'fas fa-chart-bar', label: 'Reportes', module: 'reports'},
-                {icon: 'fas fa-trash-alt', label: 'Disposición', module: 'disposal'},
-                {icon: 'fas fa-users', label: 'Usuarios', module: 'users'},
-                {icon: 'fas fa-cog', label: 'Configuración', module: 'config'}
+                {icon: 'fas fa-route', label: 'Rutas', module: 'routes'}
             ];
         } else if (userType === 'operator') {
             menuConfig = [
@@ -182,16 +175,10 @@ class WasteManagementApp {
             case 'services': this.loadServices(); break;
             case 'new-service': this.loadNewService(); break;
             case 'routes': this.loadRoutes(); break;
-            case 'collection': this.loadCollection(); break;
-            case 'manifests': this.loadManifests(); break;
             case 'plant': this.loadPlant(); break;
-            case 'reports': this.loadReports(); break;
-            case 'disposal': this.loadDisposal(); break;
-            case 'users': this.loadUsers(); break;
             case 'my-services': this.loadMyServices(); break;
             case 'invoices': this.loadInvoices(); break;
             case 'tracking': this.loadTracking(); break;
-            case 'config': this.loadConfig(); break;
             default:
                 if (contentArea) {
                     contentArea.innerHTML = '<div class="text-center py-8"><h2 class="text-2xl">Módulo en desarrollo</h2></div>';
@@ -227,11 +214,13 @@ class WasteManagementApp {
     loadServices() { if (window.servicesModule?.load) window.servicesModule.load(); }
     loadNewService() { if (window.servicesModule?.loadNewService) window.servicesModule.loadNewService(); }
     loadRoutes() { if (window.routesModule?.load) window.routesModule.load(); }
+    // Funciones de carga de módulos eliminados del menú (mantenidas para compatibilidad interna)
     loadCollection() { if (window.collectionModule?.load) window.collectionModule.load(); }
     loadManifests() { if (window.manifestsModule?.load) window.manifestsModule.load(); }
     loadPlant() { if (window.plantModule?.load) window.plantModule.load(); }
     loadReports() { if (window.reportsModule?.load) window.reportsModule.load(); }
     loadDisposal() { if (window.disposalModule?.load) window.disposalModule.load(); }
+    loadConfig() { if (window.configModule?.load) window.configModule.load(); }
 
     // Vistas cliente (si se usan)
     loadMyServices() {
@@ -1281,41 +1270,7 @@ class WasteManagementApp {
         }
     }
 
-    // ========= CONFIGURACIÓN (ADMIN) =========
-    loadConfig() {
-        if (!this.requireAuth()) return;
-        
-        // Verificar permisos de admin
-        if (this.currentUser.type !== 'admin') {
-            const contentArea = document.getElementById('content-area');
-            if (contentArea) {
-                contentArea.innerHTML = `
-                    <div class="text-center py-8">
-                        <i class="fas fa-lock text-6xl text-gray-400 mb-4"></i>
-                        <h2 class="text-2xl text-gray-600">Acceso Restringido</h2>
-                        <p class="text-gray-500">Solo los administradores pueden acceder a la configuración del sistema.</p>
-                    </div>
-                `;
-            }
-            return;
-        }
 
-        // Cargar módulo de configuración
-        if (typeof window.configModule !== 'undefined') {
-            window.configModule.load();
-        } else {
-            const contentArea = document.getElementById('content-area');
-            if (contentArea) {
-                contentArea.innerHTML = `
-                    <div class="text-center py-8">
-                        <i class="fas fa-exclamation-triangle text-6xl text-yellow-400 mb-4"></i>
-                        <h2 class="text-2xl text-gray-600">Módulo no Disponible</h2>
-                        <p class="text-gray-500">El módulo de configuración no está cargado.</p>
-                    </div>
-                `;
-            }
-        }
-    }
 
     // ========= FLUJO LOGIN / LOGOUT =========
     handleLoginSuccess(user) {

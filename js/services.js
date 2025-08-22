@@ -393,6 +393,15 @@ window.servicesModule = {
 
     // ========== VISTA LISTA ==========
     load() {
+        const currentUser = app.currentUser;
+        
+        // Si es administrador, mostrar directamente el formulario de nueva solicitud
+        if (currentUser && currentUser.type === 'admin') {
+            this.loadNewService();
+            return;
+        }
+        
+        // Para otros roles, mostrar la vista normal con filtros y tabla
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = `
             <div class="mb-6">
@@ -567,16 +576,6 @@ window.servicesModule = {
             </div>
 
             <div class="bg-white rounded-lg shadow p-6">
-                ${!isClientUser ? `
-                <div class="mb-6 border rounded-lg p-4 bg-gray-50">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Buscar cliente por email</label>
-                    <div class="flex">
-                        <input id="client-email-search" type="email" class="flex-1 px-3 py-2 border rounded-l-lg focus:outline-none focus:border-blue-500" placeholder="cliente@dominio.com">
-                        <button id="search-client-btn" class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700">Buscar</button>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-2">Si el cliente no existe, podrás crearlo desde aquí.</p>
-                </div>
-                ` : ''}
 
                 <form id="new-service-form" class="space-y-6">
                     <input type="hidden" id="selected-client-id">

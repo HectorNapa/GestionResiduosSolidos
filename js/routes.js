@@ -304,69 +304,15 @@ window.routesModule = {
                 <p class="text-gray-600">Organiza y gestiona las rutas de recolección</p>
             </div>
 
-            <!-- Resumen -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-blue-100">Rutas Hoy</p>
-                            <p class="text-3xl font-bold" id="metric-routes-today">${this.getTodayRoutesCount()}</p>
-                        </div>
-                        <i class="fas fa-route text-4xl text-blue-200"></i>
-                    </div>
-                </div>
 
-                <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-green-100">Completadas</p>
-                            <p class="text-3xl font-bold" id="metric-routes-completed">${this.getCompletedRoutesCount()}</p>
-                        </div>
-                        <i class="fas fa-check-circle text-4xl text-green-200"></i>
-                    </div>
-                </div>
 
-                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-lg text-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-yellow-100">En Progreso</p>
-                            <p class="text-3xl font-bold" id="metric-routes-inprogress">${this.getInProgressRoutesCount()}</p>
-                        </div>
-                        <i class="fas fa-truck text-4xl text-yellow-200"></i>
-                    </div>
-                </div>
 
-                <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-purple-100">Vehículos Activos</p>
-                            <p class="text-3xl font-bold" id="metric-vehicles-active">${this.getActiveVehiclesCount()}</p>
-                        </div>
-                        <i class="fas fa-truck-moving text-4xl text-purple-200"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="mb-6">
-                <nav class="flex space-x-8">
-                    <a href="#" onclick="routesModule.showTab('routes')" id="routes-tab" 
-                       class="tab-link active border-b-2 border-blue-500 text-blue-600 py-2 px-1 font-medium">
-                        Rutas
-                    </a>
-                    <a href="#" onclick="routesModule.showTab('vehicles')" id="vehicles-tab"
-                       class="tab-link text-gray-500 hover:text-gray-700 py-2 px-1 font-medium">
-                        Vehículos
-                    </a>
-                </nav>
-            </div>
 
             <!-- Contenido de pestaña -->
             <div id="tab-content"></div>
         `;
 
         this.showTab('routes');
-        this.updateSummaryCards(); // asegurar métricas correctas al cargar
     },
 
     renderOperatorRouteActions(route) {
@@ -1116,24 +1062,8 @@ formatDate(value) {
     },
 
     showTab(tabName) {
-        document.querySelectorAll('.tab-link').forEach(tab => {
-            tab.classList.remove('active', 'border-b-2', 'border-blue-500', 'text-blue-600');
-            tab.classList.add('text-gray-500', 'hover:text-gray-700');
-        });
-
-        const activeTab = document.getElementById(`${tabName}-tab`);
-        activeTab.classList.add('active', 'border-b-2', 'border-blue-500', 'text-blue-600');
-        activeTab.classList.remove('text-gray-500', 'hover:text-gray-700');
-
         const tabContent = document.getElementById('tab-content');
-        switch(tabName) {
-            case 'routes':
-                this.loadRoutesTab(tabContent);
-                break;
-            case 'vehicles':
-                this.loadVehiclesTab(tabContent);
-                break;
-        }
+        this.loadRoutesTab(tabContent);
     },
 
     // ====== Filtros ======
@@ -1286,136 +1216,10 @@ formatDate(value) {
         this.renderRoutesList();
     },
 
-    loadVehiclesTab(container) {
-        container.innerHTML = `
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Gestión de Vehículos</h3>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehículo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacidad</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asignado a</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            ${this.vehicles.map(vehicle => {
-                                const assignedRoute = this.routes.find(r => r.vehicle === vehicle.code);
-                                return `
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap font-medium">${vehicle.code}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="font-medium">${vehicle.brand} ${vehicle.model}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">${vehicle.capacity}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-1 text-xs rounded-full ${this.getVehicleStatusClass(vehicle.status)}">
-                                                ${vehicle.status}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            ${assignedRoute ? `${assignedRoute.name} (${assignedRoute.driver})` : 'No asignado'}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <button onclick="routesModule.viewVehicle(${vehicle.id})" class="text-blue-600 hover:text-blue-900 mr-2">Ver</button>
-                                            <button onclick="routesModule.editVehicle(${vehicle.id})" class="text-green-600 hover:text-green-900">Editar</button>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            <div class="mt-6 bg-white rounded-lg shadow">
-                <div class="p-6 border-b">
-                    <h3 class="text-lg font-semibold">Gestión de Conductores</h3>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Licencia</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruta Asignada</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            ${this.drivers.map(driver => {
-                                const assignedRoute = this.routes.find(r => r.driver === driver.name);
-                                return `
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap font-medium">${driver.name}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">${driver.license}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-1 text-xs rounded-full ${this.getDriverStatusClass(driver.status)}">
-                                                ${driver.status}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            ${assignedRoute ? assignedRoute.name : 'No asignado'}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <button onclick="routesModule.viewDriver(${driver.id})" class="text-blue-600 hover:text-blue-900 mr-2">Ver</button>
-                                            <button onclick="routesModule.editDriver(${driver.id})" class="text-green-600 hover:text-green-900">Editar</button>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-    },
 
 
     // ====== Métricas / estilos ======
-    getTodayRoutesCount() {
-        const today = new Date().toISOString().slice(0,10);
-        return this.routes.filter(r => r.date === today).length;
-    },
-
-    getCompletedRoutesCount() {
-        return this.routes.filter(r => r.status === 'Completada').length;
-    },
-
-    getInProgressRoutesCount() {
-        return this.routes.filter(r => r.status === 'En Progreso').length;
-    },
-
-    getActiveVehiclesCount() {
-        // Un vehículo se considera "activo" si está asignado a una ruta que está "En Progreso".
-        const activeVehicleCodes = this.routes
-            .filter(r => r.status === 'En Progreso')
-            .map(r => r.vehicle);
-        // Se usa un Set para contar solo los vehículos únicos.
-        return new Set(activeVehicleCodes).size;
-    },
-
-    // NUEVO: refresca las 4 tarjetas
-    updateSummaryCards() {
-        const elToday      = document.getElementById('metric-routes-today');
-        const elCompleted  = document.getElementById('metric-routes-completed');
-        const elInProgress = document.getElementById('metric-routes-inprogress');
-        const elActiveVeh  = document.getElementById('metric-vehicles-active');
-
-        if (elToday)      elToday.textContent     = this.getTodayRoutesCount();
-        if (elCompleted)  elCompleted.textContent = this.getCompletedRoutesCount();
-        if (elInProgress) elInProgress.textContent= this.getInProgressRoutesCount();
-        if (elActiveVeh)  elActiveVeh.textContent = this.getActiveVehiclesCount();
-    },
 
     getRouteStatusBorderClass(status) {
         const classes = {
@@ -1857,8 +1661,6 @@ formatDate(value) {
         };
 
         this.vehicles[vehicleIndex] = updatedVehicle;
-        this.loadVehiclesTab(document.getElementById('tab-content'));
-        this.updateSummaryCards(); // <— REFRESCA TARJETAS (vehículos activos)
         authSystem.showNotification('Vehículo actualizado exitosamente', 'success');
     },
 
@@ -1943,7 +1745,6 @@ formatDate(value) {
         };
 
         this.drivers[driverIndex] = updatedDriver;
-        this.loadVehiclesTab(document.getElementById('tab-content'));
         authSystem.showNotification('Conductor actualizado exitosamente', 'success');
     },
 

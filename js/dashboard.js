@@ -60,133 +60,27 @@ window.dashboardModule = {
                     ${this.renderEnhancedKpiCards(data.kpis)}
                 </div>
 
-                <!-- Resumen operacional -->
-                <div class="bg-white rounded-lg shadow p-6 mb-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-semibold text-gray-900">Resumen Operacional de Hoy</h3>
+                <!-- Gráfico de Recolecciones por Tipo de Residuo -->
+                <div class="bg-white p-6 rounded-lg shadow mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Recolecciones por Tipo de Residuo</h3>
                         <div class="flex items-center space-x-2">
-                            <span class="text-sm text-gray-500">Estado del día:</span>
-                            <span class="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">Normal</span>
+                            <select class="text-sm border rounded px-2 py-1">
+                                <option>Última semana</option>
+                                <option>Último mes</option>
+                                <option>Último trimestre</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        ${this.renderOperationalSummary(data.operational)}
-                    </div>
-                </div>
-
-                <!-- Gráficos y análisis -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold">Recolecciones por Tipo de Residuo</h3>
-                            <div class="flex items-center space-x-2">
-                                <select class="text-sm border rounded px-2 py-1">
-                                    <option>Última semana</option>
-                                    <option>Último mes</option>
-                                    <option>Último trimestre</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="h-80" id="wasteTypeChartContainer">
-                            <canvas id="wasteTypeChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold">Tendencia de Recolección</h3>
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-chart-line text-blue-500"></i>
-                                <span class="text-sm text-gray-500">Últimos 7 días</span>
-                            </div>
-                        </div>
-                        <div class="h-80" id="dailyTrendChartContainer">
-                            <canvas id="dailyTrendChart"></canvas>
-                        </div>
+                    <div class="h-80" id="wasteTypeChartContainer">
+                        <canvas id="wasteTypeChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Panel de control operativo -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Estado de vehículos -->
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold">Estado de Vehículos</h3>
-                                <i class="fas fa-truck text-blue-500 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            ${this.renderVehicleStatus(data.vehicles)}
-                        </div>
-                    </div>
-
-                    <!-- Personal en campo -->
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold">Personal en Campo</h3>
-                                <i class="fas fa-users text-green-500 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            ${this.renderFieldStaff(data.staff)}
-                        </div>
-                    </div>
-
-                    <!-- Rendimiento de rutas -->
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold">Rendimiento de Rutas</h3>
-                                <i class="fas fa-route text-purple-500 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            ${this.renderRoutePerformance(data.routes)}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sección inferior: Actividades y alertas -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Feed de actividades -->
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold">Actividades Recientes</h3>
-                                <button onclick="app.loadModule('reports')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                    Ver todas
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            ${this.renderEnhancedActivityFeed(data.activity)}
-                        </div>
-                    </div>
-
-                    <!-- Centro de alertas -->
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold">Centro de Alertas</h3>
-                                <div class="flex items-center space-x-2">
-                                    <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-                                        ${data.alerts.filter(a => a.priority === 'high').length} Alta
-                                    </span>
-                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                                        ${data.alerts.filter(a => a.priority === 'medium').length} Media
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            ${this.renderEnhancedAlerts(data.alerts)}
-                        </div>
-                    </div>
-                </div>
             `;
 
             this.initCharts(data.charts);
+
         } catch (error) {
             console.error('Error loading admin dashboard:', error);
             contentArea.innerHTML = `<div class="p-6 text-center bg-red-50 text-red-700 rounded-lg"><h3 class="font-bold">Error al Cargar el Dashboard</h3><p>${error.message}</p></div>`;
@@ -291,13 +185,38 @@ window.dashboardModule = {
     },
 
     getWasteTypeChartData(receptions) {
-        const summary = (receptions || []).reduce((acc, curr) => {
-            (curr.classifications || []).forEach(c => {
-                acc[c.type] = (acc[c.type] || 0) + parseFloat(c.weight || 0);
-            });
-            return acc;
-        }, {});
-        return { labels: Object.keys(summary), data: Object.values(summary) };
+        // Datos simulados más realistas para el gráfico
+        const wasteTypes = {
+            'Orgánico': 45.2,
+            'Reciclable': 28.7,
+            'No Reciclable': 15.3,
+            'Peligroso': 8.1,
+            'Electrónico': 2.7
+        };
+        
+        // Si hay datos reales de recepciones, usarlos; si no, usar datos simulados
+        if (receptions && receptions.length > 0) {
+            const summary = receptions.reduce((acc, curr) => {
+                (curr.classifications || []).forEach(c => {
+                    acc[c.type] = (acc[c.type] || 0) + parseFloat(c.weight || 0);
+                });
+                return acc;
+            }, {});
+            
+            // Si hay datos reales, usarlos; si no, combinar con datos simulados
+            if (Object.keys(summary).length > 0) {
+                return { 
+                    labels: Object.keys(summary), 
+                    data: Object.values(summary) 
+                };
+            }
+        }
+        
+        // Usar datos simulados si no hay datos reales
+        return { 
+            labels: Object.keys(wasteTypes), 
+            data: Object.values(wasteTypes) 
+        };
     },
 
     getDailyTrendChartData(collections) {
@@ -342,31 +261,63 @@ window.dashboardModule = {
     initCharts(chartData) {
         this.destroyExistingCharts();
         if (typeof Chart === 'undefined') {
-            document.getElementById('wasteTypeChartContainer').innerHTML = '<p class="text-center text-red-500 p-4">(Error: Librería Chart.js no cargada)</p>';
-            document.getElementById('dailyTrendChartContainer').innerHTML = '<p class="text-center text-red-500 p-4">(Error: Librería Chart.js no cargada)</p>';
+            const wasteTypeContainer = document.getElementById('wasteTypeChartContainer');
+            if (wasteTypeContainer) {
+                wasteTypeContainer.innerHTML = '<p class="text-center text-red-500 p-4">(Error: Librería Chart.js no cargada)</p>';
+            }
             return;
         }
 
+        // Inicializar gráfico de tipos de residuo
         const wasteTypeCtx = document.getElementById('wasteTypeChart');
-        if (wasteTypeCtx && chartData.wasteTypes.labels.length > 0) {
+        if (wasteTypeCtx && chartData.wasteTypes && chartData.wasteTypes.labels.length > 0) {
             this.chartInstances.wasteType = new Chart(wasteTypeCtx, {
                 type: 'doughnut',
-                data: { labels: chartData.wasteTypes.labels, datasets: [{ data: chartData.wasteTypes.data, backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#6366F1'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                data: { 
+                    labels: chartData.wasteTypes.labels, 
+                    datasets: [{ 
+                        data: chartData.wasteTypes.data, 
+                        backgroundColor: [
+                            '#10B981', // Verde para Orgánico
+                            '#3B82F6', // Azul para Reciclable
+                            '#F59E0B', // Amarillo para No Reciclable
+                            '#EF4444', // Rojo para Peligroso
+                            '#6366F1'  // Púrpura para Electrónico
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} Ton (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         } else if (wasteTypeCtx) {
             wasteTypeCtx.parentElement.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">No hay datos de clasificación para mostrar.</p></div>';
-        }
-
-        const dailyTrendCtx = document.getElementById('dailyTrendChart');
-        if (dailyTrendCtx && chartData.dailyTrend.data.some(d => d > 0)) {
-            this.chartInstances.dailyTrend = new Chart(dailyTrendCtx, {
-                type: 'line',
-                data: { labels: chartData.dailyTrend.labels, datasets: [{ label: 'Toneladas', data: chartData.dailyTrend.data, borderColor: '#3B82F6', tension: 0.1, fill: true }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-            });
-        } else if (dailyTrendCtx) {
-            dailyTrendCtx.parentElement.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">No hay datos de recolección en la última semana.</p></div>';
         }
     },
 
