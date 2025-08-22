@@ -24,21 +24,39 @@
     </div>
 
     <!-- Login Screen -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-green-700 hidden">
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-green-700 hidden relative">
+        <!-- Language and Company Selectors - Top Right -->
+        <div class="absolute top-4 right-4 flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-white font-medium" data-translate="select-company">Seleccionar Empresa:</span>
+                <select id="company-selector" class="px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-blue-300 bg-white bg-opacity-90 min-w-64">
+                    <option value="" data-translate="company-placeholder">Seleccione una empresa</option>
+                </select>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-white font-medium" data-translate="language">Idioma:</span>
+                <select id="language-selector" class="px-2 py-2 text-sm border rounded-md focus:outline-none focus:border-blue-300 bg-white bg-opacity-90">
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        </div>
+        
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+            
             <div class="text-center mb-8">
                 <i class="fas fa-recycle text-5xl text-blue-900 mb-4"></i>
-                <h2 class="text-3xl font-bold text-gray-800">EcoGestión</h2>
-                <p class="text-gray-600">Sistema de Gestión de Residuos</p>
+                <h2 class="text-3xl font-bold text-gray-800" data-translate="title">EcoGestión</h2>
+                <p class="text-gray-600" data-translate="subtitle">Sistema de Gestión de Residuos</p>
             </div>
             <form id="login-form">
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" data-translate="email">Email</label>
                     <input type="email" id="email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" 
                            placeholder="ejemplo@empresa.com" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" data-translate="password">Contraseña</label>
                     <div class="relative">
                         <input type="password" id="password" class="w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:border-blue-500" 
                                placeholder="Ingrese su contraseña" required>
@@ -48,14 +66,14 @@
                     </div>
                 </div>
                 <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Tipo de Usuario</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" data-translate="user-type">Tipo de Usuario</label>
                     <select id="user-type" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                        <option value="admin">Administrador</option>
-                        <option value="operator">Operador</option>
-                        <option value="client">Cliente</option>
+                        <option value="admin" data-translate="admin">Administrador</option>
+                        <option value="operator" data-translate="technician">Técnico</option>
+                        <option value="client" data-translate="client">Cliente</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-200">
+                <button type="submit" class="w-full bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-200" data-translate="login">
                     Iniciar Sesión
                 </button>
             </form>
@@ -70,12 +88,12 @@
                 <div class="flex justify-between items-center h-16">
                     <div class="flex items-center">
                         <i class="fas fa-recycle text-2xl mr-3"></i>
-                        <h1 class="text-xl font-bold">EcoGestión</h1>
+                        <h1 class="text-xl font-bold" data-translate="title">EcoGestión</h1>
                     </div>
                     <div class="flex items-center space-x-4">
                         <span id="user-info" class="text-sm font-medium"></span>
                         <button id="logout-btn" class="bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 transition-colors duration-200">
-                            <i class="fas fa-sign-out-alt mr-1"></i> Salir
+                            <i class="fas fa-sign-out-alt mr-1"></i> <span data-translate="logout">Salir</span>
                         </button>
                     </div>
                 </div>
@@ -86,7 +104,7 @@
             <!-- Sidebar -->
             <div id="sidebar" class="w-64 bg-gray-800 text-white min-h-full shadow-lg">
                 <div class="p-4">
-                    <h3 class="text-lg font-semibold mb-4 text-gray-400">Menú Principal</h3>
+                    <h3 class="text-lg font-semibold mb-4 text-gray-400" data-translate="main-menu">Menú Principal</h3>
                     <ul class="space-y-2" id="menu-items">
                         <!-- Menu items will be populated by JavaScript -->
                     </ul>
@@ -103,6 +121,8 @@
     </div>
 
     <!-- JavaScript -->
+    <script src="js/translations.js"></script>
+    <script src="js/companies.js"></script>
     <script src="js/app.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>

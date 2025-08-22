@@ -91,6 +91,11 @@ class WasteManagementApp {
         // Menú e inicio
         this.loadMenu();
         
+        // Aplicar traducciones a la aplicación principal
+        if (window.translationManager) {
+            translationManager.applyTranslations();
+        }
+        
         // Cargar pantalla específica según el rol del usuario
         if (this.currentUser && this.currentUser.type === 'operator') {
             this.loadPlant(); // Cargar directamente la pantalla de Recepción para operadores
@@ -102,7 +107,9 @@ class WasteManagementApp {
         const info = document.getElementById('user-info');
         if (!info || !this.currentUser) return;
         const role = this.getUserTypeLabel(this.currentUser.type);
-        info.textContent = `${this.currentUser.name} — ${role}`;
+        const selectedCompany = getSelectedCompany();
+        const companyInfo = selectedCompany ? ` | ${selectedCompany.name}` : '';
+        info.textContent = `${this.currentUser.name} — ${role}${companyInfo}`;
     }
 
     // ========= NAVEGACIÓN =========
@@ -115,20 +122,22 @@ class WasteManagementApp {
 
         if (userType === 'admin') {
             menuConfig = [
-                {icon: 'fas fa-tachometer-alt', label: 'Dashboard', module: 'dashboard'},
-                {icon: 'fas fa-clipboard-list', label: 'Solicitudes', module: 'services'},
-                {icon: 'fas fa-route', label: 'Rutas', module: 'routes'}
+                {icon: 'fas fa-tachometer-alt', label: 'home', module: 'dashboard'},
+                {icon: 'fas fa-clipboard-list', label: 'services', module: 'services'},
+                {icon: 'fas fa-route', label: 'routes', module: 'routes'},
+                {icon: 'fas fa-building', label: 'companies', module: 'companies'}
             ];
         } else if (userType === 'operator') {
             menuConfig = [
-                {icon: 'fas fa-industry', label: 'Recepción', module: 'plant'}
+                {icon: 'fas fa-industry', label: 'plant', module: 'plant'},
+                {icon: 'fas fa-building', label: 'companies', module: 'companies'}
             ];
         } else { // client
             menuConfig = [
-                {icon: 'fas fa-home', label: 'Inicio', module: 'dashboard'},
-                {icon: 'fas fa-plus-circle', label: 'Solicitar Servicio', module: 'new-service'},
-                {icon: 'fas fa-truck', label: 'Mis Recolecciones', module: 'my-services'},
-                {icon: 'fas fa-file-invoice-dollar', label: 'Facturación', module: 'invoices'}
+                {icon: 'fas fa-home', label: 'home', module: 'dashboard'},
+                {icon: 'fas fa-truck', label: 'my-services', module: 'my-services'},
+                {icon: 'fas fa-file-invoice-dollar', label: 'invoices', module: 'invoices'},
+                {icon: 'fas fa-building', label: 'companies', module: 'companies'}
             ];
         }
 
@@ -136,10 +145,15 @@ class WasteManagementApp {
             <li>
                 <a href="#" id="nav-${item.module}" onclick="app.loadModule('${item.module}')"
                    class="nav-link flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded transition-colors duration-200">
-                    <i class="${item.icon} mr-3"></i>${item.label}
+                    <i class="${item.icon} mr-3"></i><span data-translate="${item.label}">${t(item.label)}</span>
                 </a>
             </li>
         `).join('');
+        
+        // Aplicar traducciones al menú
+        if (window.translationManager) {
+            translationManager.applyTranslations();
+        }
     }
 
     loadModule(moduleName) {
@@ -179,11 +193,19 @@ class WasteManagementApp {
             case 'my-services': this.loadMyServices(); break;
             case 'invoices': this.loadInvoices(); break;
             case 'tracking': this.loadTracking(); break;
+            case 'companies': this.loadCompanies(); break;
             default:
                 if (contentArea) {
-                    contentArea.innerHTML = '<div class="text-center py-8"><h2 class="text-2xl">Módulo en desarrollo</h2></div>';
+                    contentArea.innerHTML = '<div class="text-center py-8"><h2 class="text-2xl" data-translate="module-in-development">Módulo en desarrollo</h2></div>';
                 }
         }
+        
+        // Aplicar traducciones después de cargar el módulo
+        setTimeout(() => {
+            if (window.translationManager) {
+                translationManager.applyTranslations();
+            }
+        }, 100);
     }
 
     requireAuth() {
@@ -248,10 +270,7 @@ class WasteManagementApp {
                 <p class="text-gray-600">Historial y estado de sus solicitudes de recolección</p>
             </div>
 
-            <!-- Resumen de servicios -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                ${this.renderServiceSummaryCards(clientServices)}
-            </div>
+
 
             <!-- Filtros simples -->
             <div class="bg-white p-4 rounded-lg shadow mb-6">
@@ -342,10 +361,7 @@ class WasteManagementApp {
                 <p class="text-gray-600">Historial de facturación y estado de pagos</p>
             </div>
 
-            <!-- Resumen de facturación -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                ${this.renderInvoiceSummaryCards(clientInvoices)}
-            </div>
+
 
             <!-- Filtros -->
             <div class="bg-white p-4 rounded-lg shadow mb-6">
@@ -414,6 +430,148 @@ class WasteManagementApp {
             </div>
         `;
     }
+
+    loadCompanies() {
+        const contentArea = document.getElementById('content-area');
+        if (!contentArea) return;
+
+        const selectedCompany = getSelectedCompany();
+        const allCompanies = getAllCompanies();
+
+        if (!selectedCompany) {
+            contentArea.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-building text-6xl text-gray-400 mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2" data-translate="no-company-selected">No hay empresa seleccionada</h2>
+                    <p class="text-gray-600" data-translate="select-company-to-continue">Seleccione una empresa en la pantalla de login para continuar</p>
+                </div>
+            `;
+            return;
+        }
+
+        contentArea.innerHTML = `
+            <div class="mb-8">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800" data-translate="company-information">Información de la Empresa</h1>
+                        <p class="text-gray-600 mt-1" data-translate="company-details">Detalles y configuración de la empresa seleccionada</p>
+                    </div>
+                    <div class="mt-4 lg:mt-0 flex items-center space-x-3">
+                        <button onclick="app.changeCompany()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                            <i class="fas fa-exchange-alt mr-2"></i><span data-translate="change-company">Cambiar Empresa</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Principal de la Empresa -->
+            <div class="bg-white p-6 rounded-lg shadow mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="company-details">Detalles de la Empresa</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="company-name">Nombre de la Empresa</label>
+                                <p class="text-lg font-semibold text-gray-900">${selectedCompany.name}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="company-code">Código</label>
+                                <p class="text-lg text-gray-900">${selectedCompany.code}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="company-type">Tipo de Empresa</label>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    ${this.getCompanyTypeLabel(selectedCompany.type)}
+                                </span>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="service-level">Nivel de Servicio</label>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${this.getServiceLevelColor(selectedCompany.serviceLevel)}">
+                                    ${selectedCompany.serviceLevel}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="contact-information">Información de Contacto</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="address">Dirección</label>
+                                <p class="text-gray-900">${selectedCompany.address}</p>
+                                <p class="text-gray-600">${selectedCompany.city}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="phone">Teléfono</label>
+                                <p class="text-gray-900">${selectedCompany.phone}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="email">Email</label>
+                                <p class="text-gray-900">${selectedCompany.email}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" data-translate="contact-person">Persona de Contacto</label>
+                                <p class="text-gray-900">${selectedCompany.contactPerson}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tipos de Residuos -->
+            <div class="bg-white p-6 rounded-lg shadow mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="waste-types">Tipos de Residuos</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${selectedCompany.wasteTypes.map(wasteType => `
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-recycle text-green-600 mr-3"></i>
+                            <span class="text-gray-900">${wasteType}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="description">Descripción</h3>
+                <p class="text-gray-700 leading-relaxed">${selectedCompany.description}</p>
+            </div>
+        `;
+
+        // Aplicar traducciones
+        if (window.translationManager) {
+            translationManager.applyTranslations();
+        }
+    }
+
+    getCompanyTypeLabel(type) {
+        const typeLabels = {
+            'industrial': 'Industrial',
+            'comercial': 'Comercial',
+            'salud': 'Salud',
+            'educativo': 'Educativo',
+            'gastronomía': 'Gastronomía',
+            'farmacéutico': 'Farmacéutico',
+            'hotelería': 'Hotelería',
+            'retail': 'Retail'
+        };
+        return typeLabels[type] || type;
+    }
+
+    getServiceLevelColor(level) {
+        const colors = {
+            'Premium': 'bg-purple-100 text-purple-800',
+            'Estándar': 'bg-blue-100 text-blue-800',
+            'Básico': 'bg-green-100 text-green-800'
+        };
+        return colors[level] || 'bg-gray-100 text-gray-800';
+    }
+
+    changeCompany() {
+        // Limpiar la empresa seleccionada y redirigir al login
+        localStorage.removeItem('selected_company');
+        this.handleLogout();
+    }
+
     loadTracking() {
         const contentArea = document.getElementById('content-area');
         if (!contentArea) return;
@@ -620,7 +778,7 @@ class WasteManagementApp {
                             <i class="fas fa-hard-hat text-xl"></i>
                         </div>
                         <div>
-                            <p class="text-orange-100 text-sm">Operadores</p>
+                            <p class="text-orange-100 text-sm">Técnicos</p>
                             <p class="text-3xl font-bold">${userStats.operators}</p>
                         </div>
                     </div>
@@ -643,7 +801,7 @@ class WasteManagementApp {
                         <select id="user-type-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Todos los tipos</option>
                             <option value="admin">Administradores</option>
-                            <option value="operator">Operadores</option>
+                            <option value="operator">Técnicos</option>
                             <option value="client">Clientes</option>
                         </select>
                         <select id="user-status-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -884,7 +1042,7 @@ class WasteManagementApp {
     getUserTypeLabel(type) {
         const labels = {
             'admin': 'Administrador',
-            'operator': 'Operador',
+            'operator': 'Técnico',
             'client': 'Cliente'
         };
         return labels[type] || 'Desconocido';
@@ -1159,7 +1317,7 @@ class WasteManagementApp {
                                 <label class="block text-sm font-medium text-gray-700">Tipo de Usuario</label>
                                 <select id="new-user-type" class="w-full px-3 py-2 border rounded-lg" required ${lockType ? 'disabled' : ''}>
                                     <option value="admin" ${type==='admin'?'selected':''}>Administrador</option>
-                                    <option value="operator" ${type==='operator'?'selected':''}>Operador</option>
+                                    <option value="operator" ${type==='operator'?'selected':''}>Técnico</option>
                                     <option value="client" ${type==='client'?'selected':''}>Cliente</option>
                                 </select>
                             </div>
@@ -1371,7 +1529,7 @@ class WasteManagementApp {
 
         const typeLabels = {
             'admin': 'Administrador',
-            'operator': 'Operador',
+            'operator': 'Técnico',
             'client': 'Cliente'
         };
 
@@ -1483,33 +1641,7 @@ class WasteManagementApp {
         ).sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
     }
 
-    renderServiceSummaryCards(services) {
-        const total = services.length;
-        const pending = services.filter(s => s.status === 'Pendiente de Aprobación').length;
-        const inProgress = services.filter(s => ['Aprobado', 'Programado', 'En Proceso'].includes(s.status)).length;
-        const completed = services.filter(s => s.status === 'Completado').length;
 
-        const cards = [
-            { title: 'Total Solicitudes', value: total, icon: 'fa-clipboard-list', color: 'blue' },
-            { title: 'Pendientes', value: pending, icon: 'fa-clock', color: 'yellow' },
-            { title: 'En Proceso', value: inProgress, icon: 'fa-spinner', color: 'orange' },
-            { title: 'Completados', value: completed, icon: 'fa-check-circle', color: 'green' }
-        ];
-
-        return cards.map(card => `
-            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-${card.color}-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-${card.color}-600 text-sm font-medium">${card.title}</p>
-                        <p class="text-2xl font-bold text-gray-900">${card.value}</p>
-                    </div>
-                    <div class="p-3 bg-${card.color}-100 rounded-full">
-                        <i class="fas ${card.icon} text-${card.color}-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
 
     renderClientServicesTable(services) {
         if (services.length === 0) return '';
@@ -1717,61 +1849,7 @@ class WasteManagementApp {
         return Math.round(amount);
     }
 
-    renderInvoiceSummaryCards(invoices) {
-        const total = invoices.length;
-        const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
-        const pending = invoices.filter(inv => inv.status === 'Pendiente').length;
-        const pendingAmount = invoices.filter(inv => inv.status === 'Pendiente').reduce((sum, inv) => sum + inv.amount, 0);
-        const overdue = invoices.filter(inv => inv.status === 'Vencida').length;
-        const overdueAmount = invoices.filter(inv => inv.status === 'Vencida').reduce((sum, inv) => sum + inv.amount, 0);
-        const paid = invoices.filter(inv => inv.status === 'Pagada').length;
 
-        const cards = [
-            { 
-                title: 'Total Facturas', 
-                value: total, 
-                subtitle: `$${this.formatCurrency(totalAmount)}`,
-                icon: 'fa-file-invoice-dollar', 
-                color: 'blue' 
-            },
-            { 
-                title: 'Pendientes', 
-                value: pending, 
-                subtitle: `$${this.formatCurrency(pendingAmount)}`,
-                icon: 'fa-clock', 
-                color: 'yellow' 
-            },
-            { 
-                title: 'Vencidas', 
-                value: overdue, 
-                subtitle: `$${this.formatCurrency(overdueAmount)}`,
-                icon: 'fa-exclamation-triangle', 
-                color: 'red' 
-            },
-            { 
-                title: 'Pagadas', 
-                value: paid, 
-                subtitle: 'Al día',
-                icon: 'fa-check-circle', 
-                color: 'green' 
-            }
-        ];
-
-        return cards.map(card => `
-            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-${card.color}-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-${card.color}-600 text-sm font-medium">${card.title}</p>
-                        <p class="text-2xl font-bold text-gray-900">${card.value}</p>
-                        <p class="text-sm text-gray-500">${card.subtitle}</p>
-                    </div>
-                    <div class="p-3 bg-${card.color}-100 rounded-full">
-                        <i class="fas ${card.icon} text-${card.color}-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
 
     renderInvoicesTable(invoices) {
         if (invoices.length === 0) return '';

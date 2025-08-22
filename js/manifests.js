@@ -468,7 +468,7 @@ window.manifestsModule = {
                                        class="w-full p-3 border border-gray-300 rounded-lg">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Operador Responsable</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Técnico Responsable</label>
                                 <input type="text" id="manifest-operator" 
                                        value="${app.currentUser?.name || 'Carlos Rodríguez'}" 
                                        readonly
@@ -627,7 +627,7 @@ window.manifestsModule = {
                 destination: document.getElementById('manifest-destination').value,
                 notes: document.getElementById('manifest-notes').value,
                 status: 'Generado',
-                generatedBy: app.currentUser?.name || 'Operador',
+                generatedBy: app.currentUser?.name || 'Técnico',
                 wasteTypes: [],
                 totalWeight: 0,
                 totalVolume: 0

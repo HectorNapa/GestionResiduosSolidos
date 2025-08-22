@@ -291,7 +291,7 @@ window.plantModule = {
                     <div><strong>Vehículo:</strong> ${reception.vehicle}</div>
                     <div><strong>Conductor:</strong> ${reception.driver}</div>
                     <div><strong>Peso Total:</strong> ${reception.totalWeight} Ton</div>
-                    <div><strong>Operador:</strong> ${reception.operator}</div>
+                                            <div><strong>Técnico:</strong> ${reception.operator}</div>
                     <div><strong>Estado:</strong> ${reception.status}</div>
                 </div>
                 <div class="mt-4 border-t pt-4">
@@ -324,7 +324,7 @@ window.plantModule = {
         printWindow.document.write('<h3>Clasificación de Materiales</h3><table><thead><tr><th>Tipo</th><th>Peso (Ton)</th><th>Destino</th></tr></thead><tbody>');
         reception.classifications.forEach(c => { printWindow.document.write(`<tr><td>${c.type}</td><td>${c.weight}</td><td>${c.destination}</td></tr>`); });
         printWindow.document.write('</tbody></table>');
-        printWindow.document.write(`<p><strong>Operador de Planta:</strong> ${reception.operator}</p><p><strong>Notas:</strong> ${reception.notes || 'N/A'}</p>`);
+                        printWindow.document.write(`<p><strong>Técnico de Planta:</strong> ${reception.operator}</p><p><strong>Notas:</strong> ${reception.notes || 'N/A'}</p>`);
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.focus();
@@ -460,9 +460,9 @@ window.plantModule = {
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Operador Responsable</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Técnico Responsable</label>
                             <input type="text" id="reception-operator" 
-                                   value="${app.currentUser?.name || 'Operador de Planta'}" 
+                                                                        value="${app.currentUser?.name || 'Técnico de Planta'}" 
                                    required readonly
                                    class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
                         </div>
@@ -646,7 +646,7 @@ window.plantModule = {
             form.reset();
             // Restaurar valor por defecto de fecha y hora
             document.getElementById('reception-datetime').value = new Date().toISOString().slice(0, 16);
-            document.getElementById('reception-operator').value = app.currentUser?.name || 'Operador de Planta';
+            document.getElementById('reception-operator').value = app.currentUser?.name || 'Técnico de Planta';
             
             // Mantener solo una clasificación
             const container = document.getElementById('classifications-container');

@@ -318,7 +318,7 @@ window.collectionModule = {
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruta</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operador</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Técnico</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehículo</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progreso</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiempo</th>
@@ -593,7 +593,7 @@ window.collectionModule = {
             type: prompt('Tipo de incidencia (vehículo, accidente, cliente, otro):') || 'Otro',
             description: prompt('Descripción de la incidencia:') || '',
             timestamp: new Date().toISOString(),
-            operator: app.currentUser?.name || 'Operador',
+                            operator: app.currentUser?.name || 'Técnico',
             location: 'Ubicación GPS pendiente'
         };
         
@@ -645,7 +645,7 @@ window.collectionModule = {
                     <span class="font-semibold text-green-600">${completedRoutes.length}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-600">Operadores en campo:</span>
+                                            <span class="text-gray-600">Técnicos en campo:</span>
                     <span class="font-semibold text-purple-600">${totalOperators}</span>
                 </div>
                 <div class="flex justify-between items-center">

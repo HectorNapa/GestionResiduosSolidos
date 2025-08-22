@@ -100,7 +100,7 @@ Proyecto residuos/
 
 3. **Credenciales de acceso**:
    - **Administrador**: usuario: `admin`, contraseña: `admin123`
-   - **Operador**: usuario: `operador1`, contraseña: `op123`
+   - **Técnico**: usuario: `tecnico1`, contraseña: `op123`
    - **Cliente**: usuario: `cliente1`, contraseña: `cl123`
 
 ## 🎯 Funcionalidades Principales
@@ -112,7 +112,7 @@ Proyecto residuos/
 - **Reportes avanzados** con múltiples filtros
 - **Configuración del sistema** y parámetros operacionales
 
-### Para Operadores
+### Para Técnicos
 - **Registro de recolecciones** con formularios optimizados
 - **Firma digital** del cliente
 - **Captura de evidencia** fotográfica
@@ -182,7 +182,7 @@ Proyecto residuos/
 La aplicación está completamente optimizada para:
 - **Desktop**: Experiencia completa con todas las funcionalidades
 - **Tablet**: Interfaz adaptada para trabajo en campo
-- **Mobile**: Formularios optimizados para operadores
+- **Mobile**: Formularios optimizados para técnicos
 
 ## 🌍 Cumplimiento Normativo
 

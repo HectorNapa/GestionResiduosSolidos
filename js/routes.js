@@ -622,7 +622,7 @@ window.routesModule = {
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones del Operador</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones del Técnico</label>
                             <textarea id="operator-notes" rows="3" 
                                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                                       placeholder="Observaciones sobre la recolección..."></textarea>
@@ -797,7 +797,7 @@ window.routesModule = {
 
                         ${point.collectionData.operatorNotes ? `
                             <div class="bg-gray-50 p-3 rounded">
-                                <p class="text-sm text-gray-600">Observaciones del Operador</p>
+                                <p class="text-sm text-gray-600">Observaciones del Técnico</p>
                                 <p class="font-semibold">${point.collectionData.operatorNotes}</p>
                             </div>
                         ` : ''}

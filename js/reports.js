@@ -38,7 +38,7 @@ window.reportsModule = {
     load() {
         const currentUser = app?.currentUser;
         
-        // Detectar si el usuario actual es operador
+        // Detectar si el usuario actual es técnico
         if (currentUser && currentUser.type === 'operator') {
             this.loadOperatorView();
             return;
@@ -82,7 +82,7 @@ window.reportsModule = {
         this.initDateFilters();
     },
 
-    // Vista específica para operadores
+            // Vista específica para técnicos
     loadOperatorView() {
         const contentArea = document.getElementById('content-area');
         const currentUser = app?.currentUser;
@@ -93,7 +93,7 @@ window.reportsModule = {
                 <p class="text-gray-600">Genera informes de recolección y actividades de campo</p>
             </div>
 
-            <!-- Estado del operador y estadísticas rápidas -->
+                            <!-- Estado del técnico y estadísticas rápidas -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex items-center">
@@ -141,7 +141,7 @@ window.reportsModule = {
                 </div>
             </div>
 
-            <!-- Filtros de fecha para operador -->
+                            <!-- Filtros de fecha para técnico -->
             <div class="bg-white rounded-lg shadow p-6 mb-6">
                 <h3 class="text-lg font-semibold mb-4">Período de Reporte</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -161,7 +161,7 @@ window.reportsModule = {
                 </div>
             </div>
 
-            <!-- Reportes disponibles para operador -->
+                            <!-- Reportes disponibles para técnico -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-lg font-semibold mb-4">Reportes de Recolección</h3>
@@ -217,7 +217,7 @@ window.reportsModule = {
                             <i class="fas fa-chart-bar mr-3 text-indigo-600"></i>
                             <div>
                                 <div class="font-medium">Rendimiento Personal</div>
-                                <div class="text-sm text-gray-500">Estadísticas del operador</div>
+                                <div class="text-sm text-gray-500">Estadísticas del técnico</div>
                             </div>
                         </button>
                     </div>
@@ -227,7 +227,7 @@ window.reportsModule = {
             <!-- Área de resultados del reporte -->
             <div id="operator-report-output" class="mb-6"></div>
 
-            <!-- Reportes recientes del operador -->
+                            <!-- Reportes recientes del técnico -->
             <div id="operator-recent-reports" class="bg-white rounded-lg shadow">
                 ${this.renderOperatorRecentReports(currentUser)}
             </div>
@@ -648,7 +648,7 @@ window.reportsModule = {
         return { name: 'Seguimiento de Disposición Final', content, config };
     },
 
-    // ========== FUNCIONES ESPECÍFICAS PARA OPERADORES ==========
+            // ========== FUNCIONES ESPECÍFICAS PARA TÉCNICOS ==========
     
     initOperatorDateFilters() {
         const dateFrom = document.getElementById('operator-date-from');
@@ -661,7 +661,7 @@ window.reportsModule = {
         dateTo.value = todayStr;
     },
 
-    // Estadísticas para el operador
+            // Estadísticas para el técnico
     getOperatorTodayServices(currentUser) {
         const today = new Date().toISOString().split('T')[0];
         const services = window.servicesModule?.services || [];
@@ -721,7 +721,7 @@ window.reportsModule = {
         }
     },
 
-    // Generación de reportes para operadores
+            // Generación de reportes para técnicos
     generateOperatorReport(reportType) {
         const dateFrom = document.getElementById('operator-date-from')?.value || new Date().toISOString().split('T')[0];
         const dateTo = document.getElementById('operator-date-to')?.value || new Date().toISOString().split('T')[0];
@@ -757,7 +757,7 @@ window.reportsModule = {
         this.addOperatorRecentReport(reportData, currentUser);
     },
 
-    // Renderizado de reportes de operador
+            // Renderizado de reportes de técnico
     renderOperatorReport(reportData, config) {
         const outputContainer = document.getElementById('operator-report-output');
         outputContainer.innerHTML = `
@@ -1121,7 +1121,7 @@ window.reportsModule = {
         return { name: 'Análisis de Rendimiento Personal', content, config };
     },
 
-    // Funciones de utilidad para operadores
+            // Funciones de utilidad para técnicos
     renderOperatorRecentReports(currentUser) {
         const operatorReports = this.recentReports.filter(report => 
             report.operatorId === currentUser?.id

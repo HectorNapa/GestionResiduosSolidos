@@ -34,22 +34,22 @@ window.dashboardModule = {
                 <div class="mb-8">
                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-800">Dashboard Administrativo</h1>
-                            <p class="text-gray-600 mt-1">Panel de control del sistema de gestión de residuos</p>
+                            <h1 class="text-3xl font-bold text-gray-800" data-translate="admin-dashboard">Dashboard Administrativo</h1>
+                            <p class="text-gray-600 mt-1" data-translate="admin-dashboard-subtitle">Panel de control del sistema de gestión de residuos</p>
                             <div class="flex items-center mt-2 text-sm text-gray-500">
                                 <i class="fas fa-clock mr-2"></i>
-                                <span>Última actualización: ${new Date().toLocaleString('es-ES')}</span>
+                                <span data-translate="last-update">Última actualización</span>: ${new Date().toLocaleString(window.translationManager?.currentLanguage === 'en' ? 'en-US' : 'es-ES')}</span>
                                 <span class="ml-4 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                                    <i class="fas fa-circle text-xs mr-1"></i>Sistema Operativo
+                                    <i class="fas fa-circle text-xs mr-1"></i><span data-translate="system-operational">Sistema Operativo</span>
                                 </span>
                             </div>
                         </div>
                         <div class="mt-4 lg:mt-0 flex items-center space-x-3">
                             <button onclick="dashboardModule.exportDashboard()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-200">
-                                <i class="fas fa-download mr-2"></i>Exportar
+                                <i class="fas fa-download mr-2"></i><span data-translate="export">Exportar</span>
                             </button>
                             <button onclick="dashboardModule.loadAdminDashboard()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
-                                <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                                <i class="fas fa-sync-alt mr-2"></i><span data-translate="refresh">Actualizar</span>
                             </button>
                         </div>
                     </div>
@@ -63,12 +63,12 @@ window.dashboardModule = {
                 <!-- Gráfico de Recolecciones por Tipo de Residuo -->
                 <div class="bg-white p-6 rounded-lg shadow mb-8">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold">Recolecciones por Tipo de Residuo</h3>
+                        <h3 class="text-lg font-semibold" data-translate="collections-by-waste-type">Recolecciones por Tipo de Residuo</h3>
                         <div class="flex items-center space-x-2">
                             <select class="text-sm border rounded px-2 py-1">
-                                <option>Última semana</option>
-                                <option>Último mes</option>
-                                <option>Último trimestre</option>
+                                <option data-translate="last-week">Última semana</option>
+                                <option data-translate="last-month">Último mes</option>
+                                <option data-translate="last-quarter">Último trimestre</option>
                             </select>
                         </div>
                     </div>
@@ -80,25 +80,30 @@ window.dashboardModule = {
             `;
 
             this.initCharts(data.charts);
+            
+            // Aplicar traducciones después de cargar el contenido
+            if (window.translationManager) {
+                translationManager.applyTranslations();
+            }
 
         } catch (error) {
             console.error('Error loading admin dashboard:', error);
-            contentArea.innerHTML = `<div class="p-6 text-center bg-red-50 text-red-700 rounded-lg"><h3 class="font-bold">Error al Cargar el Dashboard</h3><p>${error.message}</p></div>`;
+            contentArea.innerHTML = `<div class="p-6 text-center bg-red-50 text-red-700 rounded-lg"><h3 class="font-bold" data-translate="error-loading-dashboard">Error al Cargar el Dashboard</h3><p>${error.message}</p></div>`;
         }
     },
 
     renderKpiCards(kpis) {
         const kpiData = [
-            { title: 'Recolecciones Hoy', value: kpis.collectionsToday, icon: 'fa-truck', color: 'from-blue-500 to-blue-600' },
-            { title: 'Procesado Hoy', value: `${kpis.processedToday.toFixed(2)} <span class="text-lg">Ton</span>`, icon: 'fa-recycle', color: 'from-green-500 to-green-600' },
-            { title: 'Rutas Activas', value: kpis.activeRoutes, icon: 'fa-route', color: 'from-yellow-500 to-yellow-600' },
-            { title: 'Alertas Activas', value: kpis.activeAlerts, icon: 'fa-exclamation-triangle', color: 'from-purple-500 to-purple-600' }
+            { title: 'collections-today', value: kpis.collectionsToday, icon: 'fa-truck', color: 'from-blue-500 to-blue-600' },
+            { title: 'processed-today', value: `${kpis.processedToday.toFixed(2)} <span class="text-lg">Ton</span>`, icon: 'fa-recycle', color: 'from-green-500 to-green-600' },
+            { title: 'active-routes', value: kpis.activeRoutes, icon: 'fa-route', color: 'from-yellow-500 to-yellow-600' },
+            { title: 'active-alerts', value: kpis.activeAlerts, icon: 'fa-exclamation-triangle', color: 'from-purple-500 to-purple-600' }
         ];
 
         return kpiData.map(kpi => `
             <div class="bg-gradient-to-r ${kpi.color} p-6 rounded-lg text-white"><div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm">${kpi.title}</p>
+                    <p class="text-sm" data-translate="${kpi.title}">${t(kpi.title)}</p>
                     <p class="text-3xl font-bold">${kpi.value}</p>
                 </div>
                 <i class="fas ${kpi.icon} text-4xl opacity-75"></i>
@@ -358,102 +363,184 @@ window.dashboardModule = {
                 <div class="bg-gradient-to-r from-green-500 to-blue-600 text-white p-8 rounded-lg mb-8">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold">¡Hola, ${currentUser.name}!</h1>
-                            <p class="text-green-100 mt-2">Tu servicio de recolección está funcionando perfectamente</p>
+                            <h1 class="text-3xl font-bold" data-translate="hello">¡Hola</h1>, ${currentUser.name}!
+                            <p class="text-green-100 mt-2" data-translate="service-working-perfectly">Tu servicio de recolección está funcionando perfectamente</p>
                         </div>
                         <div class="text-center">
                             <div class="bg-white bg-opacity-20 rounded-full p-4 mb-2">
                                 <i class="fas fa-leaf text-4xl"></i>
                             </div>
-                            <p class="text-sm text-green-100">EcoGestión</p>
+                            <p class="text-sm text-green-100" data-translate="title">EcoGestión</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Acciones Rápidas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onclick="app.loadModule('new-service')">
-                        <div class="text-center">
-                            <div class="bg-blue-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                <i class="fas fa-plus text-blue-600 text-2xl"></i>
-                            </div>
-                            <h3 class="font-semibold text-gray-800">Solicitar Servicio</h3>
-                            <p class="text-sm text-gray-600 mt-2">Nueva recolección</p>
+                <!-- Gráfico de Recolecciones por Tipo de Residuo -->
+                <div class="bg-white p-6 rounded-lg shadow mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold" data-translate="collections-by-waste-type">Recolecciones por Tipo de Residuo</h3>
+                        <div class="flex items-center space-x-2">
+                            <select id="client-waste-period-filter" class="text-sm border rounded px-2 py-1" onchange="dashboardModule.updateClientWasteChart()">
+                                <option value="all" data-translate="all-collections">Todas las recolecciones</option>
+                                <option value="30" data-translate="last-30-days">Últimos 30 días</option>
+                                <option value="90" data-translate="last-3-months">Últimos 3 meses</option>
+                                <option value="365" data-translate="last-year">Último año</option>
+                            </select>
                         </div>
                     </div>
-                    
-                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onclick="app.loadModule('my-services')">
-                        <div class="text-center">
-                            <div class="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                <i class="fas fa-truck text-green-600 text-2xl"></i>
-                            </div>
-                            <h3 class="font-semibold text-gray-800">Mis Recolecciones</h3>
-                            <p class="text-sm text-gray-600 mt-2">Ver historial</p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onclick="app.loadModule('invoices')">
-                        <div class="text-center">
-                            <div class="bg-purple-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                <i class="fas fa-file-invoice-dollar text-purple-600 text-2xl"></i>
-                            </div>
-                            <h3 class="font-semibold text-gray-800">Facturación</h3>
-                            <p class="text-sm text-gray-600 mt-2">Pagos y facturas</p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onclick="window.open('tel:+573001234567')">
-                        <div class="text-center">
-                            <div class="bg-yellow-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                <i class="fas fa-phone text-yellow-600 text-2xl"></i>
-                            </div>
-                            <h3 class="font-semibold text-gray-800">Contacto</h3>
-                            <p class="text-sm text-gray-600 mt-2">Soporte directo</p>
-                        </div>
+                    <div class="h-80" id="clientWasteTypeChartContainer">
+                        <canvas id="clientWasteTypeChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Estado Actual -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Próxima Recolección -->
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex items-center mb-4">
-                            <div class="bg-blue-100 rounded-full p-3 mr-4">
-                                <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800">Próxima Recolección</h3>
-                                <p class="text-gray-600 text-sm">Tu siguiente servicio programado</p>
-                            </div>
-                        </div>
-                        ${this.renderNextCollection()}
-                    </div>
-
-                    <!-- Estado del Servicio -->
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex items-center mb-4">
-                            <div class="bg-green-100 rounded-full p-3 mr-4">
-                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800">Estado del Servicio</h3>
-                                <p class="text-gray-600 text-sm">Información de tu cuenta</p>
-                            </div>
-                        </div>
-                        ${this.renderServiceStatus(currentUser)}
-                    </div>
-                </div>
             `;
+
+            // Inicializar el gráfico de tipos de residuo del cliente
+            this.initClientWasteChart(currentUser);
+            
+            // Aplicar traducciones después de cargar el contenido
+            if (window.translationManager) {
+                translationManager.applyTranslations();
+            }
 
         } catch (error) {
             console.error('Error loading client dashboard:', error);
             contentArea.innerHTML = `
                 <div class="p-6 text-center bg-red-50 text-red-700 rounded-lg">
-                    <h3 class="font-bold">Error al Cargar el Dashboard</h3>
+                    <h3 class="font-bold" data-translate="error-loading-dashboard">Error al Cargar el Dashboard</h3>
                     <p>${error.message}</p>
                 </div>
             `;
         }
+    },
+
+    // ========= FUNCIONES PARA EL GRÁFICO DE TIPOS DE RESIDUO DEL CLIENTE =========
+    
+    getClientWasteTypeChartData(currentUser, period = 'all') {
+        // Obtener servicios del cliente
+        const clientServices = app.getClientServices(currentUser.id);
+        
+        if (!clientServices || clientServices.length === 0) {
+            return { 
+                labels: ['Sin datos'], 
+                data: [1] 
+            };
+        }
+
+        // Filtrar por período si se especifica
+        let filteredServices = clientServices;
+        if (period !== 'all') {
+            const days = parseInt(period);
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+            filteredServices = clientServices.filter(service => 
+                new Date(service.createdDate) >= cutoffDate
+            );
+        }
+
+        // Agrupar por tipo de residuo
+        const wasteTypeStats = {};
+        filteredServices.forEach(service => {
+            const wasteType = service.wasteType || 'Sin especificar';
+            if (!wasteTypeStats[wasteType]) {
+                wasteTypeStats[wasteType] = {
+                    count: 0,
+                    volume: 0
+                };
+            }
+            wasteTypeStats[wasteType].count++;
+            wasteTypeStats[wasteType].volume += parseFloat(service.estimatedVolume || 0);
+        });
+
+        // Convertir a arrays para el gráfico
+        const labels = Object.keys(wasteTypeStats);
+        const data = labels.map(type => wasteTypeStats[type].count);
+
+        return { labels, data, stats: wasteTypeStats };
+    },
+
+    initClientWasteChart(currentUser) {
+        this.destroyExistingCharts();
+        
+        if (typeof Chart === 'undefined') {
+            const container = document.getElementById('clientWasteTypeChartContainer');
+            if (container) {
+                container.innerHTML = '<p class="text-center text-red-500 p-4">(Error: Librería Chart.js no cargada)</p>';
+            }
+            return;
+        }
+
+        const chartData = this.getClientWasteTypeChartData(currentUser, 'all');
+        const ctx = document.getElementById('clientWasteTypeChart');
+        
+        if (ctx && chartData.labels.length > 0) {
+            this.chartInstances.clientWasteType = new Chart(ctx, {
+                type: 'doughnut',
+                data: { 
+                    labels: chartData.labels, 
+                    datasets: [{ 
+                        data: chartData.data, 
+                        backgroundColor: [
+                            '#10B981', // Verde para Orgánico
+                            '#3B82F6', // Azul para Reciclable
+                            '#F59E0B', // Amarillo para No Reciclable
+                            '#EF4444', // Rojo para Peligroso
+                            '#6366F1', // Púrpura para Electrónicos
+                            '#8B5CF6', // Violeta para Construcción
+                            '#6B7280'  // Gris para Sin especificar
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} recolecciones (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else if (ctx) {
+            ctx.parentElement.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">No hay datos de recolección para mostrar.</p></div>';
+        }
+    },
+
+    updateClientWasteChart() {
+        const currentUser = app.currentUser;
+        if (!currentUser) return;
+
+        const periodFilter = document.getElementById('client-waste-period-filter');
+        const period = periodFilter ? periodFilter.value : 'all';
+        
+        // Destruir el gráfico existente
+        if (this.chartInstances.clientWasteType) {
+            this.chartInstances.clientWasteType.destroy();
+            delete this.chartInstances.clientWasteType;
+        }
+
+        // Crear nuevo gráfico con los datos filtrados
+        this.initClientWasteChart(currentUser);
     },
 
     // Datos simulados para el dashboard del cliente
@@ -725,67 +812,7 @@ window.dashboardModule = {
 
 
 
-    // Funciones para el dashboard simplificado del cliente
-    renderNextCollection() {
-        const nextCollection = {
-            date: 'Mañana',
-            time: '09:00 AM',
-            type: 'Recolección Regular',
-            status: 'confirmado'
-        };
 
-        return `
-            <div class="space-y-4">
-                <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-2 bg-blue-100 rounded-full">
-                            <i class="fas fa-truck text-blue-600"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800">${nextCollection.type}</p>
-                            <p class="text-sm text-gray-600">${nextCollection.date} a las ${nextCollection.time}</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                        Confirmado
-                    </span>
-                </div>
-                <div class="text-center">
-                    <button onclick="app.loadModule('new-service')" 
-                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                        ¿Necesitas un servicio adicional?
-                    </button>
-                </div>
-            </div>
-        `;
-    },
-
-    renderServiceStatus(user) {
-        return `
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600">Estado de cuenta:</span>
-                    <span class="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">Al día</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600">Último servicio:</span>
-                    <span class="text-gray-800 font-medium">Hace 3 días</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600">Servicios este mes:</span>
-                    <span class="text-gray-800 font-medium">8 completados</span>
-                </div>
-                <div class="pt-4 border-t">
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-600">Teléfono de emergencia:</span>
-                        <a href="tel:+573001234567" class="text-blue-600 hover:text-blue-800 font-medium">
-                            300 123 4567
-                        </a>
-                    </div>
-                </div>
-            </div>
-        `;
-    },
 
     loadGenericDashboard() {
         const contentArea = document.getElementById('content-area');
@@ -887,7 +914,7 @@ window.dashboardModule = {
             {
                 title: 'Personal Activo',
                 value: operational.operatorsActive,
-                subtitle: 'Operadores en campo',
+                subtitle: 'Técnicos en campo',
                 icon: 'fa-users',
                 color: 'purple'
             }

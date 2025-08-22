@@ -55,9 +55,9 @@ window.servicesModule = {
                             collectionDate: '2024-01-17',
                             collectionTime: '10:30',
                             estimatedDuration: '2',
-                            equipmentRequired: 'Camión compactador',
-                            personnelRequired: '1 operador + 1 ayudante',
-                            schedulePriority: 'Alta'
+                                                    equipmentRequired: 'Camión compactador',
+                        personnelRequired: '1 técnico + 1 ayudante',
+                        schedulePriority: 'Alta'
                         }
                     },
                     // Servicios para el cliente de prueba (cliente1 - id: 3)
@@ -84,7 +84,7 @@ window.servicesModule = {
                             collectionTime: '09:00',
                             estimatedDuration: '1.5',
                             equipmentRequired: 'Camión estándar',
-                            personnelRequired: '1 operador + 1 ayudante',
+                            personnelRequired: '1 técnico + 1 ayudante',
                             schedulePriority: 'Alta'
                         }
                     },
@@ -113,7 +113,7 @@ window.servicesModule = {
                             collectionTime: '14:00',
                             estimatedDuration: '2.5',
                             equipmentRequired: 'Camión especial para residuos peligrosos',
-                            personnelRequired: '2 operadores especializados',
+                            personnelRequired: '2 técnicos especializados',
                             schedulePriority: 'Alta'
                         }
                     },
@@ -142,9 +142,9 @@ window.servicesModule = {
                             collectionDate: new Date().toISOString().split('T')[0],
                             collectionTime: '08:30',
                             estimatedDuration: '1.5',
-                            equipmentRequired: 'Camión compactador',
-                            personnelRequired: '1 operador + 1 ayudante',
-                            schedulePriority: 'Media'
+                                                    equipmentRequired: 'Camión compactador',
+                        personnelRequired: '1 técnico + 1 ayudante',
+                        schedulePriority: 'Media'
                         }
                     },
                     {
@@ -180,7 +180,7 @@ window.servicesModule = {
                             collectionTime: '07:00',
                             estimatedDuration: '1',
                             equipmentRequired: 'Camión estándar',
-                            personnelRequired: '1 operador',
+                            personnelRequired: '1 técnico',
                             schedulePriority: 'Alta'
                         }
                     },
@@ -219,7 +219,7 @@ window.servicesModule = {
                             collectionTime: '15:00',
                             estimatedDuration: '2',
                             equipmentRequired: 'Camión de reciclaje',
-                            personnelRequired: '1 operador + 1 ayudante',
+                            personnelRequired: '1 técnico + 1 ayudante',
                             schedulePriority: 'Media'
                         }
                     },
@@ -307,7 +307,7 @@ window.servicesModule = {
                             collectionTime: '09:00',
                             estimatedDuration: '3.0',
                             equipmentRequired: 'Camión industrial',
-                            personnelRequired: '2 operadores + 1 supervisor',
+                            personnelRequired: '2 técnicos + 1 supervisor',
                             schedulePriority: 'Alta'
                         }
                     },
@@ -336,7 +336,7 @@ window.servicesModule = {
                             collectionTime: '16:00',
                             estimatedDuration: '2.5',
                             equipmentRequired: 'Camión compactador',
-                            personnelRequired: '1 operador + 1 ayudante',
+                            personnelRequired: '1 técnico + 1 ayudante',
                             schedulePriority: 'Media'
                         }
                     },
@@ -365,7 +365,7 @@ window.servicesModule = {
                             collectionTime: '20:00',
                             estimatedDuration: '1.0',
                             equipmentRequired: 'Camión compactador',
-                            personnelRequired: '1 operador',
+                            personnelRequired: '1 técnico',
                             schedulePriority: 'Baja'
                         }
                     }
@@ -1321,9 +1321,9 @@ window.servicesModule = {
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Personal Requerido</label>
                             <select id="personnel-required" class="w-full px-3 py-2 border rounded-lg">
-                                <option value="1 operador">1 operador</option>
-                                <option value="1 operador + 1 ayudante">1 operador + 1 ayudante</option>
-                                <option value="1 operador + 2 ayudantes">1 operador + 2 ayudantes</option>
+                                                            <option value="1 técnico">1 técnico</option>
+                            <option value="1 técnico + 1 ayudante">1 técnico + 1 ayudante</option>
+                            <option value="1 técnico + 2 ayudantes">1 técnico + 2 ayudantes</option>
                                 <option value="Equipo especializado">Equipo especializado</option>
                             </select>
                         </div>

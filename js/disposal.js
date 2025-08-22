@@ -192,7 +192,7 @@ window.disposalModule = {
                 <div><strong>Vehículo:</strong> ${d.transportVehicle}</div>
                 <div><strong>Costo:</strong> $${d.cost}</div>
                 <div><strong>Permiso Amb.:</strong> ${d.environmentalPermit}</div>
-                <div><strong>Operador:</strong> ${d.operator}</div>
+                                        <div><strong>Técnico:</strong> ${d.operator}</div>
                 <div><strong>Estado:</strong> ${d.status}</div>
             </div>
             <div class="mt-4 pt-4 border-t"><p class="text-sm"><strong>Notas:</strong> ${d.notes || 'N/A'}</p></div>
@@ -555,7 +555,7 @@ window.disposalModule = {
                                 <span class="info-value">${disposal.environmentalPermit}</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">Operador Responsable:</span>
+                                <span class="info-label">Técnico Responsable:</span>
                                 <span class="info-value">${disposal.operator}</span>
                             </div>
                         </div>

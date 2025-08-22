@@ -12,7 +12,7 @@ class AuthSystem {
             },
             {
                 id: 2,
-                username: 'operador1',
+                username: 'tecnico1',
                 password: 'op123',
                 type: 'operator',
                 name: 'Carlos Rodríguez',
@@ -297,7 +297,7 @@ class AuthSystem {
     getUserTypeLabel(type) {
         const labels = {
             'admin': 'Administrador',
-            'operator': 'Operador',
+            'operator': 'Técnico',
             'client': 'Cliente'
         };
         return labels[type] || 'Desconocido';
@@ -551,7 +551,7 @@ class AuthSystem {
     // Eliminar usuario
     deleteUser(id) {
         // No permitir eliminar usuarios por defecto críticos
-        const defaultUserIds = [1, 2, 3]; // admin, operador1, cliente1
+        const defaultUserIds = [1, 2, 3]; // admin, tecnico1, cliente1
         if (defaultUserIds.includes(id)) {
             throw new Error('No se puede eliminar este usuario del sistema');
         }
