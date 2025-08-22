@@ -220,23 +220,44 @@ window.plantModule = {
                 </div>
             </div>
 
-            <!-- Solicitudes Asignadas -->
+            <!-- Historial de Recepciones -->
             <div class="bg-white rounded-lg shadow">
                 <div class="p-6 border-b">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold">Solicitudes Asignadas</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="plantModule.filterOperatorServices('today')" 
-                                    class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Hoy</button>
-                            <button onclick="plantModule.filterOperatorServices('week')" 
-                                    class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Esta Semana</button>
-                            <button onclick="plantModule.filterOperatorServices('all')" 
-                                    class="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">Todas</button>
+                                        <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Historial de Recepciones</h3>
+                        <div class="flex items-center space-x-3">
+                            <input type="date" id="reception-date-filter" 
+                                   class="px-3 py-1 text-sm border rounded focus:outline-none focus:border-blue-500"
+                                   placeholder="Filtrar por fecha">
+                            <input type="text" id="reception-manifest-filter" 
+                                   class="px-3 py-1 text-sm border rounded focus:outline-none focus:border-blue-500"
+                                   placeholder="Filtrar por manifiesto">
+                            <button onclick="plantModule.filterReceptionHistory()" 
+                                    class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                                <i class="fas fa-search mr-1"></i>Buscar
+                            </button>
+                            <button onclick="plantModule.clearReceptionFilters()" 
+                                    class="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600">
+                                <i class="fas fa-times mr-1"></i>Limpiar
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div id="operator-services-list">
-                    ${this.renderOperatorServicesList()}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Manifiesto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha/Hora</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehículo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peso Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" id="reception-history-table">
+                            ${this.renderReceptionHistoryRows()}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -247,13 +268,7 @@ window.plantModule = {
         this.renderReceptionForm(document.getElementById('reception-form'));
         this.initReceptionForm();
         
-        // Verificar que servicesModule esté disponible
-        this.verifyServicesModule();
-        
-        // Aplicar estilos a la tabla inicial
-        setTimeout(() => {
-            this.applyTableStyles();
-        }, 100);
+
     },
 
     // --- DYNAMIC DATA & ACTIONS ---
@@ -451,13 +466,10 @@ window.plantModule = {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Estado de la Recepción</label>
-                            <select id="reception-status" required class="w-full p-3 border border-gray-300 rounded-lg">
-                                <option value="">Seleccionar estado...</option>
-                                <option value="Recibido">Recibido</option>
-                                <option value="En Proceso">En Proceso</option>
-                                <option value="Procesado">Procesado</option>
-                                <option value="Rechazado">Rechazado</option>
-                            </select>
+                            <input type="hidden" id="reception-status" value="Procesado">
+                            <div class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                                <span class="text-gray-700 font-medium">Procesado</span>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Técnico Responsable</label>
@@ -557,14 +569,14 @@ window.plantModule = {
             // Actualizar capacidad de la planta
             this.calculateInitialCapacity();
 
+            // Actualizar la tabla de historial
+            this.updateReceptionHistoryTable();
+
             // Mostrar notificación de éxito
             authSystem.showNotification(`Recepción ${receptionData.manifestNumber} registrada exitosamente`, 'success');
 
             // Limpiar formulario
             this.clearForm();
-
-            // Recargar la vista
-            this.load();
 
         } catch (error) {
             console.error('Error al guardar recepción:', error);
@@ -581,6 +593,13 @@ window.plantModule = {
         };
         return classes[status] || 'bg-gray-100 text-gray-800';
     },
+    updateReceptionHistoryTable() {
+        const tableBody = document.getElementById('reception-history-table');
+        if (tableBody) {
+            tableBody.innerHTML = this.renderReceptionHistoryRows();
+        }
+    },
+
     formatDate(dateString) {
         if (!dateString) return 'N/A';
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -677,6 +696,49 @@ window.plantModule = {
 
 
 
+    renderReceptionHistoryRows() {
+        if (!this.receptions || this.receptions.length === 0) {
+            return `
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center">
+                        <i class="fas fa-truck text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-500">No hay recepciones registradas</p>
+                    </td>
+                </tr>
+            `;
+        }
+
+        return this.receptions.map(reception => `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap font-medium">${reception.manifestNumber}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm">
+                        <div>${this.formatDate(reception.arrivalDate)}</div>
+                        <div class="text-gray-500">${reception.arrivalTime}</div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${reception.vehicle}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${reception.totalWeight} Ton</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-3">
+                        <button onclick="plantModule.viewReception(${reception.id})" 
+                                class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="plantModule.editReception(${reception.id})" 
+                                class="text-yellow-600 hover:text-yellow-900" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="plantModule.printReception(${reception.id})" 
+                                class="text-purple-600 hover:text-purple-900" title="Imprimir">
+                            <i class="fas fa-print"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    },
+
     renderOperatorReceptionsList(receptions) {
         if (!receptions || receptions.length === 0) {
             return `
@@ -737,563 +799,254 @@ window.plantModule = {
         authSystem.showNotification(`Información de ${manifestNumber} cargada en el formulario`, 'info');
     },
 
+    filterReceptionHistory() {
+        const dateFilter = document.getElementById('reception-date-filter').value;
+        const manifestFilter = document.getElementById('reception-manifest-filter').value;
+        const tableBody = document.getElementById('reception-history-table');
+        
+        if (!tableBody) return;
+        
+        let filteredReceptions = this.receptions;
+        
+        // Filtrar por fecha
+        if (dateFilter) {
+            filteredReceptions = filteredReceptions.filter(reception => 
+                reception.arrivalDate === dateFilter
+            );
+        }
+        
+        // Filtrar por manifiesto
+        if (manifestFilter) {
+            filteredReceptions = filteredReceptions.filter(reception => 
+                reception.manifestNumber.toLowerCase().includes(manifestFilter.toLowerCase())
+            );
+        }
+        
+        // Renderizar las filas filtradas
+        if (filteredReceptions.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center">
+                        <i class="fas fa-search text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-500">No se encontraron recepciones con los filtros aplicados</p>
+                    </td>
+                </tr>
+            `;
+        } else {
+            tableBody.innerHTML = filteredReceptions.map(reception => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap font-medium">${reception.manifestNumber}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm">
+                            <div>${this.formatDate(reception.arrivalDate)}</div>
+                            <div class="text-gray-500">${reception.arrivalTime}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${reception.vehicle}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${reception.totalWeight} Ton</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-3">
+                            <button onclick="plantModule.viewReception(${reception.id})" 
+                                    class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="plantModule.editReception(${reception.id})" 
+                                    class="text-yellow-600 hover:text-yellow-900" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="plantModule.printReception(${reception.id})" 
+                                    class="text-purple-600 hover:text-purple-900" title="Imprimir">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        const filterText = [];
+        if (dateFilter) filterText.push(`fecha: ${dateFilter}`);
+        if (manifestFilter) filterText.push(`manifiesto: ${manifestFilter}`);
+        
+        authSystem.showNotification(`Filtro aplicado: ${filterText.length > 0 ? filterText.join(', ') : 'Todos'}`, 'info');
+    },
+
+    clearReceptionFilters() {
+        document.getElementById('reception-date-filter').value = '';
+        document.getElementById('reception-manifest-filter').value = '';
+        this.updateReceptionHistoryTable();
+        authSystem.showNotification('Filtros limpiados', 'info');
+    },
+
+    editReception(id) {
+        const reception = this.receptions.find(r => r.id === id);
+        if (!reception) return;
+
+        const modalHtml = `
+        <div id="edit-reception-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-xl font-semibold">Editar Recepción: ${reception.manifestNumber}</h3>
+                    <button onclick="document.getElementById('edit-reception-modal').remove()" class="text-gray-500 hover:text-gray-800">&times;</button>
+                </div>
+                <form id="edit-reception-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Manifiesto</label>
+                            <input type="text" value="${reception.manifestNumber}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Llegada</label>
+                            <input type="date" value="${reception.arrivalDate}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Hora de Llegada</label>
+                            <input type="time" value="${reception.arrivalTime}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Vehículo</label>
+                            <input type="text" value="${reception.vehicle}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Conductor</label>
+                            <input type="text" value="${reception.driver}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Peso Total (Ton)</label>
+                            <input type="number" step="0.1" value="${reception.totalWeight}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                            <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                <option value="Pendiente" ${reception.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="En Proceso" ${reception.status === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                                <option value="Procesado" ${reception.status === 'Procesado' ? 'selected' : ''}>Procesado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                        <textarea rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">${reception.notes || ''}</textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="document.getElementById('edit-reception-modal').remove()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    },
+
+    printReception(id) {
+        const reception = this.receptions.find(r => r.id === id);
+        if (!reception) return;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Recepción ${reception.manifestNumber}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                    .header h1 { margin: 0; color: #333; }
+                    .header h2 { margin: 5px 0; color: #666; }
+                    .info-section { margin-bottom: 20px; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+                    .info-item { margin-bottom: 10px; }
+                    .info-label { font-weight: bold; color: #333; }
+                    .info-value { color: #666; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; font-weight: bold; }
+                    .notes { margin-top: 20px; padding: 10px; background-color: #f9f9f9; border-left: 4px solid #333; }
+                    @media print { body { margin: 0; } }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Recepción de Residuos</h1>
+                    <h2>Manifiesto: ${reception.manifestNumber}</h2>
+                    <p>Fecha de impresión: ${new Date().toLocaleDateString()}</p>
+                </div>
+                
+                <div class="info-section">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Fecha y Hora:</span>
+                            <span class="info-value">${this.formatDate(reception.arrivalDate)} ${reception.arrivalTime}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Vehículo:</span>
+                            <span class="info-value">${reception.vehicle}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Conductor:</span>
+                            <span class="info-value">${reception.driver}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Peso Total:</span>
+                            <span class="info-value">${reception.totalWeight} Ton</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Estado:</span>
+                            <span class="info-value">${reception.status}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Técnico:</span>
+                            <span class="info-value">${reception.operator}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3>Clasificación de Materiales</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tipo de Residuo</th>
+                                <th>Peso (Ton)</th>
+                                <th>Destino</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reception.classifications.map(c => `
+                                <tr>
+                                    <td>${c.type}</td>
+                                    <td>${c.weight}</td>
+                                    <td>${c.destination}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                ${reception.notes ? `
+                    <div class="notes">
+                        <h3>Notas y Observaciones</h3>
+                        <p>${reception.notes}</p>
+                    </div>
+                ` : ''}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    },
+
     filterReceptions(filter) {
         authSystem.showNotification(`Filtro "${filter}" aplicado`, 'info');
         // Aquí se implementaría la lógica de filtrado
     },
 
-    // ========= FUNCIONES PARA SOLICITUDES DEL OPERADOR =========
 
-    // Obtener servicios asignados al operador actual
-    getOperatorServices() {
-        const currentUser = app?.currentUser;
-        if (!currentUser) {
-            console.warn('No hay usuario actual');
-            return [];
-        }
-        
-        if (!window.servicesModule) {
-            console.warn('servicesModule no está disponible');
-            return [];
-        }
 
-        const services = window.servicesModule.getOperatorServices(currentUser) || [];
-        console.log('Servicios del operador:', services);
-        return services;
-    },
 
-    // Renderizar lista de servicios del operador
-    renderOperatorServicesList() {
-        const services = this.getOperatorServices();
-        
-        if (!services || services.length === 0) {
-            return `
-                <div class="p-6 text-center">
-                    <i class="fas fa-clipboard-list text-gray-300 text-4xl mb-4"></i>
-                    <p class="text-gray-500">No hay solicitudes asignadas</p>
-                    <p class="text-sm text-gray-400 mt-2">Las solicitudes aparecerán aquí cuando te sean asignadas</p>
-                </div>
-            `;
-        }
 
-        return `
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitud</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Residuo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        ${services.map(service => `
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="p-2 rounded-full ${this.getServiceStatusColor(service.status)} mr-3">
-                                            <i class="fas ${this.getServiceStatusIcon(service.status)}"></i>
-                                        </div>
-                                        <div class="text-sm font-medium text-gray-900">#${String(service.id).padStart(3, '0')}</div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">${service.clientName}</div>
-                                    <div class="text-sm text-gray-500">${service.address}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">${service.wasteType}</div>
-                                    <div class="text-sm text-gray-500">${service.estimatedVolume} ${service.volumeUnit}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    ${this.formatDate(service.requestedDate)}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs rounded-full ${this.getServiceStatusClass(service.status)}">
-                                        ${service.status}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <button onclick="plantModule.viewService(${service.id})" 
-                                                class="text-blue-600 hover:text-blue-800 p-2" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        ${this.renderServiceActionButtons(service)}
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    },
 
-    // Obtener color de fondo para el estado del servicio
-    getServiceStatusColor(status) {
-        const colors = {
-            'Pendiente de Aprobación': 'bg-gray-100',
-            'Aprobado': 'bg-blue-100',
-            'Programado': 'bg-yellow-100',
-            'En Ruta': 'bg-orange-100',
-            'En Proceso': 'bg-purple-100',
-            'Recolectado': 'bg-green-100',
-            'En Tránsito': 'bg-indigo-100',
-            'Completado': 'bg-green-100',
-            'Rechazado': 'bg-red-100',
-            'Cancelado': 'bg-gray-100'
-        };
-        return colors[status] || 'bg-gray-100';
-    },
-
-    // Obtener icono para el estado del servicio
-    getServiceStatusIcon(status) {
-        const icons = {
-            'Pendiente de Aprobación': 'fa-clock text-gray-600',
-            'Aprobado': 'fa-check text-blue-600',
-            'Programado': 'fa-calendar text-yellow-600',
-            'En Ruta': 'fa-truck text-orange-600',
-            'En Proceso': 'fa-cogs text-purple-600',
-            'Recolectado': 'fa-check-circle text-green-600',
-            'En Tránsito': 'fa-shipping-fast text-indigo-600',
-            'Completado': 'fa-flag-checkered text-green-600',
-            'Rechazado': 'fa-times text-red-600',
-            'Cancelado': 'fa-ban text-gray-600'
-        };
-        return icons[status] || 'fa-question text-gray-600';
-    },
-
-    // Obtener clase CSS para el estado del servicio
-    getServiceStatusClass(status) {
-        const classes = {
-            'Pendiente de Aprobación': 'bg-gray-100 text-gray-800',
-            'Aprobado': 'bg-blue-100 text-blue-800',
-            'Programado': 'bg-yellow-100 text-yellow-800',
-            'En Ruta': 'bg-orange-100 text-orange-800',
-            'En Proceso': 'bg-purple-100 text-purple-800',
-            'Recolectado': 'bg-green-100 text-green-800',
-            'En Tránsito': 'bg-indigo-100 text-indigo-800',
-            'Completado': 'bg-green-100 text-green-800',
-            'Rechazado': 'bg-red-100 text-red-800',
-            'Cancelado': 'bg-gray-100 text-gray-800'
-        };
-        return classes[status] || 'bg-gray-100 text-gray-800';
-    },
-
-    // Renderizar botones de acción según el estado del servicio
-    renderServiceActionButtons(service) {
-        const buttons = [];
-        
-        // Botón para iniciar recolección (cuando está programado)
-        if (service.status === 'Programado') {
-            buttons.push(`
-                <button onclick="plantModule.startServiceCollection(${service.id})" 
-                        class="text-blue-600 hover:text-blue-800 p-2" title="Iniciar Recolección">
-                    <i class="fas fa-play"></i>
-                </button>
-            `);
-        }
-        
-        // Botón para hacer check-in (cuando está en ruta)
-        if (service.status === 'En Ruta') {
-            buttons.push(`
-                <button onclick="plantModule.checkInAtService(${service.id})" 
-                        class="text-yellow-600 hover:text-yellow-800 p-2" title="Check-in en Ubicación">
-                    <i class="fas fa-map-marker-alt"></i>
-                </button>
-            `);
-        }
-        
-        // Botón para confirmar recolección (cuando está en proceso)
-        if (service.status === 'En Proceso') {
-            buttons.push(`
-                <button onclick="plantModule.confirmCollection(${service.id})" 
-                        class="text-green-600 hover:text-green-800 p-2" title="Confirmar Recolección">
-                    <i class="fas fa-check"></i>
-                </button>
-            `);
-        }
-        
-        // Botón para iniciar tránsito (cuando está recolectado)
-        if (service.status === 'Recolectado') {
-            buttons.push(`
-                <button onclick="plantModule.startTransit(${service.id})" 
-                        class="text-indigo-600 hover:text-indigo-800 p-2" title="Iniciar Tránsito">
-                    <i class="fas fa-shipping-fast"></i>
-                </button>
-            `);
-        }
-        
-        // Botón para completar servicio (cuando está en tránsito)
-        if (service.status === 'En Tránsito') {
-            buttons.push(`
-                <button onclick="plantModule.completeService(${service.id})" 
-                        class="text-purple-600 hover:text-purple-800 p-2" title="Completar Servicio">
-                    <i class="fas fa-flag-checkered"></i>
-                </button>
-            `);
-        }
-
-        return buttons.join('');
-    },
-
-    confirmCollection(serviceId) {
-        if (window.servicesModule && typeof window.servicesModule.completeCollection === 'function') {
-            try {
-                // Usar la función completeCollection que maneja mejor los datos de recolección
-                window.servicesModule.completeCollection(serviceId, {
-                    weight: 0, // Se puede agregar un modal para capturar estos datos
-                    volume: 0,
-                    notes: 'Recolección confirmada por operador',
-                    signature: 'Confirmado',
-                    photos: []
-                });
-                
-                // Recargar la lista después de la acción
-                setTimeout(() => {
-                    const container = document.getElementById('operator-services-list');
-                    if (container) {
-                        container.innerHTML = this.renderOperatorServicesList();
-                        this.applyTableStyles();
-                    }
-                }, 500);
-            } catch (error) {
-                console.error('Error al confirmar recolección:', error);
-                authSystem.showNotification('Error al confirmar la recolección: ' + error.message, 'error');
-            }
-        } else {
-            authSystem.showNotification('Función de confirmar recolección no disponible', 'info');
-        }
-    },
-
-    // Filtrar servicios del operador
-    filterOperatorServices(filter) {
-        const container = document.getElementById('operator-services-list');
-        if (!container) return;
-
-        let services = this.getOperatorServices();
-        
-        if (filter === 'today') {
-            const today = new Date().toISOString().split('T')[0];
-            services = services.filter(s => s.requestedDate === today);
-        } else if (filter === 'week') {
-            const today = new Date();
-            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-            services = services.filter(s => {
-                const serviceDate = new Date(s.requestedDate);
-                return serviceDate >= weekAgo && serviceDate <= today;
-            });
-        }
-        // 'all' muestra todos los servicios
-
-        // Actualizar la vista
-        container.innerHTML = this.renderFilteredServices(services);
-        
-        // Aplicar estilos adicionales para mejorar la tabla
-        this.applyTableStyles();
-        
-        authSystem.showNotification(`Filtro "${filter}" aplicado`, 'info');
-    },
-
-    // Aplicar estilos adicionales a la tabla
-    applyTableStyles() {
-        const table = document.querySelector('#operator-services-list table');
-        if (table) {
-            // Asegurar que la tabla tenga scroll horizontal en dispositivos móviles
-            table.style.minWidth = '800px';
-            table.style.width = 'auto';
-            table.style.tableLayout = 'auto';
-            
-            // Mejorar la legibilidad de las celdas
-            const cells = table.querySelectorAll('td, th');
-            cells.forEach(cell => {
-                cell.style.verticalAlign = 'top';
-                cell.style.padding = '12px 16px';
-                cell.style.borderBottom = '1px solid #e5e7eb';
-                cell.style.whiteSpace = 'nowrap';
-            });
-            
-            // Asegurar que los botones de acción sean consistentes
-            const actionButtons = table.querySelectorAll('button');
-            actionButtons.forEach(button => {
-                button.style.minWidth = '32px';
-                button.style.minHeight = '32px';
-                button.style.display = 'inline-flex';
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.borderRadius = '6px';
-                button.style.transition = 'all 0.2s ease';
-            });
-            
-            // Mejorar el header de la tabla
-            const headerCells = table.querySelectorAll('th');
-            headerCells.forEach(cell => {
-                cell.style.backgroundColor = '#f9fafb';
-                cell.style.fontWeight = '600';
-                cell.style.textTransform = 'uppercase';
-                cell.style.letterSpacing = '0.05em';
-                cell.style.borderBottom = '2px solid #e5e7eb';
-            });
-            
-            // Asegurar que el contenedor tenga scroll horizontal y se ajuste al contenido
-            const container = document.getElementById('operator-services-list');
-            if (container) {
-                container.style.overflowX = 'auto';
-                container.style.overflowY = 'hidden';
-                container.style.width = '100%';
-                container.style.maxWidth = '100%';
-                container.style.display = 'block';
-                container.style.margin = '0';
-                container.style.padding = '0';
-            }
-            
-            // Optimizar el ancho de la tabla
-            this.optimizeTableWidth();
-            
-            // Agregar listener para redimensionamiento de ventana
-            this.handleTableResponsive();
-        }
-    },
-
-    // Optimizar el ancho de la tabla para eliminar espacios innecesarios
-    optimizeTableWidth() {
-        const table = document.querySelector('#operator-services-list table');
-        const container = document.getElementById('operator-services-list');
-        
-        if (!table || !container) return;
-        
-        // Calcular el ancho real necesario para la tabla
-        const tableWidth = table.scrollWidth;
-        const containerWidth = container.clientWidth;
-        
-        // Si la tabla es más pequeña que el contenedor, ajustar el ancho
-        if (tableWidth < containerWidth && window.innerWidth >= 768) {
-            table.style.width = '100%';
-            table.style.minWidth = 'auto';
-        } else {
-            table.style.width = 'auto';
-            table.style.minWidth = '800px';
-        }
-    },
-
-    // Verificar que servicesModule esté disponible y funcionando
-    verifyServicesModule() {
-        console.log('Verificando servicesModule...');
-        console.log('window.servicesModule:', window.servicesModule);
-        
-        if (!window.servicesModule) {
-            console.error('servicesModule no está disponible');
-            authSystem.showNotification('Error: Módulo de servicios no disponible', 'error');
-            return false;
-        }
-        
-        if (typeof window.servicesModule.getOperatorServices !== 'function') {
-            console.error('getOperatorServices no está disponible');
-            authSystem.showNotification('Error: Función getOperatorServices no disponible', 'error');
-            return false;
-        }
-        
-        if (typeof window.servicesModule.completeCollection !== 'function') {
-            console.error('completeCollection no está disponible');
-            authSystem.showNotification('Error: Función completeCollection no disponible', 'error');
-            return false;
-        }
-        
-        console.log('servicesModule verificado correctamente');
-        return true;
-    },
-
-    // Manejar la responsividad de la tabla
-    handleTableResponsive() {
-        const container = document.getElementById('operator-services-list');
-        if (!container) return;
-        
-        const handleResize = () => {
-            const table = container.querySelector('table');
-            if (!table) return;
-            
-            if (window.innerWidth < 768) {
-                // En móviles, ajustar el ancho mínimo
-                table.style.minWidth = '600px';
-                table.style.width = '100%';
-            } else {
-                // En desktop, ajustar el ancho para que se adapte al contenido
-                table.style.minWidth = '800px';
-                table.style.width = 'auto';
-            }
-            
-            // Ajustar el contenedor para que se adapte al contenido de la tabla
-            container.style.width = '100%';
-            container.style.maxWidth = '100%';
-            
-            // Optimizar el ancho después del redimensionamiento
-            setTimeout(() => {
-                this.optimizeTableWidth();
-            }, 100);
-        };
-        
-        // Aplicar al cargar
-        handleResize();
-        
-        // Aplicar al redimensionar
-        window.addEventListener('resize', handleResize);
-    },
-
-    // Renderizar servicios filtrados
-    renderFilteredServices(services) {
-        if (!services || services.length === 0) {
-            return `
-                <div class="p-6 text-center">
-                    <i class="fas fa-filter text-gray-300 text-4xl mb-4"></i>
-                    <p class="text-gray-500">No hay solicitudes con el filtro aplicado</p>
-                </div>
-            `;
-        }
-
-        return `
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitud</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Residuo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        ${services.map(service => `
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="p-2 rounded-full ${this.getServiceStatusColor(service.status)} mr-3">
-                                            <i class="fas ${this.getServiceStatusIcon(service.status)}"></i>
-                                        </div>
-                                        <div class="text-sm font-medium text-gray-900">#${String(service.id).padStart(3, '0')}</div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">${service.clientName}</div>
-                                    <div class="text-sm text-gray-500">${service.address}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">${service.wasteType}</div>
-                                    <div class="text-sm text-gray-500">${service.estimatedVolume} ${service.volumeUnit}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    ${this.formatDate(service.requestedDate)}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs rounded-full ${this.getServiceStatusClass(service.status)}">
-                                        ${service.status}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <button onclick="plantModule.viewService(${service.id})" 
-                                                class="text-blue-600 hover:text-blue-800 p-2" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        ${this.renderServiceActionButtons(service)}
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    },
-
-    // Funciones de acción para servicios
-    viewService(serviceId) {
-        if (window.servicesModule && typeof window.servicesModule.viewService === 'function') {
-            window.servicesModule.viewService(serviceId);
-        } else {
-            authSystem.showNotification('Función de visualización de servicio no disponible', 'info');
-        }
-    },
-
-    startServiceCollection(serviceId) {
-        if (window.servicesModule && typeof window.servicesModule.startServiceCollection === 'function') {
-            window.servicesModule.startServiceCollection(serviceId);
-            // Recargar la lista después de la acción
-            setTimeout(() => {
-                const container = document.getElementById('operator-services-list');
-                if (container) {
-                    container.innerHTML = this.renderOperatorServicesList();
-                }
-            }, 500);
-        } else {
-            authSystem.showNotification('Función de inicio de recolección no disponible', 'info');
-        }
-    },
-
-    checkInAtService(serviceId) {
-        if (window.servicesModule && typeof window.servicesModule.checkInAtService === 'function') {
-            window.servicesModule.checkInAtService(serviceId);
-            // Recargar la lista después de la acción
-            setTimeout(() => {
-                const container = document.getElementById('operator-services-list');
-                if (container) {
-                    container.innerHTML = this.renderOperatorServicesList();
-                }
-            }, 500);
-        } else {
-            authSystem.showNotification('Función de check-in no disponible', 'info');
-        }
-    },
-
-    completeCollection(serviceId) {
-        if (window.servicesModule && typeof window.servicesModule.completeCollection === 'function') {
-            window.servicesModule.completeCollection(serviceId);
-            // Recargar la lista después de la acción
-            setTimeout(() => {
-                const container = document.getElementById('operator-services-list');
-                if (container) {
-                    container.innerHTML = this.renderOperatorServicesList();
-                }
-            }, 500);
-        } else {
-            authSystem.showNotification('Función de completar recolección no disponible', 'info');
-        }
-    },
-
-    startTransit(serviceId) {
-        if (window.servicesModule && typeof window.servicesModule.updateServiceStatus === 'function') {
-            window.servicesModule.updateServiceStatus(serviceId, 'En Tránsito');
-            authSystem.showNotification('Servicio marcado como "En Tránsito"', 'success');
-            // Recargar la lista después de la acción
-            setTimeout(() => {
-                const container = document.getElementById('operator-services-list');
-                if (container) {
-                    container.innerHTML = this.renderOperatorServicesList();
-                }
-            }, 500);
-        } else {
-            authSystem.showNotification('Función de inicio de tránsito no disponible', 'info');
-        }
-    },
-
-    completeService(serviceId) {
-        if (window.servicesModule && typeof window.servicesModule.updateServiceStatus === 'function') {
-            window.servicesModule.updateServiceStatus(serviceId, 'Completado');
-            authSystem.showNotification('Servicio marcado como "Completado"', 'success');
-            // Recargar la lista después de la acción
-            setTimeout(() => {
-                const container = document.getElementById('operator-services-list');
-                if (container) {
-                    container.innerHTML = this.renderOperatorServicesList();
-                }
-            }, 500);
-        } else {
-            authSystem.showNotification('Función de completar servicio no disponible', 'info');
-        }
-    }
 };

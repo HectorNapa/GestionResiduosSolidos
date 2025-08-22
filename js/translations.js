@@ -62,7 +62,7 @@ class TranslationManager {
                 disposal: 'Disposición',
                 reports: 'Reportes',
                 services: 'Solicitudes',
-                companies: 'Empresas',
+
                 
                 // Common
                 save: 'Guardar',
@@ -83,21 +83,10 @@ class TranslationManager {
                 refresh: 'Actualizar',
                 'module-in-development': 'Módulo en desarrollo',
                 'error-loading-dashboard': 'Error al Cargar el Dashboard',
-                'no-company-selected': 'No hay empresa seleccionada',
-                'select-company-to-continue': 'Seleccione una empresa en la pantalla de login para continuar',
-                'company-information': 'Información de la Empresa',
-                'company-details': 'Detalles de la Empresa',
-                'change-company': 'Cambiar Empresa',
-                'company-name': 'Nombre de la Empresa',
-                'company-code': 'Código',
-                'company-type': 'Tipo de Empresa',
-                'service-level': 'Nivel de Servicio',
-                'contact-information': 'Información de Contacto',
-                'address': 'Dirección',
-                'phone': 'Teléfono',
-                'contact-person': 'Persona de Contacto',
-                'waste-types': 'Tipos de Residuos',
-                'description': 'Descripción',
+                'print': 'Imprimir',
+                'print-service': 'Imprimir Solicitud',
+                'print-invoice': 'Imprimir Factura',
+                'actions': 'Acciones',
                 
                 // Status
                 pending: 'Pendiente',
@@ -173,7 +162,7 @@ class TranslationManager {
                 disposal: 'Disposal',
                 reports: 'Reports',
                 services: 'Requests',
-                companies: 'Companies',
+
                 
                 // Common
                 save: 'Save',
@@ -194,21 +183,10 @@ class TranslationManager {
                 refresh: 'Refresh',
                 'module-in-development': 'Module in development',
                 'error-loading-dashboard': 'Error Loading Dashboard',
-                'no-company-selected': 'No company selected',
-                'select-company-to-continue': 'Select a company on the login screen to continue',
-                'company-information': 'Company Information',
-                'company-details': 'Company Details',
-                'change-company': 'Change Company',
-                'company-name': 'Company Name',
-                'company-code': 'Code',
-                'company-type': 'Company Type',
-                'service-level': 'Service Level',
-                'contact-information': 'Contact Information',
-                'address': 'Address',
-                'phone': 'Phone',
-                'contact-person': 'Contact Person',
-                'waste-types': 'Waste Types',
-                'description': 'Description',
+                'print': 'Print',
+                'print-service': 'Print Request',
+                'print-invoice': 'Print Invoice',
+                'actions': 'Actions',
                 
                 // Status
                 pending: 'Pending',

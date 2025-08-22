@@ -122,22 +122,17 @@ class WasteManagementApp {
 
         if (userType === 'admin') {
             menuConfig = [
-                {icon: 'fas fa-tachometer-alt', label: 'home', module: 'dashboard'},
-                {icon: 'fas fa-clipboard-list', label: 'services', module: 'services'},
-                {icon: 'fas fa-route', label: 'routes', module: 'routes'},
-                {icon: 'fas fa-building', label: 'companies', module: 'companies'}
+                {icon: 'fas fa-tachometer-alt', label: 'home', module: 'dashboard'}
             ];
         } else if (userType === 'operator') {
             menuConfig = [
-                {icon: 'fas fa-industry', label: 'plant', module: 'plant'},
-                {icon: 'fas fa-building', label: 'companies', module: 'companies'}
+                {icon: 'fas fa-industry', label: 'plant', module: 'plant'}
             ];
         } else { // client
             menuConfig = [
                 {icon: 'fas fa-home', label: 'home', module: 'dashboard'},
                 {icon: 'fas fa-truck', label: 'my-services', module: 'my-services'},
-                {icon: 'fas fa-file-invoice-dollar', label: 'invoices', module: 'invoices'},
-                {icon: 'fas fa-building', label: 'companies', module: 'companies'}
+                {icon: 'fas fa-file-invoice-dollar', label: 'invoices', module: 'invoices'}
             ];
         }
 
@@ -186,14 +181,11 @@ class WasteManagementApp {
                     this.loadDashboard(); 
                 }
                 break;
-            case 'services': this.loadServices(); break;
             case 'new-service': this.loadNewService(); break;
-            case 'routes': this.loadRoutes(); break;
             case 'plant': this.loadPlant(); break;
             case 'my-services': this.loadMyServices(); break;
             case 'invoices': this.loadInvoices(); break;
             case 'tracking': this.loadTracking(); break;
-            case 'companies': this.loadCompanies(); break;
             default:
                 if (contentArea) {
                     contentArea.innerHTML = '<div class="text-center py-8"><h2 class="text-2xl" data-translate="module-in-development">Módulo en desarrollo</h2></div>';
@@ -233,9 +225,7 @@ class WasteManagementApp {
             }
         }
     }
-    loadServices() { if (window.servicesModule?.load) window.servicesModule.load(); }
     loadNewService() { if (window.servicesModule?.loadNewService) window.servicesModule.loadNewService(); }
-    loadRoutes() { if (window.routesModule?.load) window.routesModule.load(); }
     // Funciones de carga de módulos eliminados del menú (mantenidas para compatibilidad interna)
     loadCollection() { if (window.collectionModule?.load) window.collectionModule.load(); }
     loadManifests() { if (window.manifestsModule?.load) window.manifestsModule.load(); }
@@ -408,7 +398,6 @@ class WasteManagementApp {
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Servicio</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimiento</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                             </tr>
                         </thead>
@@ -431,146 +420,7 @@ class WasteManagementApp {
         `;
     }
 
-    loadCompanies() {
-        const contentArea = document.getElementById('content-area');
-        if (!contentArea) return;
 
-        const selectedCompany = getSelectedCompany();
-        const allCompanies = getAllCompanies();
-
-        if (!selectedCompany) {
-            contentArea.innerHTML = `
-                <div class="text-center py-12">
-                    <i class="fas fa-building text-6xl text-gray-400 mb-4"></i>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2" data-translate="no-company-selected">No hay empresa seleccionada</h2>
-                    <p class="text-gray-600" data-translate="select-company-to-continue">Seleccione una empresa en la pantalla de login para continuar</p>
-                </div>
-            `;
-            return;
-        }
-
-        contentArea.innerHTML = `
-            <div class="mb-8">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-800" data-translate="company-information">Información de la Empresa</h1>
-                        <p class="text-gray-600 mt-1" data-translate="company-details">Detalles y configuración de la empresa seleccionada</p>
-                    </div>
-                    <div class="mt-4 lg:mt-0 flex items-center space-x-3">
-                        <button onclick="app.changeCompany()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
-                            <i class="fas fa-exchange-alt mr-2"></i><span data-translate="change-company">Cambiar Empresa</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Información Principal de la Empresa -->
-            <div class="bg-white p-6 rounded-lg shadow mb-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="company-details">Detalles de la Empresa</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="company-name">Nombre de la Empresa</label>
-                                <p class="text-lg font-semibold text-gray-900">${selectedCompany.name}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="company-code">Código</label>
-                                <p class="text-lg text-gray-900">${selectedCompany.code}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="company-type">Tipo de Empresa</label>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                    ${this.getCompanyTypeLabel(selectedCompany.type)}
-                                </span>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="service-level">Nivel de Servicio</label>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${this.getServiceLevelColor(selectedCompany.serviceLevel)}">
-                                    ${selectedCompany.serviceLevel}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="contact-information">Información de Contacto</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="address">Dirección</label>
-                                <p class="text-gray-900">${selectedCompany.address}</p>
-                                <p class="text-gray-600">${selectedCompany.city}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="phone">Teléfono</label>
-                                <p class="text-gray-900">${selectedCompany.phone}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="email">Email</label>
-                                <p class="text-gray-900">${selectedCompany.email}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700" data-translate="contact-person">Persona de Contacto</label>
-                                <p class="text-gray-900">${selectedCompany.contactPerson}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tipos de Residuos -->
-            <div class="bg-white p-6 rounded-lg shadow mb-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="waste-types">Tipos de Residuos</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    ${selectedCompany.wasteTypes.map(wasteType => `
-                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-recycle text-green-600 mr-3"></i>
-                            <span class="text-gray-900">${wasteType}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-
-            <!-- Descripción -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4" data-translate="description">Descripción</h3>
-                <p class="text-gray-700 leading-relaxed">${selectedCompany.description}</p>
-            </div>
-        `;
-
-        // Aplicar traducciones
-        if (window.translationManager) {
-            translationManager.applyTranslations();
-        }
-    }
-
-    getCompanyTypeLabel(type) {
-        const typeLabels = {
-            'industrial': 'Industrial',
-            'comercial': 'Comercial',
-            'salud': 'Salud',
-            'educativo': 'Educativo',
-            'gastronomía': 'Gastronomía',
-            'farmacéutico': 'Farmacéutico',
-            'hotelería': 'Hotelería',
-            'retail': 'Retail'
-        };
-        return typeLabels[type] || type;
-    }
-
-    getServiceLevelColor(level) {
-        const colors = {
-            'Premium': 'bg-purple-100 text-purple-800',
-            'Estándar': 'bg-blue-100 text-blue-800',
-            'Básico': 'bg-green-100 text-green-800'
-        };
-        return colors[level] || 'bg-gray-100 text-gray-800';
-    }
-
-    changeCompany() {
-        // Limpiar la empresa seleccionada y redirigir al login
-        localStorage.removeItem('selected_company');
-        this.handleLogout();
-    }
 
     loadTracking() {
         const contentArea = document.getElementById('content-area');
@@ -1680,12 +1530,10 @@ class WasteManagementApp {
                             class="text-blue-600 hover:text-blue-900 mr-3" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
-                    ${(service.status === 'Programado' || service.status === 'En Proceso') ? `
-                        <button onclick="app.trackService(${service.id})" 
-                                class="text-green-600 hover:text-green-900" title="Seguimiento GPS">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </button>
-                    ` : ''}
+                    <button onclick="app.printService(${service.id})" 
+                            class="text-purple-600 hover:text-purple-900" title="Imprimir solicitud">
+                        <i class="fas fa-print"></i>
+                    </button>
                 </td>
             </tr>
         `).join('');
@@ -1877,29 +1725,15 @@ class WasteManagementApp {
                         '<div class="text-xs text-red-600 font-medium">¡Vencida!</div>' : ''
                     }
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getInvoiceStatusClass(invoice.status)}">
-                        ${invoice.status}
-                    </span>
-                    ${invoice.status === 'Pagada' && invoice.paidDate ? `
-                        <div class="text-xs text-gray-500 mt-1">Pagada: ${this.formatDate(invoice.paidDate)}</div>
-                    ` : ''}
-                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="app.viewInvoiceDetails('${invoice.id}')" 
                             class="text-blue-600 hover:text-blue-900 mr-3" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button onclick="app.downloadInvoicePDF('${invoice.id}')" 
-                            class="text-green-600 hover:text-green-900 mr-3" title="Descargar PDF">
-                        <i class="fas fa-file-pdf"></i>
+                    <button onclick="app.printInvoice('${invoice.id}')" 
+                            class="text-purple-600 hover:text-purple-900" title="Imprimir factura">
+                        <i class="fas fa-print"></i>
                     </button>
-                    ${invoice.status === 'Pendiente' || invoice.status === 'Vencida' ? `
-                        <button onclick="app.payInvoice('${invoice.id}')" 
-                                class="text-purple-600 hover:text-purple-900" title="Reportar pago">
-                            <i class="fas fa-credit-card"></i>
-                        </button>
-                    ` : ''}
                 </td>
             </tr>
         `).join('');
@@ -2444,6 +2278,282 @@ class WasteManagementApp {
             btn.className = 'bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700';
             authSystem?.showNotification?.('Auto-actualización activada (cada 10s)', 'success');
         }
+    }
+
+    // ========= FUNCIONES DE IMPRESIÓN =========
+    printService(serviceId) {
+        const currentUser = this.currentUser;
+        if (!currentUser) return;
+
+        const services = this.getClientServices(currentUser.id);
+        const service = services.find(s => s.id == serviceId);
+        
+        if (!service) {
+            authSystem?.showNotification?.('Servicio no encontrado', 'error');
+            return;
+        }
+
+        const selectedCompany = getSelectedCompany();
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Solicitud de Servicio #${String(service.id).padStart(3, '0')}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                    .company-info { margin-bottom: 20px; }
+                    .service-details { margin-bottom: 30px; }
+                    .detail-row { margin: 10px 0; }
+                    .label { font-weight: bold; color: #333; }
+                    .value { margin-left: 10px; }
+                    .status { padding: 5px 10px; border-radius: 15px; font-weight: bold; }
+                    .status-pending { background-color: #fef3c7; color: #92400e; }
+                    .status-approved { background-color: #dbeafe; color: #1e40af; }
+                    .status-rejected { background-color: #fee2e2; color: #dc2626; }
+                    .status-scheduled { background-color: #dbeafe; color: #1e40af; }
+                    .status-in-progress { background-color: #fed7aa; color: #ea580c; }
+                    .status-completed { background-color: #dcfce7; color: #166534; }
+                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
+                    @media print {
+                        body { margin: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Solicitud de Servicio de Recolección</h1>
+                    <p><strong>EcoGestión</strong> - Sistema de Gestión de Residuos</p>
+                </div>
+
+                <div class="company-info">
+                    <h3>Información del Cliente</h3>
+                    <div class="detail-row">
+                        <span class="label">Cliente:</span>
+                        <span class="value">${currentUser.name}</span>
+                    </div>
+                    ${selectedCompany ? `
+                        <div class="detail-row">
+                            <span class="label">Empresa:</span>
+                            <span class="value">${selectedCompany.name} (${selectedCompany.code})</span>
+                        </div>
+                    ` : ''}
+                    <div class="detail-row">
+                        <span class="label">Fecha de Impresión:</span>
+                        <span class="value">${new Date().toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</span>
+                    </div>
+                </div>
+
+                <div class="service-details">
+                    <h3>Detalles del Servicio</h3>
+                    <div class="detail-row">
+                        <span class="label">Número de Solicitud:</span>
+                        <span class="value">#${String(service.id).padStart(3, '0')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Fecha de Creación:</span>
+                        <span class="value">${this.formatDate(service.createdDate)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Fecha Solicitada:</span>
+                        <span class="value">${this.formatDate(service.requestedDate)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Tipo de Residuo:</span>
+                        <span class="value">${service.wasteType}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Volumen Estimado:</span>
+                        <span class="value">${service.estimatedVolume} ${service.volumeUnit || 'm³'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Estado:</span>
+                        <span class="value">
+                            <span class="status status-${service.status.toLowerCase().replace(/\s+/g, '-')}">${service.status}</span>
+                        </span>
+                    </div>
+                    ${service.description ? `
+                        <div class="detail-row">
+                            <span class="label">Descripción:</span>
+                            <span class="value">${service.description}</span>
+                        </div>
+                    ` : ''}
+                    ${service.status === 'Programado' && service.schedule ? `
+                        <div class="detail-row">
+                            <span class="label">Programación:</span>
+                            <span class="value">${service.schedule.collectionDate} ${service.schedule.collectionTime}</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="footer">
+                    <p>Este documento fue generado automáticamente por el sistema EcoGestión</p>
+                    <p>Para consultas, contacte a nuestro servicio al cliente</p>
+                </div>
+
+                <div class="no-print" style="text-align: center; margin-top: 20px;">
+                    <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Imprimir
+                    </button>
+                    <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                        Cerrar
+                    </button>
+                </div>
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        authSystem?.showNotification?.('Ventana de impresión abierta', 'success');
+    }
+
+    printInvoice(invoiceId) {
+        const currentUser = this.currentUser;
+        if (!currentUser) return;
+
+        const invoices = this.getClientInvoices(currentUser.id);
+        const invoice = invoices.find(inv => inv.id == invoiceId);
+        
+        if (!invoice) {
+            authSystem?.showNotification?.('Factura no encontrada', 'error');
+            return;
+        }
+
+        const selectedCompany = getSelectedCompany();
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Factura #${invoice.id}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                    .company-info { margin-bottom: 20px; }
+                    .invoice-details { margin-bottom: 30px; }
+                    .detail-row { margin: 10px 0; }
+                    .label { font-weight: bold; color: #333; }
+                    .value { margin-left: 10px; }
+                    .status { padding: 5px 10px; border-radius: 15px; font-weight: bold; }
+                    .status-pending { background-color: #fef3c7; color: #92400e; }
+                    .status-paid { background-color: #dcfce7; color: #166534; }
+                    .status-overdue { background-color: #fee2e2; color: #dc2626; }
+                    .status-cancelled { background-color: #f3f4f6; color: #374151; }
+                    .amount { font-size: 18px; font-weight: bold; color: #059669; }
+                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
+                    @media print {
+                        body { margin: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Factura de Servicio</h1>
+                    <p><strong>EcoGestión</strong> - Sistema de Gestión de Residuos</p>
+                </div>
+
+                <div class="company-info">
+                    <h3>Información del Cliente</h3>
+                    <div class="detail-row">
+                        <span class="label">Cliente:</span>
+                        <span class="value">${currentUser.name}</span>
+                    </div>
+                    ${selectedCompany ? `
+                        <div class="detail-row">
+                            <span class="label">Empresa:</span>
+                            <span class="value">${selectedCompany.name} (${selectedCompany.code})</span>
+                        </div>
+                    ` : ''}
+                    <div class="detail-row">
+                        <span class="label">Fecha de Impresión:</span>
+                        <span class="value">${new Date().toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</span>
+                    </div>
+                </div>
+
+                <div class="invoice-details">
+                    <h3>Detalles de la Factura</h3>
+                    <div class="detail-row">
+                        <span class="label">Número de Factura:</span>
+                        <span class="value">${invoice.id}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Servicio Relacionado:</span>
+                        <span class="value">#${String(invoice.serviceId).padStart(3, '0')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Fecha de Facturación:</span>
+                        <span class="value">${this.formatDate(invoice.invoiceDate)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Fecha de Vencimiento:</span>
+                        <span class="value">${this.formatDate(invoice.dueDate)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Descripción del Servicio:</span>
+                        <span class="value">${invoice.serviceDescription}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Monto:</span>
+                        <span class="value amount">$${this.formatCurrency(invoice.amount)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Estado:</span>
+                        <span class="value">
+                            <span class="status status-${invoice.status.toLowerCase()}">${invoice.status}</span>
+                        </span>
+                    </div>
+                    ${invoice.status === 'Pagada' && invoice.paidDate ? `
+                        <div class="detail-row">
+                            <span class="label">Fecha de Pago:</span>
+                            <span class="value">${this.formatDate(invoice.paidDate)}</span>
+                        </div>
+                    ` : ''}
+                    ${this.isOverdue(invoice.dueDate) && invoice.status !== 'Pagada' ? `
+                        <div class="detail-row">
+                            <span class="label">Estado:</span>
+                            <span class="value">
+                                <span class="status status-overdue">¡VENCIDA!</span>
+                            </span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="footer">
+                    <p>Este documento fue generado automáticamente por el sistema EcoGestión</p>
+                    <p>Para consultas sobre pagos, contacte a nuestro servicio al cliente</p>
+                </div>
+
+                <div class="no-print" style="text-align: center; margin-top: 20px;">
+                    <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Imprimir
+                    </button>
+                    <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                        Cerrar
+                    </button>
+                </div>
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        authSystem?.showNotification?.('Ventana de impresión abierta', 'success');
     }
 }
 

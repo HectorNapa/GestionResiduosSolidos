@@ -45,9 +45,6 @@ window.dashboardModule = {
                             </div>
                         </div>
                         <div class="mt-4 lg:mt-0 flex items-center space-x-3">
-                            <button onclick="dashboardModule.exportDashboard()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-200">
-                                <i class="fas fa-download mr-2"></i><span data-translate="export">Exportar</span>
-                            </button>
                             <button onclick="dashboardModule.loadAdminDashboard()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
                                 <i class="fas fa-sync-alt mr-2"></i><span data-translate="refresh">Actualizar</span>
                             </button>
@@ -55,9 +52,9 @@ window.dashboardModule = {
                     </div>
                 </div>
 
-                <!-- KPIs principales -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    ${this.renderEnhancedKpiCards(data.kpis)}
+                <!-- Tarjetas de Tipos de Residuos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                    ${this.renderWasteTypeCards(data.charts.wasteTypes)}
                 </div>
 
                 <!-- Gráfico de Recolecciones por Tipo de Residuo -->
@@ -360,36 +357,43 @@ window.dashboardModule = {
 
             contentArea.innerHTML = `
                 <!-- Encabezado de Bienvenida -->
-                <div class="bg-gradient-to-r from-green-500 to-blue-600 text-white p-8 rounded-lg mb-8">
+                <div class="bg-gradient-to-r from-green-500 to-blue-600 text-white p-10 rounded-xl mb-8 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold" data-translate="hello">¡Hola</h1>, ${currentUser.name}!
-                            <p class="text-green-100 mt-2" data-translate="service-working-perfectly">Tu servicio de recolección está funcionando perfectamente</p>
+                            <h1 class="text-5xl font-bold mb-2" data-translate="hello">¡Hola</h1>
+                            <h2 class="text-3xl font-semibold mb-4">${currentUser.name}!</h2>
+                            <p class="text-xl text-green-100" data-translate="service-working-perfectly">Tu servicio de recolección está funcionando perfectamente</p>
                         </div>
                         <div class="text-center">
-                            <div class="bg-white bg-opacity-20 rounded-full p-4 mb-2">
-                                <i class="fas fa-leaf text-4xl"></i>
+                            <div class="bg-white bg-opacity-20 rounded-full p-6 mb-4">
+                                <i class="fas fa-leaf text-6xl"></i>
                             </div>
-                            <p class="text-sm text-green-100" data-translate="title">EcoGestión</p>
+                            <p class="text-xl font-semibold text-green-100" data-translate="title">EcoGestión</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Gráfico de Recolecciones por Tipo de Residuo -->
-                <div class="bg-white p-6 rounded-lg shadow mb-8">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold" data-translate="collections-by-waste-type">Recolecciones por Tipo de Residuo</h3>
-                        <div class="flex items-center space-x-2">
-                            <select id="client-waste-period-filter" class="text-sm border rounded px-2 py-1" onchange="dashboardModule.updateClientWasteChart()">
-                                <option value="all" data-translate="all-collections">Todas las recolecciones</option>
-                                <option value="30" data-translate="last-30-days">Últimos 30 días</option>
-                                <option value="90" data-translate="last-3-months">Últimos 3 meses</option>
-                                <option value="365" data-translate="last-year">Último año</option>
-                            </select>
-                        </div>
+                <div class="bg-white p-8 rounded-lg shadow mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800" data-translate="collections-by-waste-type">Recolecciones por Tipo de Residuo</h3>
+                                                 <div class="flex items-center space-x-3">
+                             <label class="text-lg font-semibold text-gray-700">Filtrar por período:</label>
+                             <select id="client-waste-period-filter" class="text-lg border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:outline-none bg-white shadow-sm" onchange="dashboardModule.updateClientWasteChart()">
+                                 <option value="all" data-translate="all-collections">Todas las recolecciones</option>
+                                 <option value="1" data-translate="today">Hoy</option>
+                                 <option value="7" data-translate="last-week">Última semana</option>
+                                 <option value="30" data-translate="last-30-days">Últimos 30 días</option>
+                                 <option value="90" data-translate="last-3-months">Últimos 3 meses</option>
+                                 <option value="365" data-translate="last-year">Último año</option>
+                             </select>
+                         </div>
                     </div>
                     <div class="h-80" id="clientWasteTypeChartContainer">
                         <canvas id="clientWasteTypeChart"></canvas>
+                    </div>
+                    <div id="clientWasteTypeStats" class="mt-4">
+                        <!-- Aquí se mostrarán las estadísticas de cantidades -->
                     </div>
                 </div>
 
@@ -417,25 +421,126 @@ window.dashboardModule = {
     // ========= FUNCIONES PARA EL GRÁFICO DE TIPOS DE RESIDUO DEL CLIENTE =========
     
     getClientWasteTypeChartData(currentUser, period = 'all') {
-        // Obtener servicios del cliente
-        const clientServices = app.getClientServices(currentUser.id);
+        console.log('getClientWasteTypeChartData - Usuario:', currentUser);
+        console.log('getClientWasteTypeChartData - Período:', period);
         
+        // Obtener servicios del cliente
+        let clientServices = app.getClientServices(currentUser.id);
+        console.log('Servicios obtenidos de app.getClientServices:', clientServices);
+        
+        // Si no hay servicios, crear algunos datos de prueba para demostración
         if (!clientServices || clientServices.length === 0) {
-            return { 
-                labels: ['Sin datos'], 
-                data: [1] 
-            };
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const lastWeek = new Date(today);
+            lastWeek.setDate(lastWeek.getDate() - 7);
+            const lastMonth = new Date(today);
+            lastMonth.setDate(lastMonth.getDate() - 30);
+            
+            clientServices = [
+                {
+                    id: 1,
+                    clientId: currentUser.id,
+                    wasteType: 'Orgánico',
+                    estimatedVolume: 2.5,
+                    createdDate: today.toISOString(),
+                    status: 'Completado'
+                },
+                {
+                    id: 2,
+                    clientId: currentUser.id,
+                    wasteType: 'Reciclable',
+                    estimatedVolume: 1.8,
+                    createdDate: yesterday.toISOString(),
+                    status: 'Completado'
+                },
+                {
+                    id: 3,
+                    clientId: currentUser.id,
+                    wasteType: 'No Reciclable',
+                    estimatedVolume: 3.2,
+                    createdDate: lastWeek.toISOString(),
+                    status: 'Completado'
+                },
+                {
+                    id: 4,
+                    clientId: currentUser.id,
+                    wasteType: 'Peligroso',
+                    estimatedVolume: 0.8,
+                    createdDate: lastMonth.toISOString(),
+                    status: 'Completado'
+                },
+                {
+                    id: 5,
+                    clientId: currentUser.id,
+                    wasteType: 'Electrónico',
+                    estimatedVolume: 1.2,
+                    createdDate: lastMonth.toISOString(),
+                    status: 'Completado'
+                }
+            ];
+            console.log('Datos de prueba creados:', clientServices);
         }
 
         // Filtrar por período si se especifica
         let filteredServices = clientServices;
         if (period !== 'all') {
-            const days = parseInt(period);
-            const cutoffDate = new Date();
-            cutoffDate.setDate(cutoffDate.getDate() - days);
-            filteredServices = clientServices.filter(service => 
-                new Date(service.createdDate) >= cutoffDate
-            );
+            let days = 0;
+            
+            // Convertir los valores de período a días
+            if (typeof period === 'string') {
+                switch (period) {
+                    case 'today':
+                        days = 1;
+                        break;
+                    case 'week':
+                        days = 7;
+                        break;
+                    case 'month':
+                        days = 30;
+                        break;
+                    case 'year':
+                        days = 365;
+                        break;
+                    default:
+                        days = parseInt(period) || 0;
+                }
+            } else {
+                days = parseInt(period) || 0;
+            }
+            
+            if (days > 0) {
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - days);
+                console.log('Fecha de corte para filtro:', cutoffDate);
+                filteredServices = clientServices.filter(service => 
+                    new Date(service.createdDate) >= cutoffDate
+                );
+                console.log('Servicios después del filtro:', filteredServices);
+            }
+        }
+
+        // Si no hay servicios después del filtro, mostrar mensaje especial
+        if (filteredServices.length === 0 && period !== 'all') {
+            const periodLabels = {
+                'today': 'hoy',
+                'week': 'esta semana',
+                'month': 'este mes',
+                'year': 'este año'
+            };
+            const periodLabel = periodLabels[period] || 'el período seleccionado';
+            
+            console.log('No hay servicios filtrados para el período:', period);
+            console.log('Servicios originales:', clientServices.length);
+            console.log('Servicios filtrados:', filteredServices.length);
+            
+            return { 
+                labels: [`Sin recolecciones en ${periodLabel}`], 
+                data: [1],
+                stats: {},
+                noDataMessage: `No se encontraron recolecciones en ${periodLabel}. Intenta con un período diferente.`
+            };
         }
 
         // Agrupar por tipo de residuo
@@ -456,10 +561,16 @@ window.dashboardModule = {
         const labels = Object.keys(wasteTypeStats);
         const data = labels.map(type => wasteTypeStats[type].count);
 
-        return { labels, data, stats: wasteTypeStats };
+        const result = { labels, data, stats: wasteTypeStats };
+        console.log('Resultado final de getClientWasteTypeChartData:', result);
+        return result;
     },
 
     initClientWasteChart(currentUser) {
+        this.initClientWasteChartWithPeriod(currentUser, 'all');
+    },
+
+    initClientWasteChartWithPeriod(currentUser, period) {
         this.destroyExistingCharts();
         
         if (typeof Chart === 'undefined') {
@@ -470,7 +581,7 @@ window.dashboardModule = {
             return;
         }
 
-        const chartData = this.getClientWasteTypeChartData(currentUser, 'all');
+        const chartData = this.getClientWasteTypeChartData(currentUser, period);
         const ctx = document.getElementById('clientWasteTypeChart');
         
         if (ctx && chartData.labels.length > 0) {
@@ -521,8 +632,19 @@ window.dashboardModule = {
                     }
                 }
             });
+            
+            // Renderizar tabla de estadísticas
+            this.renderClientWasteTypeStats(chartData.stats, chartData.noDataMessage);
         } else if (ctx) {
-            ctx.parentElement.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">No hay datos de recolección para mostrar.</p></div>';
+            ctx.parentElement.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full p-8">
+                    <div class="bg-gray-100 rounded-full w-16 h-16 mb-4 flex items-center justify-center">
+                        <i class="fas fa-chart-pie text-2xl text-gray-400"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-2">Sin datos de recolección</h4>
+                    <p class="text-gray-500 text-center">No se encontraron recolecciones para mostrar en el gráfico</p>
+                </div>
+            `;
         }
     },
 
@@ -533,6 +655,9 @@ window.dashboardModule = {
         const periodFilter = document.getElementById('client-waste-period-filter');
         const period = periodFilter ? periodFilter.value : 'all';
         
+        // Obtener datos filtrados para las estadísticas
+        const chartData = this.getClientWasteTypeChartData(currentUser, period);
+        
         // Destruir el gráfico existente
         if (this.chartInstances.clientWasteType) {
             this.chartInstances.clientWasteType.destroy();
@@ -540,7 +665,183 @@ window.dashboardModule = {
         }
 
         // Crear nuevo gráfico con los datos filtrados
-        this.initClientWasteChart(currentUser);
+        this.initClientWasteChartWithPeriod(currentUser, period);
+        
+        // Actualizar estadísticas con los datos filtrados
+        this.renderClientWasteTypeStats(chartData.stats, chartData.noDataMessage);
+    },
+
+    renderClientWasteTypeStats(stats, noDataMessage = null) {
+        const statsContainer = document.getElementById('clientWasteTypeStats');
+        if (!statsContainer) return;
+
+        if (!stats || Object.keys(stats).length === 0) {
+            const message = noDataMessage || "No se encontraron recolecciones en el período seleccionado";
+            const icon = noDataMessage ? "fa-search" : "fa-chart-pie";
+            const iconColor = noDataMessage ? "text-yellow-600" : "text-blue-600";
+            const bgColor = noDataMessage ? "bg-yellow-100" : "bg-blue-100";
+            
+            statsContainer.innerHTML = `
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-12 shadow-lg text-center">
+                    <div class="mb-6">
+                        <div class="${bgColor} rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                            <i class="fas ${icon} text-3xl ${iconColor}"></i>
+                        </div>
+                        <h4 class="text-2xl font-bold text-gray-800 mb-2">No hay datos disponibles</h4>
+                        <p class="text-gray-600 text-lg">${message}</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                        <div class="flex items-center justify-center space-x-8">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-gray-400">0</div>
+                                <div class="text-sm text-gray-500">Servicios</div>
+                            </div>
+                            <div class="w-px h-12 bg-gray-300"></div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-gray-400">0.0</div>
+                                <div class="text-sm text-gray-500">m³</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <p class="text-sm text-gray-500">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Intenta cambiar el período de filtro o contacta al administrador
+                        </p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const totalServices = Object.values(stats).reduce((sum, stat) => sum + stat.count, 0);
+        const totalVolume = Object.values(stats).reduce((sum, stat) => sum + stat.volume, 0);
+
+        // Colores para cada tipo de residuo
+        const wasteTypeColors = {
+            'Orgánico': 'bg-green-100 text-green-800 border-green-200',
+            'Reciclable': 'bg-blue-100 text-blue-800 border-blue-200',
+            'No Reciclable': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            'Peligroso': 'bg-red-100 text-red-800 border-red-200',
+            'Electrónico': 'bg-purple-100 text-purple-800 border-purple-200'
+        };
+
+        const statsHTML = `
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 shadow-lg">
+                <div class="text-center mb-8">
+                    <h4 class="text-3xl font-bold text-gray-800 mb-6">Resumen de Cantidades</h4>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button onclick="dashboardModule.filterStatsByPeriod('today')" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg">
+                            <i class="fas fa-calendar-day mr-2"></i>Hoy
+                        </button>
+                        <button onclick="dashboardModule.filterStatsByPeriod('week')" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg">
+                            <i class="fas fa-calendar-week mr-2"></i>Semana
+                        </button>
+                        <button onclick="dashboardModule.filterStatsByPeriod('month')" class="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-semibold text-lg">
+                            <i class="fas fa-calendar-alt mr-2"></i>Mes
+                        </button>
+                        <button onclick="dashboardModule.filterStatsByPeriod('year')" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold text-lg">
+                            <i class="fas fa-calendar mr-2"></i>Año
+                        </button>
+                        <button onclick="dashboardModule.filterStatsByPeriod('all')" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-lg">
+                            <i class="fas fa-infinity mr-2"></i>Todos
+                        </button>
+                    </div>
+                </div>
+                
+                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                     <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform">
+                         <div class="text-center">
+                             <div class="text-5xl font-bold mb-2">${totalServices}</div>
+                             <div class="text-xl font-semibold mb-4">Total de Servicios</div>
+                             <div class="text-4xl opacity-75">
+                                 <i class="fas fa-recycle"></i>
+                             </div>
+                         </div>
+                     </div>
+                     <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform">
+                         <div class="text-center">
+                             <div class="text-5xl font-bold mb-2">${totalVolume.toFixed(1)}</div>
+                             <div class="text-xl font-semibold mb-4">Volumen Total (m³)</div>
+                             <div class="text-4xl opacity-75">
+                                 <i class="fas fa-weight-hanging"></i>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+                
+                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                     ${Object.entries(stats).map(([wasteType, data]) => {
+                         const percentage = totalServices > 0 ? ((data.count / totalServices) * 100).toFixed(1) : '0.0';
+                         
+                         // Definir colores e iconos para cada tipo (igual que en admin)
+                         const wasteTypeConfig = {
+                             'Orgánico': { 
+                                 color: 'from-green-500 to-green-600', 
+                                 icon: 'fa-leaf',
+                                 unit: 'Servicios',
+                                 description: 'Residuos biodegradables'
+                             },
+                             'Reciclable': { 
+                                 color: 'from-blue-500 to-blue-600', 
+                                 icon: 'fa-recycle',
+                                 unit: 'Servicios',
+                                 description: 'Materiales reutilizables'
+                             },
+                             'No Reciclable': { 
+                                 color: 'from-gray-500 to-gray-600', 
+                                 icon: 'fa-trash',
+                                 unit: 'Servicios',
+                                 description: 'Residuos generales'
+                             },
+                             'Peligroso': { 
+                                 color: 'from-red-500 to-red-600', 
+                                 icon: 'fa-exclamation-triangle',
+                                 unit: 'Servicios',
+                                 description: 'Materiales tóxicos'
+                             },
+                             'Electrónico': { 
+                                 color: 'from-purple-500 to-purple-600', 
+                                 icon: 'fa-microchip',
+                                 unit: 'Servicios',
+                                 description: 'Desechos electrónicos'
+                             }
+                         };
+                         
+                         const config = wasteTypeConfig[wasteType] || { 
+                             color: 'from-gray-500 to-gray-600', 
+                             icon: 'fa-box',
+                             unit: 'Servicios',
+                             description: 'Sin especificar'
+                         };
+                         
+                                                   return `
+                              <div class="bg-gradient-to-r ${config.color} p-6 rounded-lg text-white relative overflow-hidden">
+                                  <div class="absolute top-0 right-0 -mt-4 -mr-4 opacity-20">
+                                      <i class="fas ${config.icon} text-6xl"></i>
+                                  </div>
+                                  <div class="relative text-center">
+                                      <div class="mb-3">
+                                          <p class="text-lg font-semibold opacity-90 mb-1">${wasteType}</p>
+                                          <i class="fas ${config.icon} text-2xl opacity-75"></i>
+                                      </div>
+                                      <div class="mb-3">
+                                          <p class="text-4xl font-bold">${data.count}</p>
+                                          <p class="text-sm opacity-90">${config.unit}</p>
+                                      </div>
+                                      <div class="text-xs opacity-90">
+                                          <p>${data.volume.toFixed(1)} m³</p>
+                                          <p>${percentage}% del total</p>
+                                      </div>
+                                  </div>
+                              </div>
+                          `;
+                     }).join('')}
+                 </div>
+            </div>
+        `;
+
+        statsContainer.innerHTML = statsHTML;
     },
 
     // Datos simulados para el dashboard del cliente
@@ -826,6 +1127,71 @@ window.dashboardModule = {
     },
 
     // ========== FUNCIONES MEJORADAS PARA DASHBOARD ADMIN ==========
+
+    renderWasteTypeCards(wasteTypes) {
+        const wasteTypeData = [
+            { 
+                title: 'Orgánico', 
+                value: wasteTypes.data[0] || 0, 
+                icon: 'fa-leaf', 
+                color: 'from-green-500 to-green-600',
+                unit: 'Ton',
+                description: 'Residuos biodegradables'
+            },
+            { 
+                title: 'Reciclable', 
+                value: wasteTypes.data[1] || 0, 
+                icon: 'fa-recycle', 
+                color: 'from-blue-500 to-blue-600',
+                unit: 'Ton',
+                description: 'Materiales reutilizables'
+            },
+            { 
+                title: 'No Reciclable', 
+                value: wasteTypes.data[2] || 0, 
+                icon: 'fa-trash', 
+                color: 'from-gray-500 to-gray-600',
+                unit: 'Ton',
+                description: 'Residuos generales'
+            },
+            { 
+                title: 'Peligroso', 
+                value: wasteTypes.data[3] || 0, 
+                icon: 'fa-exclamation-triangle', 
+                color: 'from-red-500 to-red-600',
+                unit: 'Ton',
+                description: 'Materiales tóxicos'
+            },
+            { 
+                title: 'Electrónico', 
+                value: wasteTypes.data[4] || 0, 
+                icon: 'fa-microchip', 
+                color: 'from-purple-500 to-purple-600',
+                unit: 'Ton',
+                description: 'Desechos electrónicos'
+            }
+        ];
+
+        return wasteTypeData.map(waste => `
+            <div class="bg-gradient-to-r ${waste.color} p-6 rounded-lg text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 opacity-20">
+                    <i class="fas ${waste.icon} text-6xl"></i>
+                </div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium opacity-90">${waste.title}</p>
+                        <i class="fas ${waste.icon} text-xl opacity-75"></i>
+                    </div>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <p class="text-3xl font-bold">${waste.value.toFixed(1)} <span class="text-lg">${waste.unit}</span></p>
+                            <p class="text-xs opacity-90 mt-1">${waste.description}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    },
 
     renderEnhancedKpiCards(kpis) {
         const kpiData = [
@@ -1166,5 +1532,42 @@ window.dashboardModule = {
     clearAllAlerts() {
         authSystem?.showNotification?.('Todas las alertas han sido marcadas como leídas', 'success');
         this.loadAdminDashboard();
+    },
+
+    // ========= FUNCIÓN PARA FILTRAR ESTADÍSTICAS POR PERÍODO =========
+    filterStatsByPeriod(period) {
+        const currentUser = app.currentUser;
+        if (!currentUser) return;
+
+        console.log('Filtrando por período:', period);
+        console.log('Usuario actual:', currentUser);
+
+        // Obtener datos filtrados
+        const chartData = this.getClientWasteTypeChartData(currentUser, period);
+        
+        console.log('Datos del gráfico:', chartData);
+        
+        // Actualizar el gráfico
+        if (this.chartInstances.clientWasteType) {
+            this.chartInstances.clientWasteType.destroy();
+            delete this.chartInstances.clientWasteType;
+        }
+        
+        // Crear nuevo gráfico con los datos filtrados
+        this.initClientWasteChartWithPeriod(currentUser, period);
+        
+        // Actualizar estadísticas con los datos filtrados
+        this.renderClientWasteTypeStats(chartData.stats, chartData.noDataMessage);
+
+        // Mostrar notificación del filtro aplicado
+        const periodLabels = {
+            'today': 'Hoy',
+            'week': 'Esta semana',
+            'month': 'Este mes',
+            'year': 'Este año',
+            'all': 'Todos los períodos'
+        };
+        
+        authSystem?.showNotification?.(`Filtro aplicado: ${periodLabels[period]}`, 'info');
     }
 };
