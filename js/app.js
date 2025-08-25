@@ -132,7 +132,7 @@ class WasteManagementApp {
             menuConfig = [
                 {icon: 'fas fa-home', label: 'home', module: 'dashboard'},
                 {icon: 'fas fa-truck', label: 'my-services', module: 'my-services'},
-                {icon: 'fas fa-file-invoice-dollar', label: 'invoices', module: 'invoices'}
+                {icon: 'fas fa-file-invoice-dollar', label: 'documents', module: 'invoices'}
             ];
         }
 
@@ -347,8 +347,8 @@ class WasteManagementApp {
         
         contentArea.innerHTML = `
             <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">Mis Facturas</h1>
-                <p class="text-gray-600">Historial de facturación y estado de pagos</p>
+                <h1 class="text-3xl font-bold text-gray-800">Mis Documentos</h1>
+                <p class="text-gray-600">Historial de facturas, guías de manifiesto y documentos de recepción</p>
             </div>
 
 
@@ -357,6 +357,15 @@ class WasteManagementApp {
             <div class="bg-white p-4 rounded-lg shadow mb-6">
                 <div class="flex flex-wrap gap-4 items-center">
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Documento</label>
+                        <select id="document-type-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">Todos</option>
+                            <option value="Factura">Facturas</option>
+                            <option value="Guía de Manifiesto">Guías de Manifiesto</option>
+                            <option value="Documento de Recepción">Documentos de Recepción</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                         <select id="invoice-status-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
                             <option value="">Todos</option>
@@ -364,6 +373,8 @@ class WasteManagementApp {
                             <option value="Pagada">Pagada</option>
                             <option value="Vencida">Vencida</option>
                             <option value="Cancelada">Cancelada</option>
+                            <option value="Generado">Generado</option>
+                            <option value="Entregado">Entregado</option>
                         </select>
                     </div>
                     <div>
@@ -387,17 +398,18 @@ class WasteManagementApp {
                 </div>
             </div>
 
-            <!-- Lista de facturas -->
+            <!-- Lista de documentos -->
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Factura</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Documento</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Servicio</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimiento</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                             </tr>
                         </thead>
@@ -409,8 +421,8 @@ class WasteManagementApp {
                 ${clientInvoices.length === 0 ? `
                     <div class="text-center py-12">
                         <i class="fas fa-file-invoice-dollar text-6xl text-gray-300 mb-4"></i>
-                        <h3 class="text-xl font-medium text-gray-900 mb-2">No hay facturas registradas</h3>
-                        <p class="text-gray-500 mb-6">Las facturas aparecerán aquí una vez que complete servicios.</p>
+                        <h3 class="text-xl font-medium text-gray-900 mb-2">No hay documentos registrados</h3>
+                        <p class="text-gray-500 mb-6">Los documentos aparecerán aquí una vez que complete servicios.</p>
                         <button onclick="app.loadModule('new-service')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
                             <i class="fas fa-plus mr-2"></i>Solicitar Servicio
                         </button>
@@ -1632,11 +1644,11 @@ class WasteManagementApp {
 
     // ========= MÉTODOS PARA "FACTURAS" (CLIENTES) =========
     getClientInvoices(clientId) {
-        // Simular facturas basadas en servicios completados del cliente
+        // Simular facturas y documentos basados en servicios completados del cliente
         const clientServices = this.getClientServices(clientId);
-        const invoices = [];
+        const documents = [];
         
-        // Crear facturas para servicios completados y algunos en proceso
+        // Crear facturas y documentos para servicios completados y algunos en proceso
         clientServices.forEach((service, index) => {
             if (['Completado', 'Programado', 'En Proceso'].includes(service.status)) {
                 const invoiceDate = new Date(service.requestedDate);
@@ -1655,22 +1667,66 @@ class WasteManagementApp {
                     status = 'Vencida';
                 }
 
-                invoices.push({
+                // Factura principal
+                documents.push({
                     id: `FAC-${(1000 + index).toString()}`,
                     serviceId: service.id,
                     clientId: clientId,
-                    invoiceDate: invoiceDate.toISOString().split('T')[0],
+                    documentDate: invoiceDate.toISOString().split('T')[0],
                     dueDate: dueDate.toISOString().split('T')[0],
                     amount: amount,
                     status: status,
+                    documentType: 'Factura',
                     serviceDescription: `${service.wasteType} - ${service.estimatedVolume} ${service.volumeUnit}`,
                     paymentMethod: status === 'Pagada' ? ['Transferencia', 'Efectivo', 'Cheque'][Math.floor(Math.random() * 3)] : null,
                     paidDate: status === 'Pagada' ? new Date(dueDate.getTime() - Math.random() * 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null
                 });
+
+                // Guía de Manifiesto (si el servicio está en proceso o completado)
+                if (['En Proceso', 'Completado'].includes(service.status)) {
+                    const manifestDate = new Date(service.requestedDate);
+                    manifestDate.setDate(manifestDate.getDate() + (service.status === 'Completado' ? 1 : -1));
+                    
+                    documents.push({
+                        id: `MAN-${(2000 + index).toString()}`,
+                        serviceId: service.id,
+                        clientId: clientId,
+                        documentDate: manifestDate.toISOString().split('T')[0],
+                        dueDate: null,
+                        amount: null,
+                        status: 'Generado',
+                        documentType: 'Guía de Manifiesto',
+                        serviceDescription: `${service.wasteType} - ${service.estimatedVolume} ${service.volumeUnit}`,
+                        paymentMethod: null,
+                        paidDate: null,
+                        manifestNumber: `MAN-${String(service.id).padStart(3, '0')}-${new Date().getFullYear()}`
+                    });
+                }
+
+                // Documento de Recepción (solo para servicios completados)
+                if (service.status === 'Completado') {
+                    const receptionDate = new Date(service.requestedDate);
+                    receptionDate.setDate(receptionDate.getDate() + 2);
+                    
+                    documents.push({
+                        id: `REC-${(3000 + index).toString()}`,
+                        serviceId: service.id,
+                        clientId: clientId,
+                        documentDate: receptionDate.toISOString().split('T')[0],
+                        dueDate: null,
+                        amount: null,
+                        status: 'Entregado',
+                        documentType: 'Documento de Recepción',
+                        serviceDescription: `${service.wasteType} - ${service.estimatedVolume} ${service.volumeUnit}`,
+                        paymentMethod: null,
+                        paidDate: null,
+                        receptionNumber: `REC-${String(service.id).padStart(3, '0')}-${new Date().getFullYear()}`
+                    });
+                }
             }
         });
         
-        return invoices.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+        return documents.sort((a, b) => new Date(b.documentDate) - new Date(a.documentDate));
     }
 
     calculateServiceAmount(service) {
@@ -1699,44 +1755,81 @@ class WasteManagementApp {
 
 
 
-    renderInvoicesTable(invoices) {
-        if (invoices.length === 0) return '';
+    renderInvoicesTable(documents) {
+        if (documents.length === 0) return '';
 
-        return invoices.map(invoice => `
+        return documents.map(document => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div>
-                        <div class="text-sm font-medium text-gray-900">${invoice.id}</div>
-                        <div class="text-xs text-gray-500">Servicio #${String(invoice.serviceId).padStart(3, '0')}</div>
+                        <div class="text-sm font-medium text-gray-900">${document.id}</div>
+                        <div class="text-xs text-gray-500">Servicio #${String(document.serviceId).padStart(3, '0')}</div>
+                        ${document.manifestNumber ? `<div class="text-xs text-blue-600">${document.manifestNumber}</div>` : ''}
+                        ${document.receptionNumber ? `<div class="text-xs text-green-600">${document.receptionNumber}</div>` : ''}
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${this.formatDate(invoice.invoiceDate)}
-                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${invoice.serviceDescription}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">$${this.formatCurrency(invoice.amount)}</div>
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getDocumentTypeClass(document.documentType)}">
+                        ${document.documentType}
+                    </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${this.formatDate(invoice.dueDate)}
-                    ${this.isOverdue(invoice.dueDate) && invoice.status !== 'Pagada' ? 
-                        '<div class="text-xs text-red-600 font-medium">¡Vencida!</div>' : ''
+                    ${this.formatDate(document.documentDate)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${document.serviceDescription}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${document.amount ? 
+                        `<div class="text-sm font-medium text-gray-900">$${this.formatCurrency(document.amount)}</div>` :
+                        '<div class="text-sm text-gray-500">—</div>'
+                    }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getDocumentStatusClass(document.status)}">
+                        ${document.status}
+                    </span>
+                    ${document.dueDate && this.isOverdue(document.dueDate) && document.status !== 'Pagada' ? 
+                        '<div class="text-xs text-red-600 font-medium mt-1">¡Vencida!</div>' : ''
                     }
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onclick="app.viewInvoiceDetails('${invoice.id}')" 
+                    <button onclick="app.viewDocumentDetails('${document.id}')" 
                             class="text-blue-600 hover:text-blue-900 mr-3" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button onclick="app.printInvoice('${invoice.id}')" 
-                            class="text-purple-600 hover:text-purple-900" title="Imprimir factura">
+                    <button onclick="app.printDocument('${document.id}')" 
+                            class="text-purple-600 hover:text-purple-900 mr-3" title="Imprimir documento">
                         <i class="fas fa-print"></i>
+                    </button>
+                    <button onclick="app.downloadDocument('${document.id}')" 
+                            class="text-green-600 hover:text-green-900" title="Descargar">
+                        <i class="fas fa-download"></i>
                     </button>
                 </td>
             </tr>
         `).join('');
+    }
+
+    getDocumentTypeClass(type) {
+        const classes = {
+            'Factura': 'bg-blue-100 text-blue-800',
+            'Guía de Manifiesto': 'bg-purple-100 text-purple-800',
+            'Documento de Recepción': 'bg-green-100 text-green-800'
+        };
+        return classes[type] || 'bg-gray-100 text-gray-800';
+    }
+
+    getDocumentStatusClass(status) {
+        const classes = {
+            'Pendiente': 'bg-yellow-100 text-yellow-800',
+            'Pagada': 'bg-green-100 text-green-800',
+            'Vencida': 'bg-red-100 text-red-800',
+            'Cancelada': 'bg-gray-100 text-gray-800',
+            'Generado': 'bg-blue-100 text-blue-800',
+            'Entregado': 'bg-green-100 text-green-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
     }
 
     getInvoiceStatusClass(status) {
@@ -1760,19 +1853,25 @@ class WasteManagementApp {
         return new Date() > new Date(dueDate);
     }
 
-    // Filtros para facturas
+    // Filtros para documentos
     applyInvoiceFilters() {
+        const typeFilter = document.getElementById('document-type-filter')?.value || '';
         const statusFilter = document.getElementById('invoice-status-filter')?.value || '';
         const periodFilter = document.getElementById('invoice-period-filter')?.value || '';
         
         const currentUser = this.currentUser;
         if (!currentUser) return;
 
-        let invoices = this.getClientInvoices(currentUser.id);
+        let documents = this.getClientInvoices(currentUser.id);
+
+        // Aplicar filtro de tipo de documento
+        if (typeFilter) {
+            documents = documents.filter(doc => doc.documentType === typeFilter);
+        }
 
         // Aplicar filtro de estado
         if (statusFilter) {
-            invoices = invoices.filter(inv => inv.status === statusFilter);
+            documents = documents.filter(doc => doc.status === statusFilter);
         }
 
         // Aplicar filtro de período
@@ -1780,32 +1879,32 @@ class WasteManagementApp {
             const days = parseInt(periodFilter);
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - days);
-            invoices = invoices.filter(inv => new Date(inv.invoiceDate) >= cutoffDate);
+            documents = documents.filter(doc => new Date(doc.documentDate) >= cutoffDate);
         }
 
         // Actualizar tabla
         const tbody = document.getElementById('invoices-table-body');
         if (tbody) {
-            tbody.innerHTML = this.renderInvoicesTable(invoices);
+            tbody.innerHTML = this.renderInvoicesTable(documents);
         }
 
-        authSystem?.showNotification?.(`Se encontraron ${invoices.length} facturas`, 'info');
+        authSystem?.showNotification?.(`Se encontraron ${documents.length} documentos`, 'info');
     }
 
-    // Acciones de facturas
-    viewInvoiceDetails(invoiceId) {
+    // Acciones de documentos
+    viewDocumentDetails(documentId) {
         const currentUser = this.currentUser;
-        const invoices = this.getClientInvoices(currentUser.id);
-        const invoice = invoices.find(inv => inv.id === invoiceId);
+        const documents = this.getClientInvoices(currentUser.id);
+        const document = documents.find(doc => doc.id === documentId);
         
-        if (!invoice) return;
+        if (!document) return;
 
         const modalHTML = `
-            <div id="invoice-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div id="document-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                 <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-full overflow-y-auto">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-gray-900">Detalles de Factura ${invoice.id}</h3>
-                        <button onclick="document.getElementById('invoice-details-modal').remove()" 
+                        <h3 class="text-xl font-bold text-gray-900">Detalles de ${document.documentType} ${document.id}</h3>
+                        <button onclick="document.getElementById('document-details-modal').remove()" 
                                 class="text-gray-400 hover:text-gray-600">
                             <i class="fas fa-times text-xl"></i>
                         </button>
@@ -1813,44 +1912,53 @@ class WasteManagementApp {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <h4 class="font-semibold text-gray-800 mb-3">Información de Factura</h4>
+                            <h4 class="font-semibold text-gray-800 mb-3">Información del Documento</h4>
                             <div class="space-y-2 text-sm">
-                                <p><span class="font-medium">Número:</span> ${invoice.id}</p>
-                                <p><span class="font-medium">Fecha de emisión:</span> ${this.formatDate(invoice.invoiceDate)}</p>
-                                <p><span class="font-medium">Fecha de vencimiento:</span> ${this.formatDate(invoice.dueDate)}</p>
-                                <p><span class="font-medium">Estado:</span> 
-                                    <span class="px-2 py-1 text-xs rounded-full ${this.getInvoiceStatusClass(invoice.status)}">
-                                        ${invoice.status}
+                                <p><span class="font-medium">Número:</span> ${document.id}</p>
+                                <p><span class="font-medium">Tipo:</span> 
+                                    <span class="px-2 py-1 text-xs rounded-full ${this.getDocumentTypeClass(document.documentType)}">
+                                        ${document.documentType}
                                     </span>
                                 </p>
-                                ${invoice.paidDate ? `<p><span class="font-medium">Fecha de pago:</span> ${this.formatDate(invoice.paidDate)}</p>` : ''}
-                                ${invoice.paymentMethod ? `<p><span class="font-medium">Método de pago:</span> ${invoice.paymentMethod}</p>` : ''}
+                                <p><span class="font-medium">Fecha de emisión:</span> ${this.formatDate(document.documentDate)}</p>
+                                ${document.dueDate ? `<p><span class="font-medium">Fecha de vencimiento:</span> ${this.formatDate(document.dueDate)}</p>` : ''}
+                                <p><span class="font-medium">Estado:</span> 
+                                    <span class="px-2 py-1 text-xs rounded-full ${this.getDocumentStatusClass(document.status)}">
+                                        ${document.status}
+                                    </span>
+                                </p>
+                                ${document.paidDate ? `<p><span class="font-medium">Fecha de pago:</span> ${this.formatDate(document.paidDate)}</p>` : ''}
+                                ${document.paymentMethod ? `<p><span class="font-medium">Método de pago:</span> ${document.paymentMethod}</p>` : ''}
+                                ${document.manifestNumber ? `<p><span class="font-medium">Número de Manifiesto:</span> ${document.manifestNumber}</p>` : ''}
+                                ${document.receptionNumber ? `<p><span class="font-medium">Número de Recepción:</span> ${document.receptionNumber}</p>` : ''}
                             </div>
                         </div>
 
                         <div>
                             <h4 class="font-semibold text-gray-800 mb-3">Detalles del Servicio</h4>
                             <div class="space-y-2 text-sm">
-                                <p><span class="font-medium">Servicio #:</span> ${String(invoice.serviceId).padStart(3, '0')}</p>
-                                <p><span class="font-medium">Descripción:</span> ${invoice.serviceDescription}</p>
+                                <p><span class="font-medium">Servicio #:</span> ${String(document.serviceId).padStart(3, '0')}</p>
+                                <p><span class="font-medium">Descripción:</span> ${document.serviceDescription}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-6 pt-6 border-t">
-                        <div class="flex justify-between items-center text-lg">
-                            <span class="font-semibold">Total a pagar:</span>
-                            <span class="font-bold text-2xl text-blue-600">$${this.formatCurrency(invoice.amount)}</span>
+                    ${document.amount ? `
+                        <div class="mt-6 pt-6 border-t">
+                            <div class="flex justify-between items-center text-lg">
+                                <span class="font-semibold">Total a pagar:</span>
+                                <span class="font-bold text-2xl text-blue-600">$${this.formatCurrency(document.amount)}</span>
+                            </div>
                         </div>
-                    </div>
+                    ` : ''}
 
                     <div class="mt-6 flex justify-end space-x-3">
-                        <button onclick="app.downloadInvoicePDF('${invoice.id}')" 
+                        <button onclick="app.downloadDocumentPDF('${document.id}')" 
                                 class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                             <i class="fas fa-download mr-2"></i>Descargar PDF
                         </button>
-                        ${invoice.status !== 'Pagada' ? `
-                            <button onclick="app.payInvoice('${invoice.id}'); document.getElementById('invoice-details-modal').remove();" 
+                        ${document.documentType === 'Factura' && document.status !== 'Pagada' ? `
+                            <button onclick="app.payDocument('${document.id}'); document.getElementById('document-details-modal').remove();" 
                                     class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                                 <i class="fas fa-credit-card mr-2"></i>Reportar Pago
                             </button>
@@ -1861,6 +1969,44 @@ class WasteManagementApp {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    downloadDocumentPDF(documentId) {
+        // Simular descarga de PDF
+        authSystem?.showNotification?.(`Descargando documento ${documentId}...`, 'info');
+        
+        setTimeout(() => {
+            authSystem?.showNotification?.(`Documento ${documentId} descargado exitosamente`, 'success');
+        }, 2000);
+    }
+
+    downloadDocument(documentId) {
+        // Simular descarga de documento
+        authSystem?.showNotification?.(`Descargando documento ${documentId}...`, 'info');
+        
+        setTimeout(() => {
+            authSystem?.showNotification?.(`Documento ${documentId} descargado exitosamente`, 'success');
+        }, 2000);
+    }
+
+    printDocument(documentId) {
+        // Simular impresión de documento
+        authSystem?.showNotification?.(`Imprimiendo documento ${documentId}...`, 'info');
+        
+        setTimeout(() => {
+            authSystem?.showNotification?.(`Documento ${documentId} enviado a impresión`, 'success');
+        }, 2000);
+    }
+
+    payDocument(documentId) {
+        if (confirm('¿Confirma que ha realizado el pago de este documento?')) {
+            authSystem?.showNotification?.('Pago reportado. Se verificará en 24-48 horas.', 'success');
+            
+            // Aquí podrías actualizar el estado en una base de datos real
+            setTimeout(() => {
+                this.loadInvoices(); // Recargar para mostrar cambios
+            }, 1000);
+        }
     }
 
     downloadInvoicePDF(invoiceId) {
